@@ -1,0 +1,46 @@
+# ===================================================================
+# NovaInsight Agent Configuration (v3)
+# ===================================================================
+
+# -------------------------------------------------------------------
+# General & Analysis Settings
+# -------------------------------------------------------------------
+general:
+  debug: false
+  log_level: INFO
+
+analysis:
+  default_mode: full
+  fast_mode_sample_rows: 5000
+
+  output:
+    default_directory: "."
+
+# -------------------------------------------------------------------
+# Cache & Persistence Settings
+# -------------------------------------------------------------------
+cache:
+  enabled: true
+  directory_path: "~/.novainsight_cache"
+
+# -------------------------------------------------------------------
+# Module Settings (Target Detection, Statistics, etc.)
+# -------------------------------------------------------------------
+target_detection:
+  max_categorical_cardinality: 50
+  id_uniqueness_threshold: 0.99
+
+statistics:
+  outlier_zscore_threshold: 3.0
+  multicollinearity_vif_threshold: 5.0
+
+visualization:
+  dpi: 300
+  theme: 'whitegrid'
+  color_palette: 'mako'
+
+llm:
+  provider: google
+  model_name: "gemini-1.5-flash-latest"
+  temperature: 0.3
+  max_tokens: 2048
