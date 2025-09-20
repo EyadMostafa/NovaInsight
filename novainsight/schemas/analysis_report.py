@@ -8,6 +8,8 @@ the analysis pipeline, with each module enriching its designated section.
 
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
+from pathlib import Path
+from datetime import datetime, timezone
 
 # ===================================================================
 # Section 1: Metadata & Core Profiling Schemas
@@ -15,10 +17,11 @@ from typing import List, Dict, Any, Optional
 
 class RunMetadata(BaseModel):
     """Contains metadata about the specific analysis run."""
-    input_file: str = Field(..., description="The path to the input dataset.")
+    input_file: str | Path = Field(..., description="The path to the input dataset.")
+    output_dir: str | Path = Field(..., description="The path to the output directory.")
     file_hash: str = Field(..., description="The SHA256 hash of the input file content.")
     report_title: str = Field(..., description="The title for the generated report.")
-    run_timestamp: str = Field(..., description="The ISO 8601 timestamp when the analysis was started.")
+    run_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="The ISO 8601 timestamp when the analysis was started.")
     analysis_mode: str = Field(..., description="The mode of the analysis ('fast' or 'full').")
 
 class DatasetStats(BaseModel):
@@ -151,4 +154,5 @@ class AnalysisReport(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+        allow_mutation = True
 
