@@ -9,6 +9,7 @@ output directories are valid and writable.
 
 import os
 from pathlib import Path
+from typing import Tuple
 
 def validate_file_path(
         file_path: str
@@ -29,7 +30,7 @@ def validate_file_path(
 
             return p
 
-def validate_directory(path_str: str) -> Path:
+def validate_directory(path_str: str) -> Tuple[bool, message, Path]:
     """
     Validates a path intended to be a directory, ensuring it can be written to.
     If the directory does not exist, it attempts to create it.
@@ -39,10 +40,10 @@ def validate_directory(path_str: str) -> Path:
         p.mkdir(parents=True, exist_ok=True)
 
         logger.debug(f"Directory is valid and ready at: {p}")
-        return p
+        return True, _, p
     except FileExistsError:
-        raise FileExistsError(f"Error: The directory '{path_str}' cannot be created because a file with the same name exists in its path.")
+        return False, f"The directory '{path_str}' cannot be created because a file with the same name exists in its path.", path_str
     except PermissionError:
-            raise PermissionError(f"Error: Do not have write permissions to create the directory at '{path_str}'.")
+        return False, f"Do not have write permissions to create the directory at '{path_str}'.", path_str
     except Exception as e:
-            raise Exception(f"An unexpected error occurred while validating the output path: {e}")
+        return False, f"An unexpected error occurred while validating the directory: {e}", path_str

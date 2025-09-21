@@ -1,7 +1,17 @@
+import pandas as pd
 from logging import getLogger
 from pathlib import Path
 from typing import List, Set
+from novainsight.core.data_profiler import DataProfiler
+from novainsight.core.target_detector import TargetDetector
+from novainsight.core.statistical_analyzer import StatisticalAnalyzer
+from novainsight.core.dimensionality_reducer import DimensionalityReducer
+from novainsight.core.visualizer import Visualizer
+from novainsight.core.llm_summarizer import LLMSummarizer
+from novainsight.core.recommender import Recommender
+from novainsight.core.recommender import Recommender
 from novainsight.schemas.analysis_report import AnalysisReport, RunMetadata
+from novainsight.utils.report_generator import ReportGenerator
 from novainsight.utils.cache_manager import CacheManager
 from novainsight.utils.validators import (validate_file_path, validate_directory)
 
@@ -21,6 +31,17 @@ class AnalysisPipeline:
         'recommendations': ['llm'],                 # recommendations --> llm --> stats --> target --> profiler
         'report': ['recommendations', 'viz']        # report --> recommendations --> llm --> viz --> dim_reduction --> stats --> target --> profiler
     }
+
+    MODULES = {
+        'profiler': DataProfiler(),
+        'target': TargetDetector(),
+        'stats': StatisticalAnalyzer(),
+        'dim_reduction': DimensionalityReducer(),
+        'viz': Visualizer(),
+        'llm': LLMSummarizer(),
+        'recommendations': Recommender(),
+        'report': ReportGenerator()
+    }
     
     EXECUTION_ORDER = [
         'profiler', 'target', 'stats', 'dim_reduction', 
@@ -32,7 +53,7 @@ class AnalysisPipeline:
     def __init__(
         self,
         file_path: Path,
-        config: AnalysisSettings,
+        config: NovaInsightConfig,
         output_dir: Path | None = None,
         requested_modules: List[str] | None = None,
         force_rerun: bool = False,
@@ -43,14 +64,15 @@ class AnalysisPipeline:
         """Initializes the pipeline with all necessary context from the CLI."""
         self.file_path = file_path
         self.config = config
-        self.output_dir = output_dir or self.config.output.default_directory
+        self.output_dir = output_dir or self.confi.analysis.output.default_directory
         self.force_rerun = force_rerun
         self.user_target = user_target
-        self.analysis_mode = analysis_mode or self.config.default_mode
+        self.analysis_mode = analysis_mode or self.config.analysis.default_mode
         self.report_title = report_title
         
         # self.cache_manager = CacheManager(config.cache)
         self.report: AnalysisReport | None = None
+        self.df pd.DataFrame | None = None
         
         modules_to_resolve = requested_modules or ['report']
         self.execution_plan = self._resolve_execution_plan(modules_to_resolve)
@@ -89,8 +111,14 @@ class AnalysisPipeline:
         Handles loading the dataset and creating the AnalysisReport object,
         either by creating a new one or loading a cached version.
         """
+        # TO-DO: 
+        # 1. Check for report existence in cache
+        # 2. Use existing report if exists else create new 
+        # 3. create a DataFrame of the dataset
         input_path = self.validate_file_path(self.file_path)
-        output_dir = self.validate_directory(self.output_dir)
+        is_valid, message, output_dir = self.validate_directory(self.output_dir)
+        if not is_valid:
+            raise Exception(f"Fatal Error: output directory failed to resolve:{message}")
         file_hash = self.cache_manager.hash_file(input_path)
         if not self.report_title:
             self.report_title = f"{str(input_path.stem).strip().replace("_", " ").replace("-", " ").title()} Analysis"
@@ -106,6 +134,7 @@ class AnalysisPipeline:
         self.analysis_report = AnalysisReport(
             metadata=metadata
         )
+
 
 
     def _run_analytical_modules(self):
