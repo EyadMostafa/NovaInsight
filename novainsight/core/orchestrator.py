@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import pandas as pd
 from logging import getLogger
 from pathlib import Path
 from typing import List, Set
+from novainsight.config.config import NovaInsightConfig
 from novainsight.core.data_profiler import DataProfiler
 from novainsight.core.target_detector import TargetDetector
 from novainsight.core.statistical_analyzer import StatisticalAnalyzer
@@ -72,7 +75,7 @@ class AnalysisPipeline:
         
         # self.cache_manager = CacheManager(config.cache)
         self.report: AnalysisReport | None = None
-        self.df pd.DataFrame | None = None
+        self.df: pd.DataFrame | None = None
         
         modules_to_resolve = requested_modules or ['report']
         self.execution_plan = self._resolve_execution_plan(modules_to_resolve)
@@ -96,7 +99,7 @@ class AnalysisPipeline:
                 logger.warning(f"Unknown module '{module_name}' requested. Ignoring.")
                 return
             final_modules.add(module_name)
-            for dep in self.DEPENDENCY_GRAPH.get(module_name, [])
+            for dep in self.DEPENDENCY_GRAPH.get(module_name, []):
                 find_deps(dep)
 
         for module in requested:

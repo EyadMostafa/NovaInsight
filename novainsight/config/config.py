@@ -9,19 +9,22 @@ The loading priority is as follows (each level overrides the one below it):
 2. config.yaml - Project-specific, shared settings
 3. Pydantic Model Defaults - Hardcoded, safe fallbacks
 """
+from __future__ import annotations
+
 import os
 import yaml
 from pathlib import Path
 from pydantic import BaseModel, Field, ValidationError
 from dotenv import load_dotenv
-from logging import getLogger
-from typing import Dict, Any
+import logging 
 
 # --- INITIAL SETUP ---
+
 load_dotenv()
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 # --- HELPER FUNCTIONS ---
+
 def get_project_root() -> Path:
     """Returns the absolute path to the project's root directory."""
     return Path(__file__).parent.parent
@@ -120,7 +123,7 @@ def load_config(path: str | Path | None = None) -> NovaInsightConfig:
     Loads configuration from YAML and environment variables, providing defaults for missing values.
     """
     config_path = Path(path) if path else get_project_root() / "config/config.yaml"
-    final_config_dict = NovaInsightConfig().dict()
+    final_config_dict = NovaInsightConfig().model_dump()
     # A temporary, basic logger to catch early messages logged before logger initialization via setup_logging.
     logging.basicConfig(level=logging.INFO, format="[%(levelname)s] [%(name)s] %(message)s")
 
