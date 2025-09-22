@@ -19,13 +19,16 @@ def validate_file_path(file_path: str) -> Path:
     """
     Validates a file path based on existence, type, permissions, and extension.
     """
-    p = Path(file_path)
+    p = Path(file_path).expanduser().resolve()
     if not p.exists():
-        raise FileNotFoundError(f"Error: The path '{p}' does not exist.")
+        raise FileNotFoundError(f"Input file not found at the specified path: {p}")
+
     if not p.is_file():
-        raise ValueError(f"Error: The provided path '{p}' points to a directory, not a file.")
+        raise ValueError(f"The provided path points to a directory, not a file: {p}")
+
     if not os.access(p, os.R_OK):
-        raise PermissionError(f"Error: Do not have read permissions for the file '{p}'.")
+        raise PermissionError(f"Read access denied for the file: {p}")
+    
     return p
 
 def validate_directory(path_str: str) -> Tuple[bool, str, Path | str]:
@@ -40,8 +43,8 @@ def validate_directory(path_str: str) -> Tuple[bool, str, Path | str]:
         logger.debug(f"Directory is valid and ready at: {p}")
         return True, "", p
     except FileExistsError:
-        return False, f"The directory '{path_str}' cannot be created because a file with the same name exists in its path.", ""
+        return False, f"Directory '{path_str}' cannot be created because a file with the same name exists: {path_str}", ""
     except PermissionError:
-        return False, f"Do not have write permissions to create the directory at '{path_str}'.", ""
+        return False, f"Write access denied for the output directory: {path_str}", ""
     except Exception as e:
-        return False, f"An unexpected error occurred while validating the directory: {e}", ""
+        return False, f"An unexpected OS error occurred while creating the directory: {path_str}: {e}", ""
