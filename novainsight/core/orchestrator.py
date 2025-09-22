@@ -12,7 +12,6 @@ from novainsight.core.dimensionality_reducer import DimensionalityReducer
 from novainsight.core.visualizer import Visualizer
 from novainsight.core.llm_summarizer import LLMSummarizer
 from novainsight.core.recommender import Recommender
-from novainsight.core.recommender import Recommender
 from novainsight.schemas.analysis_report import AnalysisReport, RunMetadata
 from novainsight.utils.report_generator import ReportGenerator
 from novainsight.utils.cache_manager import CacheManager
@@ -67,13 +66,13 @@ class AnalysisPipeline:
         """Initializes the pipeline with all necessary context from the CLI."""
         self.file_path = file_path
         self.config = config
-        self.output_dir = output_dir or self.confi.analysis.output.default_directory
+        self.output_dir = output_dir or self.config.analysis.output.default_directory
         self.force_rerun = force_rerun
         self.user_target = user_target
         self.analysis_mode = analysis_mode or self.config.analysis.default_mode
         self.report_title = report_title
         
-        # self.cache_manager = CacheManager(config.cache)
+        self.cache_manager = CacheManager(config.cache)
         self.report: AnalysisReport | None = None
         self.df: pd.DataFrame | None = None
         
@@ -111,35 +110,59 @@ class AnalysisPipeline:
 
     def _initialize_report_and_data(self):
         """
-        Handles loading the dataset and creating the AnalysisReport object,
-        either by creating a new one or loading a cached version.
+        Validates paths, loads the dataset,
+        and initializes the AnalysisReport object from cache or from scratch.
         """
-        # TO-DO: 
-        # 1. Check for report existence in cache
-        # 2. Use existing report if exists else create new 
-        # 3. create a DataFrame of the dataset
-        input_path = self.validate_file_path(self.file_path)
-        is_valid, message, output_dir = self.validate_directory(self.output_dir)
+        self.file_path = validate_file_path(self.file_path)
+        if self.file_path.suffix.lower() not in self.SUPPORTED_FILE_EXTENSIONS:
+            raise ValueError(f"Fatal Error: Unsupported file extension. Supported extensions are: {','.join(self.SUPPORTED_FILE_EXTENSIONS)}") 
+
+        is_valid, message, resolved_path = validate_directory(self.output_dir)
         if not is_valid:
-            raise Exception(f"Fatal Error: output directory failed to resolve:{message}")
-        file_hash = self.cache_manager.hash_file(input_path)
-        if not self.report_title:
-            self.report_title = f"{str(input_path.stem).strip().replace("_", " ").replace("-", " ").title()} Analysis"
+            raise IOError(f"Invalid output directory specified. Reason: {message}")
+        self.output_dir = resolved_path
+        
+        file_hash = self.cache_manager.hash_file(self.file_path)
 
-        metadata = RunMetadata(
-            input_file=input_path,
-            output_dir=output_dir,
-            file_hash=file_hash,
-            report_title=self.report_title,
-            analysis_mode=self.analysis_mode,
-        )
+        if self.force_rerun:
+            logger.info("Force rerun requested. Clearing any existing cache.")
+            self.cache_manager.clear_workspace(file_hash)
+            self.report = None
+        else:
+            self.report = self.cache_manager.load_report(file_hash)
 
-        self.analysis_report = AnalysisReport(
-            metadata=metadata
-        )
+        if not self.report:
+            logger.info("No valid cache found. Initializing a new analysis report.")
+            
+            if not self.report_title:
+                clean_stem = str(self.file_path.stem).replace("_", " ").replace("-", " ")
+                self.report_title = f"{clean_stem.title()} Analysis"
 
+            metadata = RunMetadata(
+                input_file=self.file_path,
+                output_dir=self.output_dir,
+                file_hash=file_hash,
+                report_title=self.report_title,
+                analysis_mode=self.analysis_mode,
+            )
+            self.report = AnalysisReport(metadata=metadata)
 
+        logger.info(f"Loading data in '{self.analysis_mode}' mode.")
+        file_extension = self.file_path.suffix.lower()
+        
+        try:
+            if file_extension == '.csv':
+                self.df = pd.read_csv(self.file_path)
+            elif file_extension in ['.xlsx', '.xls']:
+                self.df = pd.read_excel(self.file_path)
 
+            if self.analysis_mode == 'fast':
+                self.df = self.df.sample(self.config.analysis.fast_mode_sample_rows)
+            
+            logger.info(f"Successfully loaded DataFrame in {self.analysis_mode} analysis mode with shape: {self.df.shape}")
+        except Exception as e:
+            raise IOError(f"Failed to read the data file at {self.file_path}. Reason: {e}")
+        
     def _run_analytical_modules(self):
         """
         Iterates through the execution plan and runs each analytical module
