@@ -13,7 +13,7 @@ from novainsight.core.visualizer import Visualizer
 from novainsight.core.llm_summarizer import LLMSummarizer
 from novainsight.core.recommender import Recommender
 from novainsight.schemas.analysis_report import AnalysisReport, RunMetadata
-from novainsight.utils.report_generator import ReportGenerator
+from novainsight.core.report_generator import ReportGenerator
 from novainsight.utils.cache_manager import CacheManager
 from novainsight.utils.validators import (validate_file_path, validate_directory)
 
@@ -61,7 +61,8 @@ class AnalysisPipeline:
         force_rerun: bool = False,
         user_target: str | None = None,
         analysis_mode: str | None = None,
-        report_title: str | None = None
+        report_title: str | None = None,
+        task: str = 'supervised'
     ):
         """Initializes the pipeline with all necessary context from the CLI."""
         self.file_path = file_path
@@ -71,6 +72,7 @@ class AnalysisPipeline:
         self.user_target = user_target
         self.analysis_mode = analysis_mode or self.config.analysis.default_mode
         self.report_title = report_title
+        self.task = task
         
         self.cache_manager = CacheManager(config.cache)
         self.report: AnalysisReport | None = None
@@ -105,6 +107,10 @@ class AnalysisPipeline:
             find_deps(module)
         
         sorted_plan = sorted(list(final_modules), key=self.EXECUTION_ORDER.index)
+
+        if self.task == 'unsupervised' and 'target' in sorted_plan:
+            sorted_plan.remove('target')
+            
         logger.info(f"Execution plan resolved: {sorted_plan}")
         return sorted_plan
 
@@ -144,6 +150,7 @@ class AnalysisPipeline:
                 file_hash=file_hash,
                 report_title=self.report_title,
                 analysis_mode=self.analysis_mode,
+                task=self.task
             )
             self.report = AnalysisReport(metadata=metadata)
 

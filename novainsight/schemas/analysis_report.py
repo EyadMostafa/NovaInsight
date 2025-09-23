@@ -7,7 +7,7 @@ the analysis pipeline, with each module enriching its designated section.
 """
 
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -22,7 +22,8 @@ class RunMetadata(BaseModel):
     file_hash: str = Field(..., description="The SHA256 hash of the input file content.")
     report_title: str = Field(..., description="The title for the generated report.")
     run_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="The ISO 8601 timestamp when the analysis was started.")
-    analysis_mode: str = Field(..., description="The mode of the analysis ('fast' or 'full').")
+    analysis_mode: Literal['full', 'fast'] = Field(..., description="The mode of the analysis ('full' or 'fast').")
+    task: Literal['supervised', 'unsupervised'] = Field(..., description="The task to be performed using the dataset (supervised or unsupervised)")
 
 class DatasetStats(BaseModel):
     """Holds overall summary statistics for the entire dataset."""
