@@ -8,10 +8,11 @@
 general:
   debug: false
   log_level: INFO
+  supress_user_warnings: true
 
 analysis:
   default_mode: full
-  fast_mode_sample_rows: 5000
+  fast_mode_sample_rows: 90
 
   output:
     default_directory: "."
@@ -26,6 +27,19 @@ cache:
 # -------------------------------------------------------------------
 # Module Settings (Target Detection, Statistics, etc.)
 # -------------------------------------------------------------------
+profiler:
+  # Warnings from the profiler are triggered based on the violation of those thresholds
+  # Dataset level
+  duplicate_threshold: 0.10
+  dimensionality_threshold: 0.5
+  total_memory_threshold: 500
+  # Column level
+  missing_value_threshold: 0.20
+  high_cardinality_threshold: 0.90
+  skewness_threshold: 1.0
+  memory_hog_threshold: 0.20
+  max_categorical_cardinality: 50
+
 target_detection:
   max_categorical_cardinality: 50
   id_uniqueness_threshold: 0.99

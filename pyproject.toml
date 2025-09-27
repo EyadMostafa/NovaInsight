@@ -1,0 +1,17 @@
+[project]
+name = "NovaInsight"
+version = "0.1.0"
+
+# --- Optional Dependencies (for testing) ---
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-mock",
+]
+
+[tool.setuptools]
+packages = ["novainsight"]
+
+[tool.pytest.ini_options]
+pythonpath = "."
+

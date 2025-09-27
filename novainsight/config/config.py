@@ -9,19 +9,21 @@ The loading priority is as follows (each level overrides the one below it):
 2. config.yaml - Project-specific, shared settings
 3. Pydantic Model Defaults - Hardcoded, safe fallbacks
 """
+from __future__ import annotations
+
 import os
 import yaml
 from pathlib import Path
 from pydantic import BaseModel, Field, ValidationError
 from dotenv import load_dotenv
-from logging import getLogger
-from typing import Dict, Any
+import logging 
+import warnings
 
-# --- INITIAL SETUP ---
 load_dotenv()
-logger = getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 # --- HELPER FUNCTIONS ---
+
 def get_project_root() -> Path:
     """Returns the absolute path to the project's root directory."""
     return Path(__file__).parent.parent
@@ -40,6 +42,7 @@ def deep_merge(source: dict, destination: dict) -> dict:
 class GeneralSettings(BaseModel):
     debug: bool = Field(False, description="Enable verbose debug logging.")
     log_level: str = Field("INFO", description="Logging level (DEBUG, INFO, WARNING, ERROR).")
+    supress_user_warnings: bool = Field(True, description="Globally supresses all user warnings.")
 
 class OutputSettings(BaseModel):
     default_directory: Path = Field(Path("."), description="Default parent directory for analysis reports.")
@@ -58,6 +61,16 @@ class CacheSettings(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True # Allow Path type
+
+class ProfilerSettings(BaseModel):
+  duplicate_threshold: float = Field(0.10)
+  dimensionality_threshold: float = Field(0.5)
+  total_memory_threshold: float = Field(500)
+  missing_value_threshold: float = Field(0.20)
+  high_cardinality_threshold: float = Field(0.90)
+  skewness_threshold: float = Field(1.0)
+  memory_hog_threshold: float = Field(0.20)
+  max_categorical_cardinality: int = Field(50)
 
 class TargetDetectionSettings(BaseModel):
     max_categorical_cardinality: int = Field(50)
@@ -84,6 +97,7 @@ class NovaInsightConfig(BaseModel):
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     analysis: AnalysisSettings = Field(default_factory=AnalysisSettings)
     cache: CacheSettings = Field(default_factory=CacheSettings)
+    profiler: ProfilerSettings = Field(default_factory=ProfilerSettings)
     target_detection: TargetDetectionSettings = Field(default_factory=TargetDetectionSettings)
     statistics: StatisticsSettings = Field(default_factory=StatisticsSettings)
     visualization: VisualizationSettings = Field(default_factory=VisualizationSettings)
@@ -120,7 +134,7 @@ def load_config(path: str | Path | None = None) -> NovaInsightConfig:
     Loads configuration from YAML and environment variables, providing defaults for missing values.
     """
     config_path = Path(path) if path else get_project_root() / "config/config.yaml"
-    final_config_dict = NovaInsightConfig().dict()
+    final_config_dict = NovaInsightConfig().model_dump()
     # A temporary, basic logger to catch early messages logged before logger initialization via setup_logging.
     logging.basicConfig(level=logging.INFO, format="[%(levelname)s] [%(name)s] %(message)s")
 
@@ -128,7 +142,7 @@ def load_config(path: str | Path | None = None) -> NovaInsightConfig:
         with open(config_path, 'r') as f:
             yaml_config = yaml.safe_load(f)
             if isinstance(yaml_config, dict):
-                final_config_dict = deep_merge(final_config_dict, yaml_config)
+                final_config_dict = deep_merge(yaml_config, final_config_dict)
                 logger.info(f"Loaded configuration from {config_path}")
             else:
                 logger.warning(f"Config file at {config_path} is malformed. Using defaults.")
@@ -142,6 +156,7 @@ def load_config(path: str | Path | None = None) -> NovaInsightConfig:
         "general": {
             "debug": os.getenv("NOVA_INSIGHT_DEBUG"),
             "log_level": os.getenv("NOVA_INSIGHT_LOG_LEVEL"),
+            "supress_user_warnings": os.getenv("NOVA_INSIGHT_SUPRESS_USER_WARNINGS")
         },
         "analysis": {
             "output": {
@@ -156,7 +171,6 @@ def load_config(path: str | Path | None = None) -> NovaInsightConfig:
             "api_key": os.getenv("LLM_API_KEY")
         }
     }
-    
     # Clean up None values so we only override with set env vars
     cleaned_env_vars = {
         k: {k2: v2 for k2, v2 in v.items() if v2 is not None}
@@ -164,11 +178,13 @@ def load_config(path: str | Path | None = None) -> NovaInsightConfig:
     }
     cleaned_env_vars.update({k: v for k, v in env_vars.items() if not isinstance(v, dict) and v is not None})
     
-    final_config_dict = deep_merge(final_config_dict, cleaned_env_vars)
+    final_config_dict = deep_merge(cleaned_env_vars, final_config_dict)
 
     try:
         config = NovaInsightConfig(**final_config_dict)
         setup_logging(config)
+        if config.general.supress_user_warnings:
+            warnings.filterwarnings("ignore", category=UserWarning)
         return config
     except ValidationError as e:
         config = NovaInsightConfig()

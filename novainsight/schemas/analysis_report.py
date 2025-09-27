@@ -7,43 +7,70 @@ the analysis pipeline, with each module enriching its designated section.
 """
 
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
+from pathlib import Path
+from datetime import datetime, timezone
+from enum import Enum, auto
 
 # ===================================================================
 # Section 1: Metadata & Core Profiling Schemas
 # ===================================================================
 
+class Operator(str, Enum):
+    def _generate_next_value_(name, start, count, last_values):
+        return name.lower()
+    
+    PROFILER = auto()
+    TARGET = auto()
+    STATS = auto()
+    DIM_REDUCTION = auto()
+    VIZ = auto()
+    LLM = auto()
+    RECOMMENDATIONS = auto()
+    REPORT = auto()
+
+
 class RunMetadata(BaseModel):
     """Contains metadata about the specific analysis run."""
-    input_file: str = Field(..., description="The path to the input dataset.")
+    input_file: str | Path = Field(..., description="The path to the input dataset.")
+    output_dir: str | Path = Field(..., description="The path to the output directory.")
     file_hash: str = Field(..., description="The SHA256 hash of the input file content.")
     report_title: str = Field(..., description="The title for the generated report.")
-    run_timestamp: str = Field(..., description="The ISO 8601 timestamp when the analysis was started.")
-    analysis_mode: str = Field(..., description="The mode of the analysis ('fast' or 'full').")
+    run_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="The ISO 8601 timestamp when the analysis was started.")
+    analysis_mode: Literal['full', 'fast'] = Field(..., description="The mode of the analysis ('full' or 'fast').")
+    task: Literal['supervised', 'unsupervised'] = Field(..., description="The task to be performed using the dataset (supervised or unsupervised)")
 
 class DatasetStats(BaseModel):
     """Holds overall summary statistics for the entire dataset."""
-    row_count: int
-    column_count: int
-    memory_usage_mb: float
-    duplicate_rows: int
+    original_row_count: int = Field(..., description="Total row count of the entire dataset regardless of analysis mode")
+    row_count: int = Field(..., description="Represents the count of (observations/instances) in sampled dataset incase of 'fast' analysis mode, otherwise it is just the full row count.")
+    column_count: int = Field(..., description="Total number of columns (features) in the dataset.")
+    total_memory_usage_mb: float = Field(..., description="The total memory usage of the entire dataset in megabytes (MB).")
+    duplicate_rows_count: int = Field(..., description="Total count of duplicate rows.")
+    column_pct: float = Field(..., description="Percentage of features with respect to instances")
+    duplicates_pct: float = Field(..., description="Percenteage of duplicates")
 
 class ColumnDetails(BaseModel):
     """A detailed, structured profile for a single column."""
-    column_name: str
+    column_name: str = Field(..., description="The name of the column.")
     inferred_type: str = Field(..., description="The high-level inferred type (e.g., 'numeric', 'categorical', 'datetime', 'text', 'id').")
     dtype: str = Field(..., description="The actual pandas dtype (e.g., 'int64', 'float64', 'object').")
-    missing_values: int
-    missing_values_pct: float
-    unique_values: int
-    unique_values_pct: float
+    missing_values_count: int = Field(..., description="The absolute count of missing or null (NaN) values.")
+    missing_values_pct: float = Field(..., description="The percentage of values in the column that are missing.")
+    unique_values_count: int = Field(..., description="The number of distinct, non-null values in the column.")
+    unique_values_pct: float = Field(..., description="The percentage of values in the column that are unique.")
     stats: Dict[str, Any] = Field(..., description="Descriptive statistics (mean, std, etc.) or value counts.")
+    memory_usage_mb: float = Field(..., description="The memory usage of the column in megabytes (MB).")
+
+class Finding(BaseModel):
+    level: Literal['INFO', 'WARNING'] = Field(..., description="Type/Severity of the finding")
+    message: str = Field(..., description="Message describing the finding")
 
 class DatasetProfile(BaseModel):
     """The complete output from the Data Ingestion & Profiling module."""
     dataset_stats: DatasetStats
     column_details: List[ColumnDetails]
-    warnings: List[str] = []
+    findings: Optional[List[Finding]] = Field(description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
 # Section 2: Target Variable Analysis Schemas
@@ -110,6 +137,7 @@ class LLMSummary(BaseModel):
     """Holds the natural language summaries generated by the LLM."""
     executive_summary: str
     dataset_overview: str
+    # consider replacing the following 2 params with a singe findings list
     key_findings_and_patterns: str
     potential_issues_and_warnings: str
 
@@ -125,7 +153,6 @@ class Recommendations(BaseModel):
     feature_engineering_ideas: List[Recommendation]
     modeling_suggestions: List[Recommendation]
     pitfall_warnings: List[Recommendation]
-
 
 # ===================================================================
 # The Top-Level Schema: AnalysisReport
@@ -145,10 +172,10 @@ class AnalysisReport(BaseModel):
     visualizations: Optional[VisualizationOutput] = None
     llm_summary: Optional[LLMSummary] = None
     recommendations: Optional[Recommendations] = None
-    
-    # A list to hold warnings from any module-level failures
-    warnings: List[str] = []
+    findings: Optional[List[Finding]] = Field(description="A list to hold findings from any module-level failures, warnings, or info")
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "frozen": False
+    }
 
