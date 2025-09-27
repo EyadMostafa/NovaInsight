@@ -9,13 +9,11 @@ from novainsight.schemas.analysis_report import Operator
 config = load_config()
 logger = logging.getLogger(__name__)
 
-# This is the main entry point for the command 'novainsight'
 @click.group()
 def main():
     """NovaInsight: Autonomous Data Analysis Agent"""
     pass
 
-# This defines the 'analyze' subcommand
 @main.command()
 # --- DEFINE ALL THE OPTIONS ---
 @click.option(
@@ -61,14 +59,12 @@ def analyze(file_path, **kwargs):
     """
     logger.info("NovaInsight CLI started.")
     file_path_obj = Path(file_path)
-    # Convert the comma-separated string from --modules into a list of Enums
     if kwargs.get('modules'):
       module_strings = [m.strip().upper() for m in kwargs['modules'].split(',')]
       kwargs['requested_modules'] = [Operator[m].value for m in module_strings if m in Operator.__members__]
     else:
       kwargs['requested_modules'] = None
     try:
-      # Instantiate the pipeline with all the processed arguments
       pipeline = AnalysisPipeline(
         file_path=file_path_obj,
         config=config,
@@ -80,7 +76,6 @@ def analyze(file_path, **kwargs):
         analysis_mode=kwargs.get('mode'),
         force_rerun=kwargs.get('force_rerun')
       )
-      # Run the entire process
       pipeline.run()
     except Exception as e:
       logger.error(f"A fatal error occurred during the analysis: {e}")
