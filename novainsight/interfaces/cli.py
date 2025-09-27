@@ -1,5 +1,3 @@
-# In novainsight/cli.py
-
 import click
 import logging
 import sys

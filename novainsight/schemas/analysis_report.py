@@ -5,6 +5,7 @@ This file defines the complete Pydantic data model for the AnalysisReport.
 This structured object is the central "source of truth" that is passed through
 the analysis pipeline, with each module enriching its designated section.
 """
+from __future__ import annotations
 
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional, Literal
