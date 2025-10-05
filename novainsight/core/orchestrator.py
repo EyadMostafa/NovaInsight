@@ -27,13 +27,13 @@ class AnalysisPipeline:
     The main orchestrator for the NovaInsight analysis pipeline.
     """
     DEPENDENCY_GRAPH = {
-        Operator.PROFILER : [],                                 # profiler           
-        Operator.TARGET: [Operator.PROFILER],                     # target --> profiler
-        Operator.STATS: [Operator.TARGET],                        # stats --> target --> profiler
-        Operator.DIM_REDUCTION: [Operator.PROFILER],              # dim_reduction --> profiler
+        Operator.PROFILER : [],                                     # profiler           
+        Operator.TARGET: [Operator.PROFILER],                       # target --> profiler
+        Operator.STATS: [Operator.TARGET],                          # stats --> target --> profiler
+        Operator.DIM_REDUCTION: [Operator.PROFILER],                # dim_reduction --> profiler
         Operator.VIZ: [Operator.STATS, Operator.DIM_REDUCTION],     # viz --> dim_reduction --> stats --> target --> profiler
-        Operator.LLM: [Operator.STATS],                           # llm --> stats --> target --> profiler
-        Operator.RECOMMENDATIONS: [Operator.LLM],                 # recommendations --> llm --> stats --> target --> profiler
+        Operator.LLM: [Operator.STATS],                             # llm --> stats --> target --> profiler
+        Operator.RECOMMENDATIONS: [Operator.LLM],                   # recommendations --> llm --> stats --> target --> profiler
         Operator.REPORT: [Operator.RECOMMENDATIONS, Operator.VIZ]   # report --> recommendations --> llm --> viz --> dim_reduction --> stats --> target --> profiler
     }
 
@@ -171,7 +171,8 @@ class AnalysisPipeline:
                 file_hash=file_hash,
                 report_title=self.report_title,
                 analysis_mode=self.analysis_mode,
-                task=self.task
+                task=self.task,
+                user_target=self.user_target
             )
 
             self.report = AnalysisReport(
@@ -190,15 +191,22 @@ class AnalysisPipeline:
         sequentially, with graceful error handling for module-level failures.
         """
         module: Optional[BaseModule] = None
+        skip_modules = set()
         
         for module_name in self.execution_plan:
+            if module_name in skip_modules: 
+                finding = Finding(
+                    level='WARNING',
+                    message=f"{module_name.capitalize()} module skipped due to the failure or skipping of a dependency module."
+                )
+                self.report.findings.append(finding)
+                continue
+            
             try:
                 module = self.MODULES_REGISTRY[module_name](self.config)
-                analysis = module.run(df=self.df, report=self.report)
-
-                if module_name == Operator.PROFILER:
-                    self.report.profile = analysis
-                    self.report.findings = analysis.findings
+                updated_report = module.run(df=self.df, report=self.report)
+                if updated_report:
+                    self.report = updated_report
 
             except Exception as e:
                 finding = Finding(
@@ -206,8 +214,8 @@ class AnalysisPipeline:
                     message=f"{module_name.capitalize()} module failed. Reason: {e}"
                 )
                 self.report.findings.append(finding)
+                skip_modules = skip_modules | self._find_downstream_dependents(module_name)
                 logger.error(f'{module_name.capitalize()} module failed. Skipping and proceeding with the pipeline.')
-
 
     def _generate_outputs(self):
         """
@@ -215,6 +223,7 @@ class AnalysisPipeline:
         the final state of the AnalysisReport after the analytical phase.
         """ 
         self.cache_manager.save_report(self.report)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         report_file_path = self.output_dir / "report.json" 
         report_file_path.write_text(self.report.model_dump_json(indent=2))
 
@@ -291,3 +300,20 @@ class AnalysisPipeline:
     def _generate_report_title(self) -> str:
         clean_stem = str(self.file_path.stem).replace("_", " ").replace("-", " ")
         return f"{clean_stem.title()} Analysis"
+
+    def _find_downstream_dependents(self, failed_module: Operator) -> set[Operator]:
+        """
+        Returns all modules that depend directly or indirectly on the failed module.
+        """
+        skip_modules = {failed_module}
+        added = True
+
+        while added:
+            added = False
+            for k, dependencies in self.DEPENDENCY_GRAPH.items():
+                if any(dep in skip_modules for dep in dependencies):
+                    if k not in skip_modules:
+                        skip_modules.add(k)
+                        added = True
+
+        return skip_modules

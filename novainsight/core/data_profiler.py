@@ -22,38 +22,40 @@ class DataProfiler(BaseModule):
         """
         Initializes the profiler with the data and configuration.
         """
-        self.config = config
-        self.df : pd.DataFrame | None = None 
+        super().__init__(config)
+
         self.column_memory_usage: float = None
         self.total_memory_usage: float = None
         self.original_row_count: int | None = None
 
-    def run(self, report: AnalysisReport, df: pd.DataFrame) -> DatasetProfile:
+    def run(self, report: AnalysisReport, df: pd.DataFrame) -> AnalysisReport:
         """
         Executes the full profiling process.
         """
-        self.df = df
         self.original_row_count = report.profile.dataset_stats.original_row_count
-        dataset_stats, dataset_findings = self._profile_dataset_level()
-        column_details, column_findings = self._profile_column_level()
+        dataset_stats, dataset_findings = self._profile_dataset_level(df)
+        column_details, column_findings = self._profile_column_level(df)
+        findings = dataset_findings + column_findings
         dataset_profile = DatasetProfile(
             dataset_stats=dataset_stats,
             column_details=column_details,
-            findings= (dataset_findings + column_findings)
+            findings=findings
         )
 
-        print("RETURNING RESUTLS")
-        return dataset_profile
+        report.profile = dataset_profile
+        report.findings += findings
+
+        return report
     
-    def _profile_dataset_level(self) -> Tuple[DatasetStats, List[Finding]]:
+    def _profile_dataset_level(self, df: pd.DataFrame) -> Tuple[DatasetStats, List[Finding]]:
         """
         Calculates statistics for the entire dataset (e.g., rows, columns, memory).
         """
         try:
-            row_count, col_count = self.df.shape
-            self.column_memory_usage = self.df.memory_usage(deep=True)
+            row_count, col_count = df.shape
+            self.column_memory_usage = df.memory_usage(deep=True)
             self.total_memory_usage = self.column_memory_usage.sum() / (1024**2)
-            duplicate_rows_count = self.df.duplicated().sum()
+            duplicate_rows_count = df.duplicated().sum()
 
             cols_pct = col_count / self.original_row_count
             duplicates_pct = duplicate_rows_count / row_count if row_count > 0 else 0.0
@@ -105,15 +107,15 @@ class DataProfiler(BaseModule):
         except Exception as e:
             raise ValueError(f"Failed to perform dataset level profiling. Reason: {e}")
 
-    def _profile_column_level(self) -> Tuple[List[ColumnDetails], List[Finding]]:
+    def _profile_column_level(self, df: pd.DataFrame) -> Tuple[List[ColumnDetails], List[Finding]]:
         """
         Iterates through each column, calculating and compiling its specific stats.
         """
         columns_details_list = []
         findings = []
         try:
-            for column_name in self.df.columns:
-                column = self.df[column_name]
+            for column_name in df.columns:
+                column = df[column_name]
                 inferred_type = self._infer_logical_type(column)
                 dtype = str(column.dtype)
                 missing_values_count = column.isnull().sum()
@@ -206,13 +208,6 @@ class DataProfiler(BaseModule):
             except Exception:
                 return False
             
-        def is_convertible_to_bool(column):
-            try:
-                column.astype(bool)
-                return True
-            except Exception:
-                return False
-            
         def is_convertible_to_numerical(column):
             try:
                 column.astype(float)
@@ -230,7 +225,7 @@ class DataProfiler(BaseModule):
             or is_interval_dtype(column)
         ):
             return 'datetime'
-        
+
         if unique_values_pct > 0.99: return 'id'
 
         if is_numeric_dtype(column):

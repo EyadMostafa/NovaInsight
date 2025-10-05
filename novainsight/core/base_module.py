@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 import pandas as pd
 from novainsight.schemas.analysis_report import AnalysisReport
 from novainsight.config.config import NovaInsightConfig
-from typing import Any
 
 class BaseModule(ABC):
     """
@@ -17,7 +16,7 @@ class BaseModule(ABC):
         self.config = config
 
     @abstractmethod
-    def run(self, df: pd.DataFrame, report: AnalysisReport) -> Any:
+    def run(self, df: pd.DataFrame, report: AnalysisReport) -> AnalysisReport:
         """
         The main execution method for the module.
         """
