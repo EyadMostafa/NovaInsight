@@ -40,6 +40,7 @@ class RunMetadata(BaseModel):
     run_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="The ISO 8601 timestamp when the analysis was started.")
     analysis_mode: Literal['full', 'fast'] = Field(..., description="The mode of the analysis ('full' or 'fast').")
     task: Literal['supervised', 'unsupervised'] = Field(..., description="The task to be performed using the dataset (supervised or unsupervised)")
+    user_target: Optional[str] = Field(None, description="The target provided by the user if any.")
 
 class DatasetStats(BaseModel):
     """Holds overall summary statistics for the entire dataset."""
@@ -71,7 +72,7 @@ class DatasetProfile(BaseModel):
     """The complete output from the Data Ingestion & Profiling module."""
     dataset_stats: DatasetStats
     column_details: List[ColumnDetails]
-    findings: Optional[List[Finding]] = Field(description="A list to hold findings from any module-level failures, warnings, or info")
+    findings: Optional[List[Finding]] = Field([], description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
 # Section 2: Target Variable Analysis Schemas
@@ -86,10 +87,10 @@ class CandidateTarget(BaseModel):
 
 class TargetVariableAnalysis(BaseModel):
     """The complete output from the Target Variable Detection module."""
-    detection_method: str = Field(..., description="How the target was chosen ('auto' or 'user_specified').")
+    detection_method: Literal['auto', 'user_specified'] = Field(..., description="How the target was chosen ('auto' or 'user_specified').")
     candidate_targets: List[CandidateTarget]
     identified_target: Optional[str] = Field(None, description="The column name chosen as the most likely target.")
-    leakage_warnings: List[str] = []
+    findings: Optional[List[Finding]] = Field([], description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
 # Section 3: Statistical & Structural Analysis Schemas
@@ -112,6 +113,7 @@ class StatisticalAnalysis(BaseModel):
     class_imbalance_report: Optional[ClassImbalanceReport] = None
     correlation_matrix_path: Optional[str] = Field(None, description="File path to the saved correlation matrix data.")
     multicollinearity_report: Dict[str, float] = Field(..., description="A mapping of highly collinear features to their VIF scores.")
+    findings: Optional[List[Finding]] = Field([], description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
 # Section 4: Advanced Analysis & Visualization Schemas
