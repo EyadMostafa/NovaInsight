@@ -86,9 +86,6 @@ The \--task flag fundamentally alters the behavior of the AnalysisPipeline.
 | llm\_summarizer.py | LLM Summarizer | Uses an LLM to generate narrative explanations and summaries. |
 | recommender.py | Recommender | Generates actionable next steps and warnings. |
 | report\_generator.py | Report Generator | Creates the user-facing PDF, Jupyter Notebook, and JSON files. |
-
-| Utility File (novainsight/utils/) | Conceptual Name | Primary Responsibility |
-| :---- | :---- | :---- |
 | cache\_manager.py | Cache Manager | Handles file hashing, saving/loading state, and managing the cache directory. |
 | validators.py | Path Validators | Provides reusable functions for validating input/output paths. |
 
