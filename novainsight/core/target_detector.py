@@ -108,7 +108,6 @@ class TargetDetector(BaseModule):
             for col in columns:
                 if col.inferred_type in ['id', 'text', 'datetime']:
                     continue
-                print(col.column_name)
 
                 column_name = col.column_name
                 ml_task = self._task_detection(col)
