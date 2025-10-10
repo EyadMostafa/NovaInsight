@@ -28,10 +28,15 @@ class DataProfiler(BaseModule):
         self.total_memory_usage: float = None
         self.original_row_count: int | None = None
 
-    def run(self, report: AnalysisReport, df: pd.DataFrame) -> AnalysisReport:
+    def run(self, df: pd.DataFrame, report: AnalysisReport) -> AnalysisReport:
         """
         Executes the full profiling process.
         """
+        profile = report.profile
+        if (profile and 
+            profile.dataset_stats and 
+            profile.column_details):
+            return report
         self.original_row_count = report.profile.dataset_stats.original_row_count
         dataset_stats, dataset_findings = self._profile_dataset_level(df)
         column_details, column_findings = self._profile_column_level(df)
