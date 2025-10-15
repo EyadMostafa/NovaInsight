@@ -1,4 +1,4 @@
-**NovaInsight: Autonomous Data Analysis Agent \- Project Blueprint**
+# NovaInsight: Autonomous Data Analysis Agent \- Project Blueprint
 
 Version: 7.0 (Final Architecture)  
 Status: Ready for Development
