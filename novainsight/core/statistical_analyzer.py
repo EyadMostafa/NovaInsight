@@ -59,7 +59,8 @@ class StatisticalAnalyzer(BaseModule):
             outlier_report=outlier_report,
             multicollinearity_report=multicollinearity_report,
             correlation_report=correlation_report,
-            class_imbalance_report=class_imbalance_report
+            class_imbalance_report=class_imbalance_report,
+            findings=findings
         )
 
         report.statistical_analysis = statistical_analysis

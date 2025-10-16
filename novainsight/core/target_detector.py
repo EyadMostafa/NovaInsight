@@ -62,7 +62,6 @@ class TargetDetector(BaseModule):
 
         return report
 
-
     def _validate_user_target(self, user_target: str, column_details: List[ColumnDetails]) -> CandidateTarget:
         """
         Validates that the user-specified target column exists in the dataset.
