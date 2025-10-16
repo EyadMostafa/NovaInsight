@@ -15,11 +15,10 @@ def main():
     pass
 
 @main.command()
-# --- DEFINE ALL THE OPTIONS ---
 @click.option(
   '--output-dir',
   type=click.Path(file_okay=False, writable=True),
-  default=None, # Let the orchestrator handle the default
+  default=None,
   help="Directory to save all output files."
 )
 
@@ -42,12 +41,11 @@ def main():
 @click.option(
   '--mode',
   type=click.Choice(['fast', 'full'], case_sensitive=False),
-  default=None, # Let the orchestrator handle the default from config
+  default=None,
   help="Specify the analysis mode."
 )
 
 @click.option('--force-rerun', is_flag=True, help="Ignore cache and run a fresh analysis.")
-# --- DEFINE THE REQUIRED ARGUMENT ---
 @click.argument(
   'file_path',
   type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True)
