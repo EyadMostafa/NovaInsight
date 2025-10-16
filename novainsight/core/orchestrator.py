@@ -127,6 +127,7 @@ class AnalysisPipeline:
         if  file_extension not in self.SUPPORTED_FILE_EXTENSIONS:
             raise ValueError(f"Fatal Error: Unsupported file extension. Supported extensions are: {','.join(self.SUPPORTED_FILE_EXTENSIONS)}") 
 
+        self.output_dir = Path(self.output_dir / "novainsight_reports") 
         is_valid, message, resolved_path = validate_directory(self.output_dir)
         if not is_valid:
             raise IOError(f"Invalid output directory specified. Reason: {message}")

@@ -31,7 +31,7 @@ def validate_file_path(file_path: str) -> Path:
     
     return p
 
-def validate_directory(path_str: str) -> Tuple[bool, str, Path | str]:
+def validate_directory(path_str: str | Path) -> Tuple[bool, str, Path | str]:
     """
     Validates a path intended to be a directory, ensuring it can be written to.
     If the directory does not exist, it attempts to create it.
