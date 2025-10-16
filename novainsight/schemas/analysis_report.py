@@ -20,7 +20,7 @@ from enum import Enum, auto
 class Operator(str, Enum):
     def _generate_next_value_(name, start, count, last_values):
         return name.lower()
-    
+
     PROFILER = auto()
     TARGET = auto()
     STATS = auto()
@@ -29,7 +29,6 @@ class Operator(str, Enum):
     LLM = auto()
     RECOMMENDATIONS = auto()
     REPORT = auto()
-
 
 class RunMetadata(BaseModel):
     """Contains metadata about the specific analysis run."""
@@ -100,19 +99,25 @@ class OutlierReport(BaseModel):
     """A summary of outliers found in a numeric column."""
     outlier_count: int
     outlier_percentage: float
-    method: str = Field(..., description="The method used for detection (e.g., 'IQR', 'Z-score').")
+    method: str = Field(..., description="The method used for detection (e.g., 'Modified Z-score', 'Z-score').")
 
 class ClassImbalanceReport(BaseModel):
     """A summary of the class distribution for a classification target."""
     class_counts: Dict[str, int]
     class_percentages: Dict[str, float]
 
+class CorrelationReport(BaseModel):
+    """Holds paths to the various correlation matrix data files."""
+    numerical_numerical_path: Optional[str | Path] = Field(None, description="Path to the Spearman correlation matrix for numeric pairs.")
+    categorical_categorical_path: Optional[str | Path] = Field(None, description="Path to the Cramér's V association matrix for categorical pairs.")
+    categorical_numerical_path: Optional[str | Path] = Field(None, description="Path to the Correlation Ratio association matrix for categorical-numeric pairs.")
+
 class StatisticalAnalysis(BaseModel):
     """The complete output from the Statistical & Structural Insights module."""
     outlier_report: Dict[str, OutlierReport] = Field(..., description="A mapping of column names to their outlier reports.")
-    class_imbalance_report: Optional[ClassImbalanceReport] = None
-    correlation_matrix_path: Optional[str] = Field(None, description="File path to the saved correlation matrix data.")
     multicollinearity_report: Dict[str, float] = Field(..., description="A mapping of highly collinear features to their VIF scores.")
+    correlation_report: CorrelationReport = Field(...)
+    class_imbalance_report: Optional[ClassImbalanceReport] = None
     findings: Optional[List[Finding]] = Field([], description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
