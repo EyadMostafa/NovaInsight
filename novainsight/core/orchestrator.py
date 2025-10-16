@@ -149,6 +149,7 @@ class AnalysisPipeline:
                 self.report_title = self._generate_report_title()
 
             self.output_dir = Path(resolved_path / self.report_title)
+            self.output_dir.mkdir(parents=True, exist_ok=True)
             
             full_row_count = self.get_full_row_count(file_extension)
 
@@ -223,7 +224,6 @@ class AnalysisPipeline:
         the final state of the AnalysisReport after the analytical phase.
         """ 
         self.cache_manager.save_report(self.report)
-        self.output_dir.mkdir(parents=True, exist_ok=True)
         report_file_path = self.output_dir / "report.json" 
         report_file_path.write_text(self.report.model_dump_json(indent=2))
 
