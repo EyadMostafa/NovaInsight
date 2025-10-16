@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field, ValidationError
 from dotenv import load_dotenv
 import logging 
 import warnings
+from typing import Literal
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -63,14 +64,14 @@ class CacheSettings(BaseModel):
         arbitrary_types_allowed = True # Allow Path type
 
 class ProfilerSettings(BaseModel):
-  duplicate_threshold: float = Field(0.10)
-  dimensionality_threshold: float = Field(0.5)
-  total_memory_threshold: float = Field(500)
-  missing_value_threshold: float = Field(0.20)
-  high_cardinality_threshold: float = Field(0.90)
-  skewness_threshold: float = Field(1.0)
-  memory_hog_threshold: float = Field(0.20)
-  max_categorical_cardinality: int = Field(50)
+    duplicate_threshold: float = Field(0.10)
+    dimensionality_threshold: float = Field(0.5)
+    total_memory_threshold: float = Field(500)
+    missing_value_threshold: float = Field(0.20)
+    high_cardinality_threshold: float = Field(0.90)
+    skewness_threshold: float = Field(1.0)
+    memory_hog_threshold: float = Field(0.20)
+    max_categorical_cardinality: int = Field(50)
 
 class TargetDetectionSettings(BaseModel):
     max_categorical_cardinality: int = Field(50)
@@ -78,7 +79,16 @@ class TargetDetectionSettings(BaseModel):
 
 class StatisticsSettings(BaseModel):
     outlier_zscore_threshold: float = Field(3.0)
-    multicollinearity_vif_threshold: float = Field(5.0)
+    multicollinearity_vif_threshold: float = Field(10.0)
+    outlier_warning_threshold: float = Field(0.05)
+    outlier_detection_method: Literal['mz-score', 'z-score'] = Field('mz-score')
+    spearman_correlation_threshold: float = Field(0.85)
+    cramers_v_correlation_threshold: float = Field(0.5)
+    correlation_ratio_threshold: float = Field(0.6)
+    spearman_leakage_threshold: float = Field(0.98)
+    cramers_v_leakage_threshold: float = Field(0.95)
+    correlation_ratio_leakage_threshold: float = Field(0.98)
+    class_imbalance_threshold: float = Field(6.0)
 
 class VisualizationSettings(BaseModel):
     dpi: int = Field(300)
