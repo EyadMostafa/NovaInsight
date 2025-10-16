@@ -54,7 +54,7 @@ novainsight analyze \[OPTIONS\] FILE\_PATH
 ### **Options & Flags**
 
 * \--task \<supervised|unsupervised\>: Specifies the analysis task type. **Default:** supervised.  
-* \--output-dir \<path\>: Specifies the directory to save all output files. **Default:** Creates a new folder named \[filename\]\_novainsight\_report.  
+* \--output-dir \<path\>: Specifies the directory which within it, a folder named *'novainsight_reports'* is created that contains all generated reports. **Default** current working directory.
 * \--modules \<module1,...\>: A comma-separated list of the specific analysis modules to run. **Default:** Runs the entire pipeline.  
 * \--target \<column\_name\>: Manually specifies the target variable (in supervised mode).  
 * \--title "\<Your Title\>": Provides a custom title for the generated reports.  
