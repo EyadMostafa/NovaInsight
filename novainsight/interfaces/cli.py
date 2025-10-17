@@ -28,6 +28,11 @@ def main():
   default='supervised',
   help="Specify the analysis task type."
 )
+@click.option(
+  '--advanced',
+  is_flag=True,
+  help="Enable advanced, computationally intensive analytical techniques."
+)
 
 @click.option(
   '--modules',
@@ -72,7 +77,8 @@ def analyze(file_path, **kwargs):
         user_target=kwargs.get('target'),
         report_title=kwargs.get('title'),
         analysis_mode=kwargs.get('mode'),
-        force_rerun=kwargs.get('force_rerun')
+        force_rerun=kwargs.get('force_rerun'),
+        advanced=kwargs.get('advanced')
       )
       pipeline.run()
     except Exception as e:

@@ -65,7 +65,8 @@ class AnalysisPipeline:
         user_target: str | None = None,
         analysis_mode: str | None = None,
         report_title: str | None = None,
-        task: str | None = 'supervised'
+        task: str | None = 'supervised',
+        advanced: bool = False
     ):
         """Initializes the pipeline with all necessary context from the CLI."""
         self.file_path = file_path
@@ -76,6 +77,7 @@ class AnalysisPipeline:
         self.analysis_mode = analysis_mode or self.config.analysis.default_mode
         self.report_title = report_title
         self.task = task
+        self.advanced = advanced
         
         self.cache_manager = CacheManager(config.cache)
         self.report: AnalysisReport | None = None
