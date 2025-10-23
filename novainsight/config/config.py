@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field, ValidationError
 from dotenv import load_dotenv
 import logging 
 import warnings
-from typing import Literal
+from typing import Literal, Union
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -90,6 +90,16 @@ class StatisticsSettings(BaseModel):
     correlation_ratio_leakage_threshold: float = Field(0.98)
     class_imbalance_threshold: float = Field(6.0)
 
+class DimensionalityReduction(BaseModel):
+    imputation_method: Literal['median', 'mean'] = Field('median')
+    pca_n_ratios: int = Field(10)
+    tsne_perplexity: float = Field(30.0)
+    tsne_max_iter: int = Field(1000)
+    tsne_learning_rate: Union[Literal['auto'], float] = Field('auto')
+    umap_n_neighbors: int = Field(15)
+    umap_min_dist: float = Field(0.1)
+    umap_metric: str = Field('euclidean')
+
 class VisualizationSettings(BaseModel):
     dpi: int = Field(300)
     theme: str = Field("whitegrid")
@@ -110,6 +120,7 @@ class NovaInsightConfig(BaseModel):
     profiler: ProfilerSettings = Field(default_factory=ProfilerSettings)
     target_detection: TargetDetectionSettings = Field(default_factory=TargetDetectionSettings)
     statistics: StatisticsSettings = Field(default_factory=StatisticsSettings)
+    dimensionality_reduction: DimensionalityReduction = Field(default_factory=DimensionalityReduction)
     visualization: VisualizationSettings = Field(default_factory=VisualizationSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)
 

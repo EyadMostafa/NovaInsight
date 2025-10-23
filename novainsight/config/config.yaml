@@ -48,7 +48,7 @@ statistics:
   outlier_zscore_threshold: 3.0
   multicollinearity_vif_threshold: 10.0
   outlier_warning_threshold: 0.05
-  outlier_detection_method: "mz-score" # Options: z-score | mz-score (modified z-score) 
+  outlier_detection_method: 'mz-score' # 'z-score' | 'mz-score' (modified z-score) 
   spearman_correlation_threshold: 0.85
   cramers_v_correlation_threshold: 0.5
   correlation_ratio_threshold: 0.6
@@ -56,6 +56,16 @@ statistics:
   cramers_v_leakage_threshold: 0.95
   correlation_ratio_leakage_threshold: 0.98
   class_imbalance_threshold: 6.0
+
+dimensionality_reduction:
+  imputation_method: 'median' # 'mean' | 'median'
+  pca_n_ratios: 10
+  tsne_perplexity: 30.0
+  tsne_max_iter: 1000
+  tsne_learning_rate: 'auto' # 'auto' | float
+  umap_n_neighbors: 15
+  umap_min_dist: 0.1
+  umap_metric: 'euclidean' # 'euclidean' | 'manhattan' | 'cosine'
 
 visualization:
   dpi: 300

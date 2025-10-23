@@ -28,7 +28,9 @@ def main():
   default='supervised',
   help="Specify the analysis task type."
 )
+
 @click.option(
+  # For now, it does nothing since no advanced analysis techniques have been implemented.
   '--advanced',
   is_flag=True,
   help="Enable advanced, computationally intensive analytical techniques."

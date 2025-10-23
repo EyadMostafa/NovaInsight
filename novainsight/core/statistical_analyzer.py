@@ -6,7 +6,7 @@ from scipy.stats import chi2_contingency, spearmanr
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.tools.tools import add_constant
 from itertools import product, combinations
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 from pathlib import Path
 from novainsight.core.base_module import BaseModule
 from novainsight.config.config import NovaInsightConfig
@@ -42,7 +42,23 @@ class StatisticalAnalyzer(BaseModule):
             
         outlier_report, outlier_findings = self._detect_outliers(df, report.profile.column_details)
         multicollinearity_report, multicollinearity_findings = self._detect_multicollinearity(df, report)
-        correlation_report, correlation_findings = self._analyze_correlations(df, report)
+        correlation_results = self._analyze_correlations(df, report)
+
+        correlation_report = correlation_results['correlation_report']
+        cat_num_matrix = correlation_results['cat_num_matrix']
+        num_num_matrix = correlation_results['num_num_matrix']
+        cat_cat_matrix = correlation_results['cat_cat_matrix']
+        correlation_findings = correlation_results['findings']
+
+        try:
+            cat_num_matrix.to_csv(correlation_report.categorical_numerical_path)
+            num_num_matrix.to_csv(correlation_report.numerical_numerical_path)
+            cat_cat_matrix.to_csv(correlation_report.categorical_categorical_path)
+        except Exception as e:
+            findings.append(Finding(
+                level='WARNING',
+                message=f"Could not save correlation matrices to disk. Reason: {e}"
+            ))
 
         findings += outlier_findings + multicollinearity_findings + correlation_findings
 
@@ -64,7 +80,6 @@ class StatisticalAnalyzer(BaseModule):
         )
 
         report.statistical_analysis = statistical_analysis
-        report.findings += findings
 
         return report
 
@@ -179,7 +194,7 @@ class StatisticalAnalyzer(BaseModule):
         except Exception as e:
             raise ValueError(f"Could not perform multicollinearity analysis. Reason: {e}")
 
-    def _analyze_correlations(self, df: pd.DataFrame, report: AnalysisReport) -> Tuple[CorrelationReport, List[Finding]]:
+    def _analyze_correlations(self, df: pd.DataFrame, report: AnalysisReport) -> Dict[str, Any]:
         """
         Calculates a comprehensive correlation matrix for every variable type pair (cat-cat, num-num, cat-num).
         """
@@ -248,13 +263,12 @@ class StatisticalAnalyzer(BaseModule):
             num_corr_matrix: pd.DataFrame = self._dict_to_corr_matrix(num_corr)
             cat_corr_matrix: pd.DataFrame = self._dict_to_corr_matrix(cat_corr)
 
-            cat_num_corr_path = Path(f"{report.metadata.output_dir}/categorical_numerical_corr.csv")
-            num_corr_path = Path(f"{report.metadata.output_dir}/numerical_corr.csv")
-            cat_corr_path = Path(f"{report.metadata.output_dir}/categorical_corr.csv")
+            final_output_dir = Path(f"{report.metadata.output_dir}/correlations")
+            final_output_dir.mkdir(parents=True, exist_ok=True)
 
-            cat_num_corr_matrix.to_csv(cat_num_corr_path)
-            num_corr_matrix.to_csv(num_corr_path)
-            cat_corr_matrix.to_csv(cat_corr_path)
+            cat_num_corr_path = Path(f"{final_output_dir}/categorical_numerical_corr.csv")
+            num_corr_path = Path(f"{final_output_dir}/numerical_corr.csv")
+            cat_corr_path = Path(f"{final_output_dir}/categorical_corr.csv")
 
             correlation_report = CorrelationReport(
                 numerical_numerical_path=num_corr_path,
@@ -262,7 +276,15 @@ class StatisticalAnalyzer(BaseModule):
                 categorical_numerical_path=cat_num_corr_path
             )
 
-            return correlation_report, findings
+            results = {
+                'correlation_report': correlation_report,
+                'cat_num_matrix': cat_num_corr_matrix,
+                'num_num_matrix': num_corr_matrix,
+                'cat_cat_matrix': cat_corr_matrix,
+                'findings': findings
+            }
+
+            return results
         except Exception as e:
             raise ValueError(f"Failed to perform correlation analysis. Reason: {e}")
 
@@ -426,7 +448,10 @@ class StatisticalAnalyzer(BaseModule):
         confusion_matrix = pd.crosstab(column1, column2)
         chi2, _, _, _ = chi2_contingency(confusion_matrix)
         n = confusion_matrix.sum().sum()
+
         k = min(confusion_matrix.shape)
+        if k == 1: return 0.0
+
         return np.sqrt(chi2 / (n * (k - 1)))
 
     @staticmethod
@@ -450,7 +475,3 @@ class StatisticalAnalyzer(BaseModule):
             matrix.loc[c, c] = 1.0
 
         return matrix
-
-        
-
-

@@ -30,6 +30,10 @@ class Operator(str, Enum):
     RECOMMENDATIONS = auto()
     REPORT = auto()
 
+class Finding(BaseModel):
+    level: Literal['INFO', 'WARNING'] = Field(..., description="Type/Severity of the finding")
+    message: str = Field(..., description="Message describing the finding")
+
 class RunMetadata(BaseModel):
     """Contains metadata about the specific analysis run."""
     input_file: str | Path = Field(..., description="The path to the input dataset.")
@@ -63,10 +67,6 @@ class ColumnDetails(BaseModel):
     stats: Dict[str, Any] = Field(..., description="Descriptive statistics (mean, std, etc.) or value counts.")
     memory_usage_mb: float = Field(..., description="The memory usage of the column in megabytes (MB).")
 
-class Finding(BaseModel):
-    level: Literal['INFO', 'WARNING'] = Field(..., description="Type/Severity of the finding")
-    message: str = Field(..., description="Message describing the finding")
-
 class DatasetProfile(BaseModel):
     """The complete output from the Data Ingestion & Profiling module."""
     dataset_stats: DatasetStats
@@ -89,7 +89,7 @@ class TargetVariableAnalysis(BaseModel):
     detection_method: Literal['auto', 'user_specified'] = Field(..., description="How the target was chosen ('auto' or 'user_specified').")
     candidate_targets: List[CandidateTarget]
     identified_target: Optional[str] = Field(None, description="The column name chosen as the most likely target.")
-    findings: Optional[List[Finding]] = Field([], description="A list to hold findings from any module-level failures, warnings, or info")
+    findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
 # Section 3: Statistical & Structural Analysis Schemas
@@ -117,8 +117,8 @@ class StatisticalAnalysis(BaseModel):
     outlier_report: Dict[str, OutlierReport] = Field(..., description="A mapping of column names to their outlier reports.")
     multicollinearity_report: Dict[str, float] = Field(..., description="A mapping of highly collinear features to their VIF scores.")
     correlation_report: CorrelationReport = Field(...)
-    class_imbalance_report: Optional[ClassImbalanceReport] = None
-    findings: Optional[List[Finding]] = Field([], description="A list to hold findings from any module-level failures, warnings, or info")
+    class_imbalance_report: Optional[ClassImbalanceReport] = Field(None)
+    findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
 # Section 4: Advanced Analysis & Visualization Schemas
@@ -126,16 +126,17 @@ class StatisticalAnalysis(BaseModel):
 
 class DimensionalityAnalysis(BaseModel):
     """The complete output from the Dimensionality Reduction module."""
-    pca_variance_explained: List[float]
-    pca_plot_path: str
-    umap_plot_path: str
-    tsne_plot_path: str
+    pca_explained_variance_ratios: Optional[List[float]] = Field([])
+    pca_embeddings_path: Optional[str | Path] = Field("")
+    tsne_embeddings_path: Optional[str | Path] = Field("")
+    umap_embeddings_path: Optional[str | Path] = Field("")
+    findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
 
 class VisualizationOutput(BaseModel):
     """A collection of file paths to all generated plot images."""
     univariate_plots: Dict[str, str] = Field(..., description="Mapping of column names to their distribution plot paths.")
     bivariate_plots: Dict[str, str] = Field(..., description="Mapping of plot types (e.g., 'target_vs_feature_x') to their paths.")
-    correlation_heatmap_path: Optional[str] = None
+    correlation_heatmap_path: Optional[str] = Field("")
 
 # ===================================================================
 # Section 5: LLM Summaries & Final Recommendations Schemas
@@ -180,7 +181,7 @@ class AnalysisReport(BaseModel):
     visualizations: Optional[VisualizationOutput] = None
     llm_summary: Optional[LLMSummary] = None
     recommendations: Optional[Recommendations] = None
-    findings: Optional[List[Finding]] = Field(description="A list to hold findings from any module-level failures, warnings, or info")
+    findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
 
     model_config = {
         "arbitrary_types_allowed": True,
