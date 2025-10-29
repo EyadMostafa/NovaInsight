@@ -136,7 +136,7 @@ def setup_logging(config: NovaInsightConfig):
     log_level = getattr(logging, log_level_str, logging.INFO)
     root_logger.setLevel(log_level)
 
-    # Avoid adding duplicate handlers if this function is called multiple times.
+   
     if not root_logger.handlers:
         handler = logging.StreamHandler()
         formatter = logging.Formatter(

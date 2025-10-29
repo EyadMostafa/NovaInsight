@@ -3,25 +3,47 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-# --- Core Project Metadata ---
 name = "novainsight"
 version = "0.1.0"
+description = "Autonomous Data Analysis Agent that performs EDA using quantitative analysis and LLM interpretation."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [ { name="Eyad Mostafa", email="eyadbu3@gmail.com" } ]
 
-# --- Optional Dependencies (for testing) ---
+dependencies = [
+    'pandas>=1.5',
+    'numpy>=1.21',
+    'scipy>=1.8',
+    'pydantic>=2.0',
+    'PyYAML>=6.0',
+    'python-dotenv>=1.0',
+    'scikit-learn>=1.2',
+    'statsmodels>=0.13',
+    'umap-learn>=0.5',
+    'openpyxl>=3.0',
+    'click>=8.0',
+    'matplotlib>=3.5',
+    'seaborn>=0.12',
+
+    # --- Anticipated Dependencies ---
+
+    # Reporting (for ReportGenerator)
+    # 'Jinja2>=3.0',
+    # 'nbformat>=5.0',
+    # 'WeasyPrint>=55.0', # Note: Often requires external system dependencies (Pango, Cairo)
+
+    # LLM (for LLMSummarizer - Specific library depends on provider, e.g., google-generativeai)
+    # 'google-generativeai>=0.4', # Example if using Google's library
+]
+
 [project.optional-dependencies]
 test = [
     "pytest",
     "pytest-mock",
 ]
 
-# --- THE FIX IS HERE: Entry Point ---
 [project.scripts]
 novainsight = "novainsight.interfaces.cli:main"
-
-
-# ===================================================================
-# Tool-Specific Configurations
-# ===================================================================
 
 [tool.setuptools]
 packages = ["novainsight"]
