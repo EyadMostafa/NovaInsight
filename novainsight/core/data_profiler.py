@@ -27,26 +27,26 @@ class DataProfiler(BaseModule):
         self.column_memory_usage: float = None
         self.total_memory_usage: float = None
         self.original_row_count: int | None = None
+        self.findings: List[Finding] = []
 
     def run(self, df: pd.DataFrame, report: AnalysisReport) -> AnalysisReport:
         """
         Executes the full profiling process.
         """
         self.original_row_count = report.profile.dataset_stats.original_row_count
-        dataset_stats, dataset_findings = self._profile_dataset_level(df)
-        column_details, column_findings = self._profile_column_level(df)
-        findings = dataset_findings + column_findings
+        dataset_stats = self._profile_dataset_level(df)
+        column_details = self._profile_column_level(df)
         dataset_profile = DatasetProfile(
             dataset_stats=dataset_stats,
             column_details=column_details,
-            findings=findings
+            findings=self.findings
         )
 
         report.profile = dataset_profile
 
         return report
     
-    def _profile_dataset_level(self, df: pd.DataFrame) -> Tuple[DatasetStats, List[Finding]]:
+    def _profile_dataset_level(self, df: pd.DataFrame) -> DatasetStats:
         """
         Calculates statistics for the entire dataset (e.g., rows, columns, memory).
         """
@@ -101,12 +101,13 @@ class DataProfiler(BaseModule):
                 duplicates_pct=duplicates_pct
             )
 
-            return dataset_stats, findings
+            self.findings += findings
+            return dataset_stats
 
         except Exception as e:
             raise ValueError(f"Failed to perform dataset level profiling. Reason: {e}")
 
-    def _profile_column_level(self, df: pd.DataFrame) -> Tuple[List[ColumnDetails], List[Finding]]:
+    def _profile_column_level(self, df: pd.DataFrame) -> List[ColumnDetails]:
         """
         Iterates through each column, calculating and compiling its specific stats.
         """
@@ -184,7 +185,8 @@ class DataProfiler(BaseModule):
 
                 columns_details_list.append(column_details)
 
-            return columns_details_list, findings
+            self.findings += findings
+            return columns_details_list
 
         except Exception as e:
             raise ValueError(f"Failed to perform column level profiling. Reason: {e}")
@@ -230,6 +232,8 @@ class DataProfiler(BaseModule):
         if is_numeric_dtype(column):
             if unique_values_count == 2:
                 return 'boolean'
+            if unique_values_count <= self.config.profiler.max_categorical_cardinality:
+                return 'categorical'
             return 'numerical'
         
         if is_convertible_to_datetime(column_sample):
@@ -238,6 +242,8 @@ class DataProfiler(BaseModule):
         if is_convertible_to_numerical(column_sample):
             if column_sample.nunique() == 2:
                 return 'boolean'
+            if unique_values_count <= self.config.profiler.max_categorical_cardinality:
+                return 'categorical'
             return 'numerical'
 
         if unique_values_count <= self.config.profiler.max_categorical_cardinality:
@@ -255,20 +261,28 @@ class DataProfiler(BaseModule):
             return {key: float(value) for key, value in stats_dict.items()}
 
         elif inferred_type == 'categorical':
-            description = column.describe()
-            top_5_counts = column.value_counts().head(5).to_dict()
+            value_counts = column.value_counts()
+            
+            if value_counts.empty:
+                return {
+                    "top": "N/A",
+                    "frequency": 0,
+                    "value_counts": {}
+                }
+
+            top_5_counts = value_counts.head(5).to_dict()
+            
             return {
-                "top": description['top'],
-                "frequency": int(description['freq']),
+                "top": str(value_counts.index[0]),
+                "frequency": int(value_counts.iloc[0]),
                 "value_counts": {str(k): int(v) for k, v in top_5_counts.items()}
             }
 
         elif inferred_type == 'datetime':
-            description = column.describe()
             return {
-                "first": str(description['min']),
-                "last": str(description['max']),
-                "count": int(description['count'])
+                "first": str(column.min()),
+                "last": str(column.max()),
+                "count": int(column.count())
             }
 
         return {}

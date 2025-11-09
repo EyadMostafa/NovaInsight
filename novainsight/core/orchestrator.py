@@ -214,7 +214,7 @@ class AnalysisPipeline:
 
             except Exception as e:
                 finding = Finding(
-                    level='WARNING',
+                    level='ERROR',
                     message=f"{module_name.capitalize()} module failed. Reason: {e}"
                 )
                 self.report.findings.append(finding)

@@ -56,6 +56,8 @@ statistics:
   cramers_v_leakage_threshold: 0.95
   correlation_ratio_leakage_threshold: 0.98
   class_imbalance_threshold: 6.0
+  p_value_threshold: 0.05
+  bivariate_significance_level: 0.05
 
 dimensionality_reduction:
   imputation_method: 'median' # 'mean' | 'median'
@@ -71,6 +73,7 @@ visualization:
   dpi: 300
   theme: 'whitegrid'
   color_palette: 'mako'
+  kmeans_n_clusters: 4
 
 llm:
   provider: google

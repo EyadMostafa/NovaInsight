@@ -89,6 +89,8 @@ class StatisticsSettings(BaseModel):
     cramers_v_leakage_threshold: float = Field(0.95)
     correlation_ratio_leakage_threshold: float = Field(0.98)
     class_imbalance_threshold: float = Field(6.0)
+    p_value_threshold: float = Field(0.05)
+    bivariate_significance_level: float = Field(0.05)
 
 class DimensionalityReduction(BaseModel):
     imputation_method: Literal['median', 'mean'] = Field('median')
@@ -104,6 +106,7 @@ class VisualizationSettings(BaseModel):
     dpi: int = Field(300)
     theme: str = Field("whitegrid")
     color_palette: str = Field("mako")
+    kmeans_n_clusters: int = Field(4)
 
 class LLMSettings(BaseModel):
     provider: str = Field("google")
