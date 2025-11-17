@@ -115,7 +115,7 @@ class CorrelationReport(BaseModel):
 class StatisticalAnalysis(BaseModel):
     """The complete output from the Statistical & Structural Insights module."""
     outlier_report: Dict[str, OutlierReport] = Field(..., description="A mapping of column names to their outlier reports.")
-    multicollinearity_report: Dict[str, float] = Field(..., description="A mapping of highly collinear features to their VIF scores.")
+    multicollinearity_report: Optional[Dict[str, float]] = Field(default_factory=dict, description="A mapping of highly collinear features to their VIF scores.")
     correlation_report: CorrelationReport = Field(...)
     class_imbalance_report: Optional[ClassImbalanceReport] = Field(None)
     findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")

@@ -29,7 +29,7 @@ class AnalysisPipeline:
     DEPENDENCY_GRAPH = {
         Operator.PROFILER : [],                                     # profiler           
         Operator.TARGET: [Operator.PROFILER],                       # target --> profiler
-        Operator.STATS: [Operator.TARGET, Operator.PROFILER],       # stats --> target? --> profiler
+        Operator.STATS: [Operator.PROFILER, Operator.TARGET],       # stats --> target? --> profiler
         Operator.DIM_REDUCTION: [Operator.PROFILER],                # dim_reduction --> profiler
         Operator.VIZ: [Operator.STATS, Operator.DIM_REDUCTION],     # viz --> dim_reduction --> stats --> target? --> profiler
         Operator.LLM: [Operator.STATS],                             # llm --> stats --> target? --> profiler
@@ -101,13 +101,20 @@ class AnalysisPipeline:
         final_modules: Set[str] = set()
         
         def find_deps(module_name: str):
+            print(module_name)
             if module_name not in self.DEPENDENCY_GRAPH:
                 logger.warning(f"Unknown module '{module_name}' requested. Ignoring.")
                 return
+            
+            if self.task == 'unsupervised' and module_name == Operator.TARGET:
+                return
+            
+            if module_name in final_modules:
+                return
+            
             final_modules.add(module_name)
+
             for dep in self.DEPENDENCY_GRAPH.get(module_name, []):
-                if self.task == 'unsupervised' and dep == Operator.TARGET:
-                    continue
                 find_deps(dep)
 
         for module in requested:

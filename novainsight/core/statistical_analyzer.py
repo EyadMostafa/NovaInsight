@@ -40,6 +40,9 @@ class StatisticalAnalyzer(BaseModule):
         """
         self.findings = []
 
+        class_imbalance_report = None
+        multicollinearity_report = {}
+
         outlier_report = self._detect_outliers(df, report.profile.column_details)
         multicollinearity_report = self._detect_multicollinearity(df, report)
         correlation_results = self._analyze_correlations(df, report)
@@ -67,21 +70,21 @@ class StatisticalAnalyzer(BaseModule):
             correlation_report.numerical_numerical_path = None
             correlation_report.categorical_categorical_path = None
 
-        target_name = report.target_analysis.identified_target
-        target_details = next((c for c in report.profile.column_details if c.column_name == target_name), None)
-
-        if report.metadata.task == 'supervised' and target_details:
-            if target_details.inferred_type in ['categorical', 'boolean']:
-                target_column = df[report.target_analysis.identified_target]
-
-                class_imbalance_report = self._analyze_class_imbalance(target_column)
-            
-            self._check_for_data_leakage(
-                report=report,
-                cat_num_corr=correlation_results.get('cat_num_corr_dict', {}),
-                cat_corr=correlation_results.get('cat_corr_dict', {}),
-                num_corr=correlation_results.get('num_corr_dict', {})
-            )
+        if report.metadata.task == 'supervised':
+            target_name = report.target_analysis.identified_target
+            target_details = next((c for c in report.profile.column_details if c.column_name == target_name), None)
+            if target_details:
+                if target_details.inferred_type in ['categorical', 'boolean']:
+                    target_column = df[report.target_analysis.identified_target]
+    
+                    class_imbalance_report = self._analyze_class_imbalance(target_column)
+                
+                self._check_for_data_leakage(
+                    report=report,
+                    cat_num_corr=correlation_results.get('cat_num_corr_dict', {}),
+                    cat_corr=correlation_results.get('cat_corr_dict', {}),
+                    num_corr=correlation_results.get('num_corr_dict', {})
+                )
 
         elif report.metadata.task == 'supervised':
             self.findings.append(Finding(
@@ -355,7 +358,7 @@ class StatisticalAnalyzer(BaseModule):
                 target_type = next((column.inferred_type for column in report.profile.column_details if column.column_name == target_name), "")
 
                 for pair, (corr, pvalue) in cat_num_corr.items():
-                    if abs(corr) > self.config.statistics.correlation_ratio_leakage_threshold and target_name in pair and pvalue < p_value_threshold:
+                    if corr > self.config.statistics.correlation_ratio_leakage_threshold and target_name in pair and pvalue < p_value_threshold:
                         column_name = pair[0] if pair[1] == target_name else pair[1]
                         self.findings.append(Finding(
                             level='WARNING',
@@ -376,7 +379,7 @@ class StatisticalAnalyzer(BaseModule):
                             ))
                 else:
                     for pair, (corr, pvalue) in cat_corr.items():
-                        if abs(corr) > self.config.statistics.cramers_v_leakage_threshold and target_name in pair and pvalue < p_value_threshold:
+                        if corr > self.config.statistics.cramers_v_leakage_threshold and target_name in pair and pvalue < p_value_threshold:
                             column_name = pair[0] if pair[1] == target_name else pair[1]
                             self.findings.append(Finding(
                                 level='WARNING',
