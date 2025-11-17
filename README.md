@@ -179,7 +179,7 @@ The `analyze` command accepts a dataset file path and several options that contr
 ### **Usage**
 
 ```
-novainsight analyze [OPTIONS] FILE_PATH
+novainsight analyze FILE_PATH [OPTIONS]
 ```
 
 ### **Argument**
