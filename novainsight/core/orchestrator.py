@@ -101,7 +101,6 @@ class AnalysisPipeline:
         final_modules: Set[str] = set()
         
         def find_deps(module_name: str):
-            print(module_name)
             if module_name not in self.DEPENDENCY_GRAPH:
                 logger.warning(f"Unknown module '{module_name}' requested. Ignoring.")
                 return
