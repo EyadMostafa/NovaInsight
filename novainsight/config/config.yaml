@@ -38,7 +38,7 @@ profiler:
   high_cardinality_threshold: 0.90
   skewness_threshold: 1.0
   memory_hog_threshold: 0.20
-  max_categorical_cardinality: 50
+  max_categorical_cardinality: 20
 
 target_detection:
   max_categorical_cardinality: 50

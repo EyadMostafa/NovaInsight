@@ -29,12 +29,12 @@ class AnalysisPipeline:
     DEPENDENCY_GRAPH = {
         Operator.PROFILER : [],                                     # profiler           
         Operator.TARGET: [Operator.PROFILER],                       # target --> profiler
-        Operator.STATS: [Operator.TARGET],                          # stats --> target --> profiler
+        Operator.STATS: [Operator.TARGET, Operator.PROFILER],       # stats --> target? --> profiler
         Operator.DIM_REDUCTION: [Operator.PROFILER],                # dim_reduction --> profiler
-        Operator.VIZ: [Operator.STATS, Operator.DIM_REDUCTION],     # viz --> dim_reduction --> stats --> target --> profiler
-        Operator.LLM: [Operator.STATS],                             # llm --> stats --> target --> profiler
-        Operator.RECOMMENDATIONS: [Operator.LLM],                   # recommendations --> llm --> stats --> target --> profiler
-        Operator.REPORT: [Operator.RECOMMENDATIONS, Operator.VIZ]   # report --> recommendations --> llm --> viz --> dim_reduction --> stats --> target --> profiler
+        Operator.VIZ: [Operator.STATS, Operator.DIM_REDUCTION],     # viz --> dim_reduction --> stats --> target? --> profiler
+        Operator.LLM: [Operator.STATS],                             # llm --> stats --> target? --> profiler
+        Operator.RECOMMENDATIONS: [Operator.LLM],                   # recommendations --> llm --> stats --> target? --> profiler
+        Operator.REPORT: [Operator.RECOMMENDATIONS, Operator.VIZ]   # report --> recommendations --> llm --> viz --> dim_reduction --> stats --> target? --> profiler
     }
 
     MODULES_REGISTRY = {
@@ -106,15 +106,14 @@ class AnalysisPipeline:
                 return
             final_modules.add(module_name)
             for dep in self.DEPENDENCY_GRAPH.get(module_name, []):
+                if self.task == 'unsupervised' and dep == Operator.TARGET:
+                    continue
                 find_deps(dep)
 
         for module in requested:
             find_deps(module)
         
         sorted_plan = sorted(list(final_modules), key=self.EXECUTION_ORDER.index)
-
-        if self.task == 'unsupervised' and Operator.TARGET in sorted_plan:
-            sorted_plan.remove(Operator.TARGET)
             
         logger.info(f"Execution plan resolved: {sorted_plan}")
         return sorted_plan
