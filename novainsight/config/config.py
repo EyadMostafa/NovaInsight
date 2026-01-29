@@ -107,6 +107,8 @@ class VisualizationSettings(BaseModel):
     theme: str = Field("whitegrid")
     color_palette: str = Field("mako")
     kmeans_n_clusters: int = Field(4)
+    univariate_countplot_n: int = Field(10)
+    bivariate_top_n: int = Field(-1)
 
 class LLMSettings(BaseModel):
     provider: str = Field("google")

@@ -279,6 +279,9 @@ class DataProfiler(BaseModule):
             }
 
         elif inferred_type == 'datetime':
+            if not is_datetime64_any_dtype(column):
+                column = pd.to_datetime(column, errors="coerce")
+            
             return {
                 "first": str(column.min()),
                 "last": str(column.max()),

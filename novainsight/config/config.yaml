@@ -74,6 +74,8 @@ visualization:
   theme: 'whitegrid'
   color_palette: 'mako'
   kmeans_n_clusters: 4
+  univariate_countplot_n: 10 # countplot contains top n categories (20 max) 
+  bivariate_top_n: -1 # generates bivariate plots for top n features most correlated to target, -1 selects all elligible features
 
 llm:
   provider: google

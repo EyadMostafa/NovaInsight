@@ -56,9 +56,9 @@ class StatisticalAnalyzer(BaseModule):
             output_dir = Path(report.metadata.output_dir) / "correlations"
             output_dir.mkdir(parents=True, exist_ok=True)
 
-            cat_num_matrix.to_csv(Path(output_dir / correlation_report.categorical_numerical_path))
-            num_num_matrix.to_csv(Path(output_dir / correlation_report.numerical_numerical_path))
-            cat_cat_matrix.to_csv(Path(output_dir / correlation_report.categorical_categorical_path))
+            cat_num_matrix.to_csv(correlation_report.categorical_numerical_path)
+            num_num_matrix.to_csv(output_dir / correlation_report.numerical_numerical_path)
+            cat_cat_matrix.to_csv(output_dir / correlation_report.categorical_categorical_path)
         
         except Exception as e:
             self.findings.append(Finding(
@@ -276,11 +276,11 @@ class StatisticalAnalyzer(BaseModule):
                         message= (f"High Monotonic Correlation: Features '{col1}' and '{col2}' "
                                   f"have a strong monotonic relationship (Spearman's ρ = {corr:.2f}, p={pvalue:.3g}).")
                     ))
-
+            output_dir = Path(report.metadata.output_dir) / "correlations"
             correlation_report = CorrelationReport(
-                numerical_numerical_path="numerical_corr.csv",
-                categorical_categorical_path="categorical_corr.csv",
-                categorical_numerical_path="categorical_numerical_corr.csv"
+                numerical_numerical_path=output_dir / "numerical_corr.csv",
+                categorical_categorical_path=output_dir / "categorical_corr.csv",
+                categorical_numerical_path=output_dir / "categorical_numerical_corr.csv"
             )
 
             results = {

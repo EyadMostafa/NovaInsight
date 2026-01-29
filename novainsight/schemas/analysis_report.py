@@ -136,7 +136,9 @@ class VisualizationOutput(BaseModel):
     """A collection of file paths to all generated plot images."""
     univariate_plots: Dict[str, str | Path] = Field(..., description="Mapping of column names to their distribution plot paths.")
     bivariate_plots: Dict[str, str | Path] = Field(..., description="Mapping of plot types (e.g., 'target_vs_feature_x') to their paths.")
-    correlation_heatmap_path: Optional[str | Path] = Field("")
+    correlation_heatmap_plots: Optional[Dict[str, str | Path]] = Field("")
+    dim_reduction_scatter_plots: Optional[Dict[str, str | Path]] = Field("")
+    findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
 # Section 5: LLM Summaries & Final Recommendations Schemas

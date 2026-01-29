@@ -226,7 +226,7 @@ class AnalysisPipeline:
                 skip_modules = skip_modules | self._find_downstream_dependents(module_name)
                 logger.error(f'{module_name.capitalize()} module failed. Skipping and proceeding with the pipeline.')
 
-        for name, module in self.report:
+        for _, module in self.report:
             if hasattr(module, 'findings'):
                 self.report.findings += module.findings
 
