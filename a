@@ -1,0 +1,273 @@
+[33mcommit dd348b83bfbd1d488ab64cdd65a03af6aa3ebc7a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/dev[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mfeat-viz[m[33m, [m[1;32mdev[m[33m)[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Jan 29 09:28:59 2026 +0200
+
+    wrapped up the visualization module.
+
+[33mcommit 0c97bd97eee26f8152b042b3f667859d12e8309b[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Mon Nov 17 07:59:17 2025 +0200
+
+    updated readme
+
+[33mcommit ec28808257876dcdb9b3a5b2d30995b984f1fc19[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Mon Nov 17 07:54:43 2025 +0200
+
+    removed debugging line in orchestrator
+
+[33mcommit acf51b526399e87a01501cd89291301c108fc105[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Mon Nov 17 07:44:55 2025 +0200
+
+    fixed a bug in the statistical analyzer
+
+[33mcommit 4326afa9679758041cfa7c4bf2f0c59fe0cd1fa6[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Mon Nov 17 06:50:25 2025 +0200
+
+    fixed a module resolve bug
+
+[33mcommit 1ac4faa6dabd4a28938d6d75f1b745c5b96b48ea[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Sun Nov 9 22:59:32 2025 +0200
+
+    improved the statistical_analyzer correlation analysis methodology and fixed a bug in the profiler
+
+[33mcommit 3fdb5dc29244318fcb180fa378691b15f06e90fb[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Wed Oct 29 13:02:20 2025 +0300
+
+    -
+
+[33mcommit e0fbe6573ce926766731ff2ac5068de437f828f3[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Oct 23 08:10:43 2025 +0300
+
+    implemented the dimensionality reduction module along with necessary changes modules
+
+[33mcommit 45842d4120824cb7e19e0c65502e65eefd3c2eaa[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Fri Oct 17 05:23:15 2025 +0300
+
+    added the advanced flag that triggers a more advanced analysis pipeline later to be implemented
+
+[33mcommit c2a66a46175a86a5aa4534ff4971a52cf64e6cec[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Oct 16 10:02:50 2025 +0300
+
+    deleted blueprint.md
+
+[33mcommit d39b91f887aa9826bc48c0bbfe0ccd4120b493ed[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Oct 16 09:56:27 2025 +0300
+
+    updated readme
+
+[33mcommit 525f607b2e0172b83f7efae50be645b706c6048f[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Oct 16 09:32:23 2025 +0300
+
+    updated readm
+
+[33mcommit 395c2bdbdacf6adcdbd44b67866363dad9d7c02c[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Oct 16 09:29:03 2025 +0300
+
+    updated the readme
+
+[33mcommit eaeaab69b795da8fb9e6c3d0ae58daa68d4401dd[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Oct 16 09:00:26 2025 +0300
+
+    add the directory to the output directory specified in config or by user
+
+[33mcommit f126609d138696ff0db9dc2367e87a57b7864c3c[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Oct 16 08:36:17 2025 +0300
+
+    reordered the the output directory initialization
+
+[33mcommit fdbc092dd014aa5099d1a178e013ad1d14a17d21[m
+Merge: 5b7e329 d05c617
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Oct 16 08:25:29 2025 +0300
+
+    Merge branch 'dev'
+
+[33mcommit d05c617af5253990b34dff6fc68c597fcc13b54a[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Oct 16 08:22:50 2025 +0300
+
+    added the findings the statistical analyzer to the StatisticalAnalysis schema
+
+[33mcommit 5b7e3292a0bb0ff6ca6ba1a4f146c3a59d7adacb[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Oct 16 08:06:17 2025 +0300
+
+    implemented the statistical_analyzer module
+
+[33mcommit 82d0b544c54c326bd73060bbf0ff9a084a0a3587[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Wed Oct 15 04:05:26 2025 +0300
+
+    -
+
+[33mcommit 2320859ee338003dd50644f6f4e19d66898af979[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Wed Oct 15 04:02:49 2025 +0300
+
+    -
+
+[33mcommit a1a94310ebfd2e9962c1ff613583bd4175837825[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Wed Oct 15 04:01:35 2025 +0300
+
+    updated the README with the blueprint
+
+[33mcommit f90e3966a90bcccdb7e7de76957022033dc739d2[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Fri Oct 10 04:43:00 2025 +0300
+
+    -
+
+[33mcommit e0d1e67a40c7f5e89939ef913fa8b527676d96e6[m
+Merge: 4d6ab4e bbd8453
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Oct 16 08:06:33 2025 +0300
+
+    Merge branch 'feat-statistical-analyzer' into dev
+
+[33mcommit bbd8453f4716186d14019f9a05078ad9aab1d26f[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Thu Oct 16 08:06:17 2025 +0300
+
+    implemented the statistical_analyzer module
+
+[33mcommit 4d6ab4e4ea7a457fc6687dfd0783f74d6f12f5e4[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Wed Oct 15 04:05:26 2025 +0300
+
+    -
+
+[33mcommit d52539d0135f80d55e53bf9786bf39391fb38105[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Wed Oct 15 04:02:49 2025 +0300
+
+    -
+
+[33mcommit f5aa25cc15d7a24b98decb4937393b3838381780[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Wed Oct 15 04:01:35 2025 +0300
+
+    updated the README with the blueprint
+
+[33mcommit 46cff0d70ad9d04a4457eae9f3725714a9ce4b26[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Fri Oct 10 04:43:00 2025 +0300
+
+    -
+
+[33mcommit c9542a2530325d21f17f61d159b6b09764ca5aab[m
+Author: EyadMostafa <79060024+EyadMostafa@users.noreply.github.com>
+Date:   Tue Oct 7 00:50:58 2025 +0300
+
+    Update blueprint.md
+
+[33mcommit 3c7fa3b8a3c2032b175fcd92b4a7f2e66886557b[m
+Author: EyadMostafa <79060024+EyadMostafa@users.noreply.github.com>
+Date:   Tue Oct 7 00:50:16 2025 +0300
+
+    Create blueprint.md
+
+[33mcommit 2f547634ce1ba4da7ef1de015abeed4663c296c4[m
+Author: EyadMostafa <79060024+EyadMostafa@users.noreply.github.com>
+Date:   Tue Oct 7 00:49:54 2025 +0300
+
+    Delete blueprint
+
+[33mcommit b54208d7b761ab26c03fa9d18e0b664b75f7a021[m
+Author: EyadMostafa <79060024+EyadMostafa@users.noreply.github.com>
+Date:   Tue Oct 7 00:49:19 2025 +0300
+
+    created NovaInsight blueprint
+
+[33mcommit d1ee3c47e95d62825176ec51dce551d8ee72f75e[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Mon Oct 6 03:01:33 2025 +0300
+
+    removed the debugging print statement in target_detector.py
+
+[33mcommit e279a664a9c08b8210758033f865ea794a658d85[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Mon Oct 6 02:53:47 2025 +0300
+
+    changed the based_module interface and improved that "_run_analytical_modules" method in AnalysisPipeline
+
+[33mcommit f18b57b58b3fb3347672204810a88a5b0c8e28c3[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Mon Oct 6 02:49:44 2025 +0300
+
+    implemented the target_detector module
+
+[33mcommit 6d715c83cdb90494558ca80a00f64f5bad55bd5e[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Sun Sep 28 01:17:12 2025 +0300
+
+    -
+
+[33mcommit 5b484ecb73280c5d6074d877c484d5405407c1c2[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Sun Sep 28 01:15:08 2025 +0300
+
+    -
+
+[33mcommit e2aff55b9f3ce01c50ae57ff385bfe0a56ed1872[m
+Merge: 7df6e78 3eb0dde
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Sun Sep 28 01:08:26 2025 +0300
+
+    Merge branch 'dev'
+
+[33mcommit 3eb0dde77e40402f7c3ab81ee15bbb1231db5f01[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Sun Sep 28 01:06:26 2025 +0300
+
+    full cli implementation
+
+[33mcommit 445c652cf4a00fc920976ef4f3dc4c7d0d9cafc7[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Sun Sep 28 01:05:35 2025 +0300
+
+    orchestrator bug fixes and updates along with a standard module interface definition in base_module
+
+[33mcommit 6651e1f771bc688e1e10df46b0dd1096fd906d8d[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Sun Sep 28 01:03:45 2025 +0300
+
+    Full profiler implementation along with neccessary config and schema adjustments
+
+[33mcommit a6734875b4e81ecd568b3991759e8bf9ee3dde09[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Tue Sep 23 07:44:11 2025 +0300
+
+    added a 'task' param to the pipeline constrcutor and metadata schema to specify the dataset's task (supervised | unsupervised) and moved report_generator.py to core
+
+[33mcommit 31a1977e542da2c33810a8df0423019b88c96289[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Mon Sep 22 16:58:33 2025 +0300
+
+    finalized the report and data initialization method
+
+[33mcommit 2b0a5da2f2e56e561d6fb49dcf559bedecb23584[m
+Merge: 8385257 25c9a85
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Mon Sep 22 15:46:43 2025 +0300
+
+    Merge branch 'feat-cache-manager' into dev
+
+[33mcommit 838525712fe9e59ddcf59fdbd9828e03b10ffaed[m
+Author: Eyad <eyadbu3@gmail.com>
+Date:   Mon Sep 22 15:46:34 2025 +0300
+
+    in

@@ -415,7 +415,7 @@ class Visualizer(BaseModule):
 
         try:
             for k, v in dimensionality_report.items():
-                if not "_embeddings_path" in k: continue
+                if not "_embeddings_path" in k or not v: continue
 
                 embeddings = pd.read_csv(v)
                 if embeddings.empty or embeddings.shape[1] < 2: continue
