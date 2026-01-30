@@ -14,7 +14,6 @@ from novainsight.core.statistical_analyzer import StatisticalAnalyzer
 from novainsight.core.dimensionality_reducer import DimensionalityReducer
 from novainsight.core.visualizer import Visualizer
 from novainsight.core.llm_summarizer import LLMSummarizer
-from novainsight.core.recommender import Recommender
 from novainsight.schemas.analysis_report import AnalysisReport, RunMetadata, DatasetProfile, DatasetStats, Finding, Operator
 from novainsight.core.report_generator import ReportGenerator
 from novainsight.utils.cache_manager import CacheManager
@@ -33,8 +32,7 @@ class AnalysisPipeline:
         Operator.DIM_REDUCTION: [Operator.PROFILER],                # dim_reduction --> profiler
         Operator.VIZ: [Operator.STATS, Operator.DIM_REDUCTION],     # viz --> dim_reduction --> stats --> target? --> profiler
         Operator.LLM: [Operator.STATS],                             # llm --> stats --> target? --> profiler
-        Operator.RECOMMENDATIONS: [Operator.LLM],                   # recommendations --> llm --> stats --> target? --> profiler
-        Operator.REPORT: [Operator.RECOMMENDATIONS, Operator.VIZ]   # report --> recommendations --> llm --> viz --> dim_reduction --> stats --> target? --> profiler
+        Operator.REPORT: [Operator.LLM, Operator.VIZ]               # report --> llm --> viz --> dim_reduction --> stats --> target? --> profiler
     }
 
     MODULES_REGISTRY = {
@@ -44,13 +42,12 @@ class AnalysisPipeline:
         Operator.DIM_REDUCTION: DimensionalityReducer,
         Operator.VIZ: Visualizer,
         Operator.LLM: LLMSummarizer,
-        Operator.RECOMMENDATIONS: Recommender,
         Operator.REPORT: ReportGenerator
     }
     
     EXECUTION_ORDER = [
         Operator.PROFILER, Operator.TARGET, Operator.STATS, Operator.DIM_REDUCTION, 
-        Operator.VIZ, Operator.LLM, Operator.RECOMMENDATIONS, Operator.REPORT
+        Operator.VIZ, Operator.LLM, Operator.REPORT
     ]
 
     SUPPORTED_FILE_EXTENSIONS = ['.csv', '.xlsx', '.xls']

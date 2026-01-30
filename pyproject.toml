@@ -24,6 +24,8 @@ dependencies = [
     'click>=8.0',
     'matplotlib>=3.5',
     'seaborn>=0.12',
+    'python-toon>=0.1.3',
+    'google-generativeai>=0.8.6'
 
     # --- Anticipated Dependencies ---
 
@@ -31,9 +33,6 @@ dependencies = [
     # 'Jinja2>=3.0',
     # 'nbformat>=5.0',
     # 'WeasyPrint>=55.0', # Note: Often requires external system dependencies (Pango, Cairo)
-
-    # LLM (for LLMSummarizer - Specific library depends on provider, e.g., google-generativeai)
-    # 'google-generativeai>=0.4', # Example if using Google's library
 ]
 
 [project.optional-dependencies]

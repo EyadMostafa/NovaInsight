@@ -79,6 +79,6 @@ visualization:
 
 llm:
   provider: google
-  model_name: "gemini-1.5-flash-latest"
+  model_name: "models/gemini-flash-latest"
   temperature: 0.3
-  max_tokens: 2048
+  max_tokens: 8192

@@ -112,9 +112,9 @@ class VisualizationSettings(BaseModel):
 
 class LLMSettings(BaseModel):
     provider: str = Field("google")
-    model_name: str = Field("gemini-1.5-flash-latest")
+    model_name: str = Field("models/gemini-flash-latest")
     temperature: float = Field(0.3)
-    max_tokens: int = Field(2048)
+    max_tokens: int = Field(8192)
     api_key: str | None = None
 
 class NovaInsightConfig(BaseModel):
@@ -194,7 +194,7 @@ def load_config(path: str | Path | None = None) -> NovaInsightConfig:
             "directory_path": os.getenv("NOVA_INSIGHT_CACHE_DIRECTORY_PATH"),
         },
         "llm": {
-            "api_key": os.getenv("LLM_API_KEY")
+            "api_key": os.getenv("NOVA_INSIGHT_LLM_API_KEY")
         }
     }
     # Clean up None values so we only override with set env vars
