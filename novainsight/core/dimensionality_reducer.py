@@ -35,6 +35,7 @@ class DimensionalityReducer(BaseModule):
         It prepares the data, runs PCA, UMAP, and t-SNE, saves the results,
         and updates the main analysis report.
         """
+        if report.dimensionality_analysis: return report
         report.dimensionality_analysis = DimensionalityAnalysis()
 
         processed_df, prep_finding = self._prepare_data(df, report)

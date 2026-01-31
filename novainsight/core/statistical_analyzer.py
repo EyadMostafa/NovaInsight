@@ -38,7 +38,7 @@ class StatisticalAnalyzer(BaseModule):
         The main execution method for the statistical analysis process.
         Orchestrates all statistical tests and consolidates their findings.
         """
-        self.findings = []
+        if report.statistical_analysis: return report
 
         class_imbalance_report = None
         multicollinearity_report = {}

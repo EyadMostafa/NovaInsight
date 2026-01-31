@@ -96,6 +96,7 @@ class LLMSummarizer(BaseModule):
         """
         Constructs TOON context, queries LLM with JSON schema, validates response, updates report.
         """
+        if report.llm_summary: return report
         if not self.provider:
             report.findings.append(Finding(
                 level="WARNING",
@@ -133,7 +134,7 @@ class LLMSummarizer(BaseModule):
         """
         context_data = report.model_dump(
             mode='json', 
-            exclude={'llm_summary', 'findings'}
+            exclude={'llm_summary', 'findings', 'visualizations'}
         )
 
         try:
@@ -181,7 +182,6 @@ class LLMSummarizer(BaseModule):
             }
         """
             
-            
         # 3. Final System Instruction
         prompt = f"""
             You are NovaInsight, an expert Senior Data Scientist.
@@ -190,9 +190,7 @@ class LLMSummarizer(BaseModule):
 
             Your task is to produce a structured analytical summary intended for downstream machine parsing and validation.
 
-            ==============================
-            STRICT OUTPUT RULES (CRITICAL)
-            ==============================
+            STRICT OUTPUT RULES (CRITICAL):
             - Return ONLY valid JSON.
             - Do NOT include markdown, code fences, comments, or explanations.
             - Do NOT include ```json or ``` anywhere in the response.
@@ -200,9 +198,15 @@ class LLMSummarizer(BaseModule):
             - The response MUST start with '{' and end with '}'.
             - The output MUST be directly parsable by a standard JSON parser.
 
-            ==============================
-            OUTPUT JSON SCHEMA (MUST MATCH EXACTLY)
-            ==============================
+            FAST MODE INTERPRETATION (CRITICAL):
+            - Fast mode means that only a subset of rows was analyzed for speed.
+            - Actual row count is provided by original_row_count 
+            - Do NOT interpret the analyzed_row_count as the true dataset size.
+            - Do NOT make modeling recommendations based on sample size alone.
+            - Assume the full dataset size is provided separately and is representative.
+            - Frame conclusions as preliminary structural insights, not data volume limitations.
+
+            OUTPUT JSON SCHEMA (MUST MATCH EXACTLY):
             All fields are REQUIRED. Arrays may be empty, but must be present.
             If you have no recommendations for a given list, you MUST still include the list as an empty array [].
             Do NOT omit any required fields.
@@ -210,9 +214,36 @@ class LLMSummarizer(BaseModule):
 
             {LLM_SCHEMA}
 
-            ==============================
-            FIELD SEMANTICS
-            ==============================
+            FINAL OUTPUT CONTRACT (CRITICAL):
+            You must populate ALL fields in the output JSON.
+
+            Each field has a distinct purpose and must NOT be merged with others:
+
+            - executive_summary:
+              Interpretive, high-level narrative intended for decision-makers.
+              May include implications and recommendations.
+              Must NOT include raw schema metadata.
+
+            - dataset_overview:
+              Factual dataset metadata ONLY.
+              This field MUST include:
+              - total number of rows in the full dataset
+              - number of columns
+              - brief enumeration of feature groups (numerical, categorical, target)
+              This field MUST NOT include analysis, interpretation, or recommendations.
+              This field MUST be present even if similar information appears elsewhere.
+
+            - key_findings_and_patterns:
+              Analytical observations derived from statistics or structure.
+              Do NOT restate dataset metadata here.
+
+            - potential_issues_and_warnings:
+              Risks, limitations, and data quality concerns only.
+
+            - recommendations:
+              Actionable next steps only, grouped by category.
+
+            FIELD SEMANTICS:
             - executive_summary:
               A concise (3–5 sentences) executive-level overview of the dataset, its quality, and its suitability for the task.
 
@@ -237,18 +268,14 @@ class LLMSummarizer(BaseModule):
             - pitfall_warnings:
               Common or dataset-specific modeling mistakes to avoid.
 
-            ==============================
-            ANALYSIS RULES
-            ==============================
+            ANALYSIS RULES:
             1. Tone: Professional, objective, technical, and concise. No fluff.
             2. Focus on implications for the task: '{report.metadata.task}'.
             3. If the analysis mode is 'fast', explicitly note that findings are based on a structural spot-check.
             4. Recommendations must be specific, actionable, and prioritized.
                Example: "Log-transform 'Salary' due to heavy right skew and extreme outliers."
 
-            ==============================
-            CONTEXT DATA (TOON)
-            ==============================
+            CONTEXT DATA (TOON):
             {toon_context}
         """
         return prompt

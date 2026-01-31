@@ -93,7 +93,7 @@ class DataProfiler(BaseModule):
                     
             dataset_stats = DatasetStats(
                 original_row_count=self.original_row_count,
-                row_count=row_count,
+                analyzed_row_count=row_count,
                 column_count=col_count,
                 total_memory_usage_mb=self.total_memory_usage,
                 duplicate_rows_count=duplicate_rows_count,

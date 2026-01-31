@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 import openpyxl
+import csv
 from logging import getLogger
 from pathlib import Path
 from typing import List, Set, Optional
@@ -88,6 +89,12 @@ class AnalysisPipeline:
         try:
             self._initialize_report_and_data()
             self._run_analytical_modules()
+            # lazy fix to the duplicate findings bug
+            findings_unique = {}
+            for f in self.report.findings:
+                key = (f.level, f.message)
+                findings_unique[key] = f
+            self.report.findings = list(findings_unique.values())
             self._generate_outputs()
             logger.info("Analysis pipeline completed")
         except Exception as e:
@@ -161,7 +168,7 @@ class AnalysisPipeline:
             initial_stats = DatasetStats(
                 original_row_count=full_row_count,
                 # The actual row_count will be filled by the profiler from the provided df
-                row_count=0, 
+                analyzed_row_count=0, 
                 column_count=0, 
                 total_memory_usage_mb=0.0, 
                 duplicate_rows_count=0, 
@@ -213,6 +220,8 @@ class AnalysisPipeline:
                 updated_report = module.run(df=self.df, report=self.report)
                 if updated_report:
                     self.report = updated_report
+                #if hasattr(module, "findings"):
+                #    self.report.findings.extend(module.findings)
 
             except Exception as e:
                 finding = Finding(
@@ -248,10 +257,10 @@ class AnalysisPipeline:
 
         try:
             if file_extension == '.csv':
-                with open(self.file_path, 'rb') as f:
-                    line_count = sum(1 for _ in f)
-                # Subtract 1 for the header row
-                return line_count - 1
+                with open(self.file_path, 'r', encoding='utf-8', errors='replace', newline='') as f:
+                    reader = csv.reader(f)
+                    line_count = sum(1 for _ in reader) - 1
+                return line_count
             elif file_extension in ['.xlsx', '.xls']:
                 # This loads the workbook structure but not all the cell data,
                 # which is much more memory-efficient than reading with pandas.

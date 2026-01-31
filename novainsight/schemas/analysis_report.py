@@ -48,7 +48,7 @@ class RunMetadata(BaseModel):
 class DatasetStats(BaseModel):
     """Holds overall summary statistics for the entire dataset."""
     original_row_count: int = Field(..., description="Total row count of the entire dataset regardless of analysis mode")
-    row_count: int = Field(..., description="Represents the count of (observations/instances) in sampled dataset incase of 'fast' analysis mode, otherwise it is just the full row count.")
+    analyzed_row_count: int = Field(..., description="Represents the count of (observations/instances) in sampled dataset incase of 'fast' analysis mode, otherwise it is just the full row count.")
     column_count: int = Field(..., description="Total number of columns (features) in the dataset.")
     total_memory_usage_mb: float = Field(..., description="The total memory usage of the entire dataset in megabytes (MB).")
     duplicate_rows_count: int = Field(..., description="Total count of duplicate rows.")

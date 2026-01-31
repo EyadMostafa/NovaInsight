@@ -45,8 +45,9 @@ class Visualizer(BaseModule):
         Orchestrates the setup, task-aware hue generation, and creation
         of all plot groups (univariate, bivariate, correlation, dimensionality).
         """
+        if report.visualizations: return report
         self._setup_plotting()
-        self.output_dir = Path(report.metadata.output_dir / 'plots')
+        self.output_dir = Path(report.metadata.output_dir) / 'plots'
         self.output_dir.mkdir(parents=True, exist_ok=True)
         hue_data, hue_name = self._get_task_aware_hue(df, report)
 
