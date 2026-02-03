@@ -183,6 +183,7 @@ class AnalysisReport(BaseModel):
     dimensionality_analysis: Optional[DimensionalityAnalysis] = None
     visualizations: Optional[VisualizationOutput] = None
     llm_summary: Optional[LLMSummary] = None
+    raw_llm_output: Optional[str] = None
     findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
 
     model_config = {

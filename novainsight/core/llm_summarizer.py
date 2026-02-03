@@ -110,7 +110,7 @@ class LLMSummarizer(BaseModule):
             
             logger.info("Querying LLM for structured analysis summary...")
             llm_output = self.provider.generate(prompt, schema=LLMSummary)
-            print(llm_output)
+            report.raw_llm_output = llm_output
             logger.info("Validating LLM response against schema...")
             json_response_text = self._extract_json_string(llm_output)
             summary = LLMSummary.model_validate_json(json_response_text)
