@@ -219,24 +219,7 @@ For every run, NovaInsight creates a dedicated folder in `novainsight_reports/`.
 * **correlations/** — CSVs of the correlation matrices.  
 * **embeddings/** — CSVs of the PCA/t-SNE coordinates.
 
-[View Sample Outputs](https://www.google.com/search?q=docs/EXAMPLES.md)
-
----
-
-## **🗺️ Roadmap**
-
-* [x] Quantitative Pipeline (Profiling, Stats, Target Detection)  
-* [x] Visualization Engine  
-* [x] LLM Integration (Gemini)  
-* [x] HTML Report Generation  
-* [ ] Comparison Mode (Compare two datasets)  
-* [ ] Interactive Streamlit Dashboard
-
----
-
-## **📄 License**
-
-Distributed under the MIT License. See LICENSE for more information.
+[View Sample Outputs](docs/index.html)
 
 ---
 
