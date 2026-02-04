@@ -219,7 +219,7 @@ For every run, NovaInsight creates a dedicated folder in `novainsight_reports/`.
 * **correlations/** — CSVs of the correlation matrices.  
 * **embeddings/** — CSVs of the PCA/t-SNE coordinates.
 
-[View Sample Outputs](docs/index.html)
+[View Sample Outputs](https://eyadmostafa.github.io/NovaInsight/)
 
 ---
 
