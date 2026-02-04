@@ -88,8 +88,7 @@ The \--task flag fundamentally alters the behavior of the AnalysisPipeline.
 | statistical\_analyzer.py | Statistical Analyzer | Runs all quantitative tests (outliers, correlation, VIF, data leakage, etc.). |
 | dimensionality\_reducer.py | Structure Discoverer | Runs PCA, UMAP, and t-SNE to find and visualize latent data structures. |
 | visualizer.py | Visualizer | Creates a consistent gallery of all plots and charts. |
-| llm\_summarizer.py | LLM Summarizer | Uses an LLM to generate narrative explanations and summaries. |
-| recommender.py | Recommender | Generates actionable next steps and warnings. |
+| llm\_summarizer.py | LLM Summarizer | Uses an LLM to generate narrative explanations and summaries, Generates actionable next steps and warnings. |
 | report\_generator.py | Report Generator | Creates the user-facing PDF, Jupyter Notebook, and JSON files. |
 | cache\_manager.py | Cache Manager | Handles file hashing, saving/loading state, and managing the cache directory. |
 | validators.py | Path Validators | Provides reusable functions for validating input/output paths. |
@@ -120,7 +119,7 @@ To ensure a robust and maintainable pipeline, NovaInsight follows two key implem
 * **Visualization:** Matplotlib, Seaborn  
 * **CLI:** Click  
 * **LLM:** Google Generative AI  
-* **Reporting:** Jinja2, Nbformat, WeasyPrint  
+* **Reporting:** Jinja2 
 * **Packaging & Testing:** pyproject.toml (with Setuptools), Pytest
 
 ## **10\. Future Upgrades & Vision**

@@ -116,7 +116,7 @@ If omitted, NovaInsight attempts to run the full pipeline.
 
 **Available Modules:**
 ```
-profiler, target, stats, dim_reduction, viz, llm, recommendations
+profiler, target, stats, dim_reduction, viz, llm
 ```
 
 ---
