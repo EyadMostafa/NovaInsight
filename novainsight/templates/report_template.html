@@ -213,6 +213,7 @@
                         {{ "%.1f"|format(dup_pct) }}%
                     </div>
                     <div class="metric-label">Duplicates</div>
+                    <small class="text-muted" style="font-size: 0.7rem;">Count: {{ report.profile.dataset_stats.duplicate_rows_count }}</small>
                 </div>
             </div>
             <div class="col-md-3">
@@ -408,7 +409,16 @@
                                 <h6 class="text-uppercase small text-muted fw-bold mb-3">Insights</h6>
                                 <!-- Findings specific to this column -->
                                 {% for finding in report.findings %}
-                                    {% if col.column_name in finding.message %}
+                                <!-- 
+                                <div style="background: #f0f0f0; border: 1px solid red; padding: 5px; margin-bottom: 5px;">
+                                    <strong>Debug:</strong><br>
+                                        Column: "{{ col.column_name }}" <br>
+                                         Finding Affected Columns: "{{ finding.column_names }}" <br>
+                                        Result of check: {{ includes_column_name(col.column_name, finding.message) }}
+                                        Message: {{finding.message}}</div>
+                                -->
+
+                                    {% if includes_column_name(col.column_name, finding.message) %}
                                     <span class="alert-mini {% if finding.level == 'ERROR' %}bg-danger-subtle text-danger-emphasis{% else %}bg-warning-subtle text-warning-emphasis{% endif %}">
                                         <i class="bi bi-exclamation-circle"></i> {{ finding.message }}
                                     </span>

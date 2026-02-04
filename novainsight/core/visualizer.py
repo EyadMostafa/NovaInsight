@@ -564,7 +564,7 @@ class Visualizer(BaseModule):
             )
 
             for container in ax.containers:
-                ax.bar_label(container, fmt='%d', padding=3, fontsize=10)
+                ax.bar_label(container, fmt='%d', padding=3, fontsize=10, rotation=90)
 
             ax.set_title(f"{feature_name} by {hue_name}", fontsize=14)
             ax.set_xlabel(feature_name)

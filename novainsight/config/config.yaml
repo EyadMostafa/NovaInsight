@@ -12,7 +12,7 @@ general:
 
 analysis:
   default_mode: full
-  fast_mode_sample_rows: 1000
+  fast_mode_sample_rows: 5000
 
   output:
     default_directory: "."

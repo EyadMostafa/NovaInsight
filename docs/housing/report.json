@@ -1,0 +1,432 @@
+{
+  "metadata": {
+    "input_file": "/home/eyad/NovaInsight/local_testing/Housing.csv",
+    "output_dir": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis",
+    "file_hash": "a8ef508351b4d6e87b23a831cf316a3d53c794ed9d969c7b697a865a60a3d65f",
+    "report_title": "Housing Analysis",
+    "run_timestamp": "2026-02-04T13:23:41.506500Z",
+    "analysis_mode": "full",
+    "task": "supervised",
+    "user_target": "price"
+  },
+  "profile": {
+    "dataset_stats": {
+      "original_row_count": 545,
+      "analyzed_row_count": 545,
+      "column_count": 13,
+      "total_memory_usage_mb": 0.21671676635742188,
+      "duplicate_rows_count": 0,
+      "column_pct": 0.023853211009174313,
+      "duplicates_pct": 0.0
+    },
+    "column_details": [
+      {
+        "column_name": "price",
+        "inferred_type": "numerical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 219,
+        "unique_values_pct": 0.4018348623853211,
+        "stats": {
+          "count": 545.0,
+          "mean": 4766729.247706422,
+          "std": 1870439.6156573922,
+          "min": 1750000.0,
+          "25%": 3430000.0,
+          "50%": 4340000.0,
+          "75%": 5740000.0,
+          "max": 13300000.0
+        },
+        "memory_usage_mb": 0.00415802001953125
+      },
+      {
+        "column_name": "area",
+        "inferred_type": "numerical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 284,
+        "unique_values_pct": 0.5211009174311927,
+        "stats": {
+          "count": 545.0,
+          "mean": 5150.54128440367,
+          "std": 2170.141022508803,
+          "min": 1650.0,
+          "25%": 3600.0,
+          "50%": 4600.0,
+          "75%": 6360.0,
+          "max": 16200.0
+        },
+        "memory_usage_mb": 0.00415802001953125
+      },
+      {
+        "column_name": "bedrooms",
+        "inferred_type": "categorical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 6,
+        "unique_values_pct": 0.011009174311926606,
+        "stats": {
+          "top": "3",
+          "frequency": 300,
+          "value_counts": {
+            "3": 300,
+            "2": 136,
+            "4": 95,
+            "5": 10,
+            "6": 2
+          }
+        },
+        "memory_usage_mb": 0.00415802001953125
+      },
+      {
+        "column_name": "bathrooms",
+        "inferred_type": "categorical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 4,
+        "unique_values_pct": 0.007339449541284404,
+        "stats": {
+          "top": "1",
+          "frequency": 401,
+          "value_counts": {
+            "1": 401,
+            "2": 133,
+            "3": 10,
+            "4": 1
+          }
+        },
+        "memory_usage_mb": 0.00415802001953125
+      },
+      {
+        "column_name": "stories",
+        "inferred_type": "categorical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 4,
+        "unique_values_pct": 0.007339449541284404,
+        "stats": {
+          "top": "2",
+          "frequency": 238,
+          "value_counts": {
+            "2": 238,
+            "1": 227,
+            "4": 41,
+            "3": 39
+          }
+        },
+        "memory_usage_mb": 0.00415802001953125
+      },
+      {
+        "column_name": "mainroad",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 2,
+        "unique_values_pct": 0.003669724770642202,
+        "stats": {
+          "top": "yes",
+          "frequency": 468,
+          "value_counts": {
+            "yes": 468,
+            "no": 77
+          }
+        },
+        "memory_usage_mb": 0.026953697204589844
+      },
+      {
+        "column_name": "guestroom",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 2,
+        "unique_values_pct": 0.003669724770642202,
+        "stats": {
+          "top": "no",
+          "frequency": 448,
+          "value_counts": {
+            "no": 448,
+            "yes": 97
+          }
+        },
+        "memory_usage_mb": 0.026599884033203125
+      },
+      {
+        "column_name": "basement",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 2,
+        "unique_values_pct": 0.003669724770642202,
+        "stats": {
+          "top": "no",
+          "frequency": 354,
+          "value_counts": {
+            "no": 354,
+            "yes": 191
+          }
+        },
+        "memory_usage_mb": 0.026689529418945312
+      },
+      {
+        "column_name": "hotwaterheating",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 2,
+        "unique_values_pct": 0.003669724770642202,
+        "stats": {
+          "top": "no",
+          "frequency": 520,
+          "value_counts": {
+            "no": 520,
+            "yes": 25
+          }
+        },
+        "memory_usage_mb": 0.026531219482421875
+      },
+      {
+        "column_name": "airconditioning",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 2,
+        "unique_values_pct": 0.003669724770642202,
+        "stats": {
+          "top": "no",
+          "frequency": 373,
+          "value_counts": {
+            "no": 373,
+            "yes": 172
+          }
+        },
+        "memory_usage_mb": 0.026671409606933594
+      },
+      {
+        "column_name": "parking",
+        "inferred_type": "categorical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 4,
+        "unique_values_pct": 0.007339449541284404,
+        "stats": {
+          "top": "0",
+          "frequency": 299,
+          "value_counts": {
+            "0": 299,
+            "1": 126,
+            "2": 108,
+            "3": 12
+          }
+        },
+        "memory_usage_mb": 0.00415802001953125
+      },
+      {
+        "column_name": "prefarea",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 2,
+        "unique_values_pct": 0.003669724770642202,
+        "stats": {
+          "top": "no",
+          "frequency": 417,
+          "value_counts": {
+            "no": 417,
+            "yes": 128
+          }
+        },
+        "memory_usage_mb": 0.02662944793701172
+      },
+      {
+        "column_name": "furnishingstatus",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 3,
+        "unique_values_pct": 0.005504587155963303,
+        "stats": {
+          "top": "semi-furnished",
+          "frequency": 227,
+          "value_counts": {
+            "semi-furnished": 227,
+            "unfurnished": 178,
+            "furnished": 140
+          }
+        },
+        "memory_usage_mb": 0.03156757354736328
+      }
+    ],
+    "findings": []
+  },
+  "target_analysis": {
+    "detection_method": "user_specified",
+    "candidate_targets": [
+      {
+        "column_name": "price",
+        "ml_task": "regression",
+        "justification": "user_specified",
+        "confidence_score": 1.0
+      }
+    ],
+    "identified_target": "price",
+    "findings": []
+  },
+  "statistical_analysis": {
+    "outlier_report": {
+      "price": {
+        "outlier_count": 17,
+        "outlier_percentage": 0.031192660550458717,
+        "method": "Modified Z-score"
+      },
+      "area": {
+        "outlier_count": 11,
+        "outlier_percentage": 0.02018348623853211,
+        "method": "Modified Z-score"
+      }
+    },
+    "multicollinearity_report": {},
+    "correlation_report": {
+      "numerical_numerical_path": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/correlations/numerical_corr.csv",
+      "categorical_categorical_path": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/correlations/categorical_corr.csv",
+      "categorical_numerical_path": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/correlations/categorical_numerical_corr.csv"
+    },
+    "class_imbalance_report": null,
+    "findings": []
+  },
+  "dimensionality_analysis": {
+    "pca_explained_variance_ratios": [],
+    "pca_embeddings_path": "",
+    "tsne_embeddings_path": "",
+    "umap_embeddings_path": "",
+    "findings": [
+      {
+        "level": "INFO",
+        "message": "Dataset has fewer than 3 valid numeric features (1) after excluding non-numerical, target, and zero-variance columns. Skipping Dimensionality reduction."
+      }
+    ]
+  },
+  "visualizations": {
+    "univariate_plots": {
+      "price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_price.png",
+      "area": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_area.png",
+      "bedrooms": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_bedrooms.png",
+      "bathrooms": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_bathrooms.png",
+      "stories": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_stories.png",
+      "mainroad": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_mainroad.png",
+      "guestroom": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_guestroom.png",
+      "basement": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_basement.png",
+      "hotwaterheating": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_hotwaterheating.png",
+      "airconditioning": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_airconditioning.png",
+      "parking": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_parking.png",
+      "prefarea": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_prefarea.png",
+      "furnishingstatus": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/univariate_dist_furnishingstatus.png"
+    },
+    "bivariate_plots": {
+      "area_vs_price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/bivariate_area_vs_price.png",
+      "bedrooms_vs_price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/bivariate_bedrooms_vs_price.png",
+      "bathrooms_vs_price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/bivariate_bathrooms_vs_price.png",
+      "stories_vs_price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/bivariate_stories_vs_price.png",
+      "mainroad_vs_price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/bivariate_mainroad_vs_price.png",
+      "guestroom_vs_price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/bivariate_guestroom_vs_price.png",
+      "basement_vs_price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/bivariate_basement_vs_price.png",
+      "hotwaterheating_vs_price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/bivariate_hotwaterheating_vs_price.png",
+      "airconditioning_vs_price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/bivariate_airconditioning_vs_price.png",
+      "parking_vs_price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/bivariate_parking_vs_price.png",
+      "prefarea_vs_price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/bivariate_prefarea_vs_price.png",
+      "furnishingstatus_vs_price": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/bivariate_furnishingstatus_vs_price.png"
+    },
+    "correlation_heatmap_plots": {
+      "numerical_numerical": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/numerical_numerical_heatmap.png",
+      "categorical_categorical": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/categorical_categorical_heatmap.png",
+      "categorical_numerical": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Housing Analysis/plots/categorical_numerical_heatmap.png"
+    },
+    "dim_reduction_scatter_plots": {},
+    "findings": []
+  },
+  "llm_summary": {
+    "executive_summary": "The Housing dataset is small but clean, featuring 545 complete records suitable for a supervised regression task predicting property price. The data structure is dominated by discrete and binary categorical features, with only 'area' providing continuous numerical variation. Key challenges include managing outliers in 'price' and 'area', and addressing significant class imbalance in several amenity indicators like 'hotwaterheating'. Successful modeling will depend heavily on appropriate feature encoding and regularization techniques to mitigate overfitting given the limited sample size.",
+    "dataset_overview": "This dataset contains 545 rows and 13 columns, with the goal of supervised regression predicting the 'price'. The feature set is composed of one continuous numerical feature ('area'), the numerical target ('price'), and eleven categorical or discrete count features (e.g., 'bedrooms', 'stories', 'mainroad', 'furnishingstatus'). All columns are complete with zero missing values.",
+    "key_findings_and_patterns": "The target variable 'price' and the primary numerical feature 'area' both exhibit outliers (3.12% and 2.02%, respectively), suggesting potential skewness or extreme values in high-end properties. Features like 'bedrooms', 'bathrooms', 'stories', and 'parking' are discrete counts that should be treated as ordinal or numerical. Several binary categorical features, notably 'hotwaterheating' (95% 'no'), show extreme class imbalance, indicating that these amenities are rare and potentially highly predictive when present.",
+    "potential_issues_and_warnings": "The small dataset size (N=545) increases the risk of overfitting, especially if complex models or extensive feature engineering are employed. The presence of outliers in the target and 'area' could disproportionately influence linear models. Furthermore, the extreme imbalance in binary features like 'hotwaterheating' and 'guestroom' means their positive classes might be underrepresented, potentially leading to models ignoring their predictive power.",
+    "recommendations": {
+      "preprocessing_steps": [
+        {
+          "category": "Preprocessing",
+          "description": "Convert the discrete count features ('bedrooms', 'bathrooms', 'stories', 'parking') from their current categorical representation to numerical/ordinal integers.",
+          "priority": 1
+        },
+        {
+          "category": "Preprocessing",
+          "description": "Apply one-hot encoding to all nominal categorical features (e.g., 'mainroad', 'guestroom', 'furnishingstatus'). Ensure binary features are mapped to 0/1.",
+          "priority": 1
+        },
+        {
+          "category": "Preprocessing",
+          "description": "Investigate and potentially cap or transform the outliers in 'price' and 'area' (e.g., using log transformation or Winsorization) to stabilize model variance.",
+          "priority": 2
+        }
+      ],
+      "feature_engineering_ideas": [
+        {
+          "category": "Feature Engineering",
+          "description": "Create interaction features by multiplying 'area' with key binary amenities (e.g., 'airconditioning', 'prefarea') to capture how the value of space changes with premium features.",
+          "priority": 2
+        },
+        {
+          "category": "Feature Engineering",
+          "description": "Derive a 'Rooms' feature by summing 'bedrooms' and 'bathrooms' to create a single metric for property capacity, potentially capturing non-linear relationships better than individual counts.",
+          "priority": 2
+        }
+      ],
+      "modeling_suggestions": [
+        {
+          "category": "Modeling",
+          "description": "Start with robust baseline models such as Ridge or Lasso Regression to handle potential multicollinearity and mitigate overfitting due to the small sample size.",
+          "priority": 1
+        },
+        {
+          "category": "Modeling",
+          "description": "Utilize Tree-based models (e.g., Random Forest Regressor or XGBoost) as they naturally handle the mix of numerical and encoded categorical features and are less sensitive to outliers.",
+          "priority": 1
+        },
+        {
+          "category": "Modeling",
+          "description": "Employ K-fold cross-validation (e.g., 5-fold or 10-fold) for reliable performance estimation, given the limited number of observations.",
+          "priority": 1
+        }
+      ],
+      "pitfall_warnings": [
+        {
+          "category": "Modeling Pitfall",
+          "description": "Avoid using complex, high-variance models (e.g., deep neural networks) that require large amounts of data, as they are highly likely to overfit this small dataset.",
+          "priority": 1
+        },
+        {
+          "category": "Data Quality Pitfall",
+          "description": "Be cautious when interpreting the coefficients of highly imbalanced features (like 'hotwaterheating') in linear models, as their impact might be exaggerated or suppressed due to the rarity of the positive class.",
+          "priority": 2
+        }
+      ]
+    }
+  },
+  "raw_llm_output": null,
+  "findings": [
+    {
+      "level": "INFO",
+      "message": "Dataset has fewer than 3 valid numeric features (1) after excluding non-numerical, target, and zero-variance columns. Skipping Dimensionality reduction."
+    }
+  ]
+}

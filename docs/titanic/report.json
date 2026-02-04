@@ -1,0 +1,467 @@
+{
+  "metadata": {
+    "input_file": "/home/eyad/NovaInsight/local_testing/train_kaggle.csv",
+    "output_dir": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis",
+    "file_hash": "7d118fef8b6ccf7f81111877bc388536f7b1e498a655e3d649d19aaa010e9f6f",
+    "report_title": "Titanic Analysis",
+    "run_timestamp": "2026-02-04T12:57:09.178383Z",
+    "analysis_mode": "full",
+    "task": "supervised",
+    "user_target": null
+  },
+  "profile": {
+    "dataset_stats": {
+      "original_row_count": 891,
+      "analyzed_row_count": 891,
+      "column_count": 12,
+      "total_memory_usage_mb": 0.2789154052734375,
+      "duplicate_rows_count": 0,
+      "column_pct": 0.013468013468013467,
+      "duplicates_pct": 0.0
+    },
+    "column_details": [
+      {
+        "column_name": "PassengerId",
+        "inferred_type": "id",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 891,
+        "unique_values_pct": 1.0,
+        "stats": {},
+        "memory_usage_mb": 0.00679779052734375
+      },
+      {
+        "column_name": "Survived",
+        "inferred_type": "boolean",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 2,
+        "unique_values_pct": 0.002244668911335578,
+        "stats": {},
+        "memory_usage_mb": 0.00679779052734375
+      },
+      {
+        "column_name": "Pclass",
+        "inferred_type": "categorical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 3,
+        "unique_values_pct": 0.003367003367003367,
+        "stats": {
+          "top": "3",
+          "frequency": 491,
+          "value_counts": {
+            "3": 491,
+            "1": 216,
+            "2": 184
+          }
+        },
+        "memory_usage_mb": 0.00679779052734375
+      },
+      {
+        "column_name": "Name",
+        "inferred_type": "id",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 891,
+        "unique_values_pct": 1.0,
+        "stats": {},
+        "memory_usage_mb": 0.06454944610595703
+      },
+      {
+        "column_name": "Sex",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 2,
+        "unique_values_pct": 0.002244668911335578,
+        "stats": {
+          "top": "male",
+          "frequency": 577,
+          "value_counts": {
+            "male": 577,
+            "female": 314
+          }
+        },
+        "memory_usage_mb": 0.04563426971435547
+      },
+      {
+        "column_name": "Age",
+        "inferred_type": "numerical",
+        "dtype": "float64",
+        "missing_values_count": 177,
+        "missing_values_pct": 0.19865319865319866,
+        "unique_values_count": 88,
+        "unique_values_pct": 0.09876543209876543,
+        "stats": {
+          "count": 714.0,
+          "mean": 29.69911764705882,
+          "std": 14.526497332334042,
+          "min": 0.42,
+          "25%": 20.125,
+          "50%": 28.0,
+          "75%": 38.0,
+          "max": 80.0
+        },
+        "memory_usage_mb": 0.00679779052734375
+      },
+      {
+        "column_name": "SibSp",
+        "inferred_type": "categorical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 7,
+        "unique_values_pct": 0.007856341189674524,
+        "stats": {
+          "top": "0",
+          "frequency": 608,
+          "value_counts": {
+            "0": 608,
+            "1": 209,
+            "2": 28,
+            "4": 18,
+            "3": 16
+          }
+        },
+        "memory_usage_mb": 0.00679779052734375
+      },
+      {
+        "column_name": "Parch",
+        "inferred_type": "categorical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 7,
+        "unique_values_pct": 0.007856341189674524,
+        "stats": {
+          "top": "0",
+          "frequency": 678,
+          "value_counts": {
+            "0": 678,
+            "1": 118,
+            "2": 80,
+            "5": 5,
+            "3": 5
+          }
+        },
+        "memory_usage_mb": 0.00679779052734375
+      },
+      {
+        "column_name": "Ticket",
+        "inferred_type": "text",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 681,
+        "unique_values_pct": 0.7643097643097643,
+        "stats": {},
+        "memory_usage_mb": 0.04737281799316406
+      },
+      {
+        "column_name": "Fare",
+        "inferred_type": "numerical",
+        "dtype": "float64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 248,
+        "unique_values_pct": 0.2783389450056117,
+        "stats": {
+          "count": 891.0,
+          "mean": 32.204207968574636,
+          "std": 49.6934285971809,
+          "min": 0.0,
+          "25%": 7.9104,
+          "50%": 14.4542,
+          "75%": 31.0,
+          "max": 512.3292
+        },
+        "memory_usage_mb": 0.00679779052734375
+      },
+      {
+        "column_name": "Cabin",
+        "inferred_type": "text",
+        "dtype": "object",
+        "missing_values_count": 687,
+        "missing_values_pct": 0.7710437710437711,
+        "unique_values_count": 147,
+        "unique_values_pct": 0.16498316498316498,
+        "stats": {},
+        "memory_usage_mb": 0.03119659423828125
+      },
+      {
+        "column_name": "Embarked",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 2,
+        "missing_values_pct": 0.002244668911335578,
+        "unique_values_count": 3,
+        "unique_values_pct": 0.003367003367003367,
+        "stats": {
+          "top": "S",
+          "frequency": 644,
+          "value_counts": {
+            "S": 644,
+            "C": 168,
+            "Q": 77
+          }
+        },
+        "memory_usage_mb": 0.04245185852050781
+      }
+    ],
+    "findings": [
+      {
+        "level": "WARNING",
+        "message": "Column 'Name' is a potential memory hog, consuming 0.06455 MB (23.1%) of the total dataset memory. If this is a categorical column, consider converting its type to 'category' to optimize performance."
+      },
+      {
+        "level": "WARNING",
+        "message": "Column 'Cabin' has a high percentage of missing values (77.1%). This may require advanced imputation or cause the feature to be unusable."
+      }
+    ]
+  },
+  "target_analysis": {
+    "detection_method": "auto",
+    "candidate_targets": [
+      {
+        "column_name": "Survived",
+        "ml_task": "classification",
+        "justification": "Inferred as a classification target with a confidence score of 1.2.",
+        "confidence_score": 1.2
+      },
+      {
+        "column_name": "Sex",
+        "ml_task": "classification",
+        "justification": "Inferred as a classification target with a confidence score of 1.2.",
+        "confidence_score": 1.2
+      },
+      {
+        "column_name": "Pclass",
+        "ml_task": "classification",
+        "justification": "Inferred as a classification target with a confidence score of 1.0.",
+        "confidence_score": 1.0
+      },
+      {
+        "column_name": "SibSp",
+        "ml_task": "classification",
+        "justification": "Inferred as a classification target with a confidence score of 1.0.",
+        "confidence_score": 1.0
+      },
+      {
+        "column_name": "Parch",
+        "ml_task": "classification",
+        "justification": "Inferred as a classification target with a confidence score of 1.0.",
+        "confidence_score": 1.0
+      },
+      {
+        "column_name": "Embarked",
+        "ml_task": "classification",
+        "justification": "Inferred as a classification target with a confidence score of 1.0.",
+        "confidence_score": 1.0
+      },
+      {
+        "column_name": "Age",
+        "ml_task": "regression",
+        "justification": "Inferred as a regression target with a confidence score of 0.9.",
+        "confidence_score": 0.9
+      },
+      {
+        "column_name": "Fare",
+        "ml_task": "regression",
+        "justification": "Inferred as a regression target with a confidence score of 0.85.",
+        "confidence_score": 0.85
+      }
+    ],
+    "identified_target": "Survived",
+    "findings": []
+  },
+  "statistical_analysis": {
+    "outlier_report": {
+      "Age": {
+        "outlier_count": 7,
+        "outlier_percentage": 0.00980392156862745,
+        "method": "Modified Z-score"
+      },
+      "Fare": {
+        "outlier_count": 171,
+        "outlier_percentage": 0.1919191919191919,
+        "method": "Modified Z-score"
+      }
+    },
+    "multicollinearity_report": {},
+    "correlation_report": {
+      "numerical_numerical_path": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/correlations/numerical_corr.csv",
+      "categorical_categorical_path": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/correlations/categorical_corr.csv",
+      "categorical_numerical_path": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/correlations/categorical_numerical_corr.csv"
+    },
+    "class_imbalance_report": {
+      "class_counts": {
+        "0": 549,
+        "1": 342
+      },
+      "class_percentages": {
+        "0": 0.6161616161616161,
+        "1": 0.3838383838383838
+      }
+    },
+    "findings": [
+      {
+        "level": "WARNING",
+        "message": "Column 'Fare' has a high percentage of potential outliers (19.2%). This may skew statistical analysis and impact model performance."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Categorical features 'Survived' and 'Sex' are highly associated (Cramér's V = 0.54, p=1.2e-58)."
+      }
+    ]
+  },
+  "dimensionality_analysis": {
+    "pca_explained_variance_ratios": [],
+    "pca_embeddings_path": "",
+    "tsne_embeddings_path": "",
+    "umap_embeddings_path": "",
+    "findings": [
+      {
+        "level": "INFO",
+        "message": "Dataset has fewer than 3 valid numeric features (2) after excluding non-numerical, target, and zero-variance columns. Skipping Dimensionality reduction."
+      }
+    ]
+  },
+  "visualizations": {
+    "univariate_plots": {
+      "Survived": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/univariate_dist_Survived.png",
+      "Pclass": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/univariate_dist_Pclass.png",
+      "Sex": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/univariate_dist_Sex.png",
+      "Age": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/univariate_dist_Age.png",
+      "SibSp": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/univariate_dist_SibSp.png",
+      "Parch": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/univariate_dist_Parch.png",
+      "Fare": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/univariate_dist_Fare.png",
+      "Embarked": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/univariate_dist_Embarked.png"
+    },
+    "bivariate_plots": {
+      "Pclass_vs_Survived": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/bivariate_Pclass_vs_Survived.png",
+      "Sex_vs_Survived": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/bivariate_Sex_vs_Survived.png",
+      "Age_vs_Survived": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/bivariate_Age_vs_Survived.png",
+      "SibSp_vs_Survived": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/bivariate_SibSp_vs_Survived.png",
+      "Parch_vs_Survived": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/bivariate_Parch_vs_Survived.png",
+      "Fare_vs_Survived": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/bivariate_Fare_vs_Survived.png",
+      "Embarked_vs_Survived": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/bivariate_Embarked_vs_Survived.png"
+    },
+    "correlation_heatmap_plots": {
+      "numerical_numerical": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/numerical_numerical_heatmap.png",
+      "categorical_categorical": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/categorical_categorical_heatmap.png",
+      "categorical_numerical": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Titanic Analysis/plots/categorical_numerical_heatmap.png"
+    },
+    "dim_reduction_scatter_plots": {},
+    "findings": []
+  },
+  "llm_summary": {
+    "executive_summary": "The Titanic dataset is suitable for binary classification, but requires significant preprocessing due to substantial missing data in key features. Specifically, 'Cabin' is 77% missing and 'Age' is 20% missing. Analysis reveals a strong predictive relationship between 'Sex' and the target 'Survived'. The class distribution is moderately imbalanced (62% non-survivors). Successful modeling hinges on effective imputation of 'Age' and 'Cabin', and creative feature engineering from the 'Name' and 'Ticket' fields.",
+    "dataset_overview": "This dataset comprises 891 rows and 12 columns, structured for a supervised binary classification task where the objective is to predict 'Survived'. The features include two numerical variables ('Age', 'Fare'), five categorical/ordinal variables ('Pclass', 'Sex', 'SibSp', 'Parch', 'Embarked'), and several high-cardinality identifiers/text fields ('PassengerId', 'Name', 'Ticket', 'Cabin'). The dataset contains no duplicate records.",
+    "key_findings_and_patterns": "The target variable 'Survived' exhibits a moderate imbalance (61.6% non-survivors vs. 38.4% survivors). A strong association exists between 'Survived' and 'Sex' (Cramér's V = 0.54), highlighting gender as a primary predictor. The majority of passengers (608/891) traveled alone, indicated by the high frequency of zero values in 'SibSp' and 'Parch'. The 'Fare' distribution is heavily skewed and contains a high percentage of outliers (19.2%), suggesting a need for transformation or robust modeling techniques.",
+    "potential_issues_and_warnings": "The 'Cabin' column is severely compromised with 77.1% missing values, making direct use difficult. The 'Age' column also has a significant missing rate (19.9%), requiring careful imputation to avoid bias. The high outlier count in 'Fare' (19.2%) could skew statistical analyses and linear model coefficients. The 'Name' and 'Ticket' columns are high-cardinality text fields that must be processed or engineered before use, otherwise they should be dropped.",
+    "recommendations": {
+      "preprocessing_steps": [
+        {
+          "category": "Imputation",
+          "description": "Impute missing 'Age' values (19.9%) using a robust method, such as the median or a predictive model (e.g., MICE).",
+          "priority": 1
+        },
+        {
+          "category": "Transformation",
+          "description": "Apply a log transformation or use winsorization on the 'Fare' column to mitigate the impact of its heavy right skew and high percentage of outliers (19.2%).",
+          "priority": 1
+        },
+        {
+          "category": "Encoding",
+          "description": "Apply one-hot encoding to the nominal categorical features 'Sex' and 'Embarked'.",
+          "priority": 2
+        },
+        {
+          "category": "Imputation",
+          "description": "Impute the two missing 'Embarked' values using the mode ('S'), given the low missing percentage.",
+          "priority": 2
+        }
+      ],
+      "feature_engineering_ideas": [
+        {
+          "category": "Feature Engineering",
+          "description": "Extract the passenger title (e.g., Mr., Mrs., Master) from the 'Name' column, as titles often correlate with age, social status, and survival rate.",
+          "priority": 1
+        },
+        {
+          "category": "Feature Engineering",
+          "description": "Create a 'FamilySize' feature by summing 'SibSp' and 'Parch', and subsequently derive a binary feature 'IsAlone' (FamilySize = 0).",
+          "priority": 1
+        },
+        {
+          "category": "Feature Engineering",
+          "description": "Extract the deck letter from the non-missing 'Cabin' values and treat missing values as a separate 'Unknown' category, as the deck location is likely highly correlated with 'Pclass' and survival.",
+          "priority": 2
+        }
+      ],
+      "modeling_suggestions": [
+        {
+          "category": "Modeling",
+          "description": "Utilize tree-based ensemble methods (e.g., Random Forest, Gradient Boosting Machines) as they handle mixed data types, non-linear relationships, and are robust to unscaled numerical features.",
+          "priority": 1
+        },
+        {
+          "category": "Evaluation",
+          "description": "Given the moderate class imbalance, prioritize evaluation metrics like AUC-ROC and F1-score over simple accuracy.",
+          "priority": 1
+        },
+        {
+          "category": "Modeling",
+          "description": "Establish a baseline using simple models like Logistic Regression or a Decision Tree after initial preprocessing and encoding.",
+          "priority": 2
+        }
+      ],
+      "pitfall_warnings": [
+        {
+          "category": "Data Quality",
+          "description": "Avoid simple mean imputation for 'Age'. Instead, consider using the median, or a more sophisticated method like imputing based on 'Title' or 'Pclass' to preserve underlying demographic structure.",
+          "priority": 1
+        },
+        {
+          "category": "Feature Use",
+          "description": "Do not drop the 'Cabin' column outright; the missingness itself (77.1%) is highly informative and likely correlates with lower 'Pclass' and survival rates.",
+          "priority": 1
+        },
+        {
+          "category": "Feature Use",
+          "description": "Ensure 'PassengerId', raw 'Name', and 'Ticket' are excluded or transformed before training, as their high cardinality makes them unsuitable for direct use as features.",
+          "priority": 2
+        }
+      ]
+    }
+  },
+  "raw_llm_output": null,
+  "findings": [
+    {
+      "level": "WARNING",
+      "message": "Column 'Name' is a potential memory hog, consuming 0.06455 MB (23.1%) of the total dataset memory. If this is a categorical column, consider converting its type to 'category' to optimize performance."
+    },
+    {
+      "level": "WARNING",
+      "message": "Column 'Cabin' has a high percentage of missing values (77.1%). This may require advanced imputation or cause the feature to be unusable."
+    },
+    {
+      "level": "WARNING",
+      "message": "Column 'Fare' has a high percentage of potential outliers (19.2%). This may skew statistical analysis and impact model performance."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Categorical features 'Survived' and 'Sex' are highly associated (Cramér's V = 0.54, p=1.2e-58)."
+    },
+    {
+      "level": "INFO",
+      "message": "Dataset has fewer than 3 valid numeric features (2) after excluding non-numerical, target, and zero-variance columns. Skipping Dimensionality reduction."
+    }
+  ]
+}

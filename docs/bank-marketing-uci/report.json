@@ -1,0 +1,835 @@
+{
+  "metadata": {
+    "input_file": "/home/eyad/NovaInsight/local_testing/bank-additional-full.csv",
+    "output_dir": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI",
+    "file_hash": "6a31286aff7c8ac7654e739fedde712d2902cbc97db23c64384540abffd42552",
+    "report_title": "Bank Marketing UCI",
+    "run_timestamp": "2026-02-04T15:21:54.772165Z",
+    "analysis_mode": "full",
+    "task": "supervised",
+    "user_target": "y"
+  },
+  "profile": {
+    "dataset_stats": {
+      "original_row_count": 41188,
+      "analyzed_row_count": 41188,
+      "column_count": 21,
+      "total_memory_usage_mb": 26.80430507659912,
+      "duplicate_rows_count": 12,
+      "column_pct": 0.0005098572399728076,
+      "duplicates_pct": 0.0002913469942701758
+    },
+    "column_details": [
+      {
+        "column_name": "age",
+        "inferred_type": "numerical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 78,
+        "unique_values_pct": 0.0018937554627561427,
+        "stats": {
+          "count": 41188.0,
+          "mean": 40.02406040594348,
+          "std": 10.421249980934048,
+          "min": 17.0,
+          "25%": 32.0,
+          "50%": 38.0,
+          "75%": 47.0,
+          "max": 98.0
+        },
+        "memory_usage_mb": 0.314239501953125
+      },
+      {
+        "column_name": "job",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 12,
+        "unique_values_pct": 0.0002913469942701758,
+        "stats": {
+          "top": "admin.",
+          "frequency": 10422,
+          "value_counts": {
+            "admin.": 10422,
+            "blue-collar": 9254,
+            "technician": 6743,
+            "services": 3969,
+            "management": 2924
+          }
+        },
+        "memory_usage_mb": 2.276477813720703
+      },
+      {
+        "column_name": "marital",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 4,
+        "unique_values_pct": 0.00009711566475672526,
+        "stats": {
+          "top": "married",
+          "frequency": 24928,
+          "value_counts": {
+            "married": 24928,
+            "single": 11568,
+            "divorced": 4612,
+            "unknown": 80
+          }
+        },
+        "memory_usage_mb": 2.193042755126953
+      },
+      {
+        "column_name": "education",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 8,
+        "unique_values_pct": 0.00019423132951345052,
+        "stats": {
+          "top": "university.degree",
+          "frequency": 12168,
+          "value_counts": {
+            "university.degree": 12168,
+            "high.school": 9515,
+            "basic.9y": 6045,
+            "professional.course": 5243,
+            "basic.4y": 4176
+          }
+        },
+        "memory_usage_mb": 2.4240026473999023
+      },
+      {
+        "column_name": "default",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 3,
+        "unique_values_pct": 0.00007283674856754395,
+        "stats": {
+          "top": "no",
+          "frequency": 32588,
+          "value_counts": {
+            "no": 32588,
+            "unknown": 8597,
+            "yes": 3
+          }
+        },
+        "memory_usage_mb": 2.0442733764648438
+      },
+      {
+        "column_name": "housing",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 3,
+        "unique_values_pct": 0.00007283674856754395,
+        "stats": {
+          "top": "yes",
+          "frequency": 21576,
+          "value_counts": {
+            "yes": 21576,
+            "no": 18622,
+            "unknown": 990
+          }
+        },
+        "memory_usage_mb": 2.028573989868164
+      },
+      {
+        "column_name": "loan",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 3,
+        "unique_values_pct": 0.00007283674856754395,
+        "stats": {
+          "top": "no",
+          "frequency": 33950,
+          "value_counts": {
+            "no": 33950,
+            "yes": 6248,
+            "unknown": 990
+          }
+        },
+        "memory_usage_mb": 2.013956069946289
+      },
+      {
+        "column_name": "contact",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 2,
+        "unique_values_pct": 0.00004855783237836263,
+        "stats": {
+          "top": "cellular",
+          "frequency": 26144,
+          "value_counts": {
+            "cellular": 26144,
+            "telephone": 15044
+          }
+        },
+        "memory_usage_mb": 2.2533035278320312
+      },
+      {
+        "column_name": "month",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 10,
+        "unique_values_pct": 0.00024278916189181314,
+        "stats": {
+          "top": "may",
+          "frequency": 13769,
+          "value_counts": {
+            "may": 13769,
+            "jul": 7174,
+            "aug": 6178,
+            "jun": 5318,
+            "nov": 4101
+          }
+        },
+        "memory_usage_mb": 2.0425567626953125
+      },
+      {
+        "column_name": "day_of_week",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 5,
+        "unique_values_pct": 0.00012139458094590657,
+        "stats": {
+          "top": "thu",
+          "frequency": 8623,
+          "value_counts": {
+            "thu": 8623,
+            "mon": 8514,
+            "wed": 8134,
+            "tue": 8090,
+            "fri": 7827
+          }
+        },
+        "memory_usage_mb": 2.0425567626953125
+      },
+      {
+        "column_name": "duration",
+        "inferred_type": "numerical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 1544,
+        "unique_values_pct": 0.03748664659609595,
+        "stats": {
+          "count": 41188.0,
+          "mean": 258.2850101971448,
+          "std": 259.2792488364648,
+          "min": 0.0,
+          "25%": 102.0,
+          "50%": 180.0,
+          "75%": 319.0,
+          "max": 4918.0
+        },
+        "memory_usage_mb": 0.314239501953125
+      },
+      {
+        "column_name": "campaign",
+        "inferred_type": "numerical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 42,
+        "unique_values_pct": 0.0010197144799456153,
+        "stats": {
+          "count": 41188.0,
+          "mean": 2.567592502670681,
+          "std": 2.7700135429023276,
+          "min": 1.0,
+          "25%": 1.0,
+          "50%": 2.0,
+          "75%": 3.0,
+          "max": 56.0
+        },
+        "memory_usage_mb": 0.314239501953125
+      },
+      {
+        "column_name": "pdays",
+        "inferred_type": "numerical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 27,
+        "unique_values_pct": 0.0006555307371078955,
+        "stats": {
+          "count": 41188.0,
+          "mean": 962.4754540157328,
+          "std": 186.9109073447418,
+          "min": 0.0,
+          "25%": 999.0,
+          "50%": 999.0,
+          "75%": 999.0,
+          "max": 999.0
+        },
+        "memory_usage_mb": 0.314239501953125
+      },
+      {
+        "column_name": "previous",
+        "inferred_type": "categorical",
+        "dtype": "int64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 8,
+        "unique_values_pct": 0.00019423132951345052,
+        "stats": {
+          "top": "0",
+          "frequency": 35563,
+          "value_counts": {
+            "0": 35563,
+            "1": 4561,
+            "2": 754,
+            "3": 216,
+            "4": 70
+          }
+        },
+        "memory_usage_mb": 0.314239501953125
+      },
+      {
+        "column_name": "poutcome",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 3,
+        "unique_values_pct": 0.00007283674856754395,
+        "stats": {
+          "top": "nonexistent",
+          "frequency": 35563,
+          "value_counts": {
+            "nonexistent": 35563,
+            "failure": 4252,
+            "success": 1373
+          }
+        },
+        "memory_usage_mb": 2.335338592529297
+      },
+      {
+        "column_name": "emp.var.rate",
+        "inferred_type": "categorical",
+        "dtype": "float64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 10,
+        "unique_values_pct": 0.00024278916189181314,
+        "stats": {
+          "top": "1.4",
+          "frequency": 16234,
+          "value_counts": {
+            "1.4": 16234,
+            "-1.8": 9184,
+            "1.1": 7763,
+            "-0.1": 3683,
+            "-2.9": 1663
+          }
+        },
+        "memory_usage_mb": 0.314239501953125
+      },
+      {
+        "column_name": "cons.price.idx",
+        "inferred_type": "numerical",
+        "dtype": "float64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 26,
+        "unique_values_pct": 0.0006312518209187142,
+        "stats": {
+          "count": 41188.0,
+          "mean": 93.57566436826262,
+          "std": 0.5788400489541262,
+          "min": 92.201,
+          "25%": 93.075,
+          "50%": 93.749,
+          "75%": 93.994,
+          "max": 94.767
+        },
+        "memory_usage_mb": 0.314239501953125
+      },
+      {
+        "column_name": "cons.conf.idx",
+        "inferred_type": "numerical",
+        "dtype": "float64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 26,
+        "unique_values_pct": 0.0006312518209187142,
+        "stats": {
+          "count": 41188.0,
+          "mean": -40.50260027192386,
+          "std": 4.628197856174544,
+          "min": -50.8,
+          "25%": -42.7,
+          "50%": -41.8,
+          "75%": -36.4,
+          "max": -26.9
+        },
+        "memory_usage_mb": 0.314239501953125
+      },
+      {
+        "column_name": "euribor3m",
+        "inferred_type": "numerical",
+        "dtype": "float64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 316,
+        "unique_values_pct": 0.007672137515781295,
+        "stats": {
+          "count": 41188.0,
+          "mean": 3.621290812858114,
+          "std": 1.734447404851267,
+          "min": 0.634,
+          "25%": 1.344,
+          "50%": 4.857,
+          "75%": 4.961,
+          "max": 5.045
+        },
+        "memory_usage_mb": 0.314239501953125
+      },
+      {
+        "column_name": "nr.employed",
+        "inferred_type": "categorical",
+        "dtype": "float64",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 11,
+        "unique_values_pct": 0.00026706807808099444,
+        "stats": {
+          "top": "5228.1",
+          "frequency": 16234,
+          "value_counts": {
+            "5228.1": 16234,
+            "5099.1": 8534,
+            "5191.0": 7763,
+            "5195.8": 3683,
+            "5076.2": 1663
+          }
+        },
+        "memory_usage_mb": 0.314239501953125
+      },
+      {
+        "column_name": "y",
+        "inferred_type": "categorical",
+        "dtype": "object",
+        "missing_values_count": 0,
+        "missing_values_pct": 0.0,
+        "unique_values_count": 2,
+        "unique_values_pct": 0.00004855783237836263,
+        "stats": {
+          "top": "no",
+          "frequency": 36548,
+          "value_counts": {
+            "no": 36548,
+            "yes": 4640
+          }
+        },
+        "memory_usage_mb": 2.007701873779297
+      }
+    ],
+    "findings": []
+  },
+  "target_analysis": {
+    "detection_method": "user_specified",
+    "candidate_targets": [
+      {
+        "column_name": "y",
+        "ml_task": "classification",
+        "justification": "user_specified",
+        "confidence_score": 1.0
+      }
+    ],
+    "identified_target": "y",
+    "findings": []
+  },
+  "statistical_analysis": {
+    "outlier_report": {
+      "age": {
+        "outlier_count": 469,
+        "outlier_percentage": 0.011386811692726036,
+        "method": "Modified Z-score"
+      },
+      "duration": {
+        "outlier_count": 3493,
+        "outlier_percentage": 0.08480625424881033,
+        "method": "Modified Z-score"
+      },
+      "campaign": {
+        "outlier_count": 2406,
+        "outlier_percentage": 0.058415072351170244,
+        "method": "Modified Z-score"
+      },
+      "pdays": {
+        "outlier_count": 0,
+        "outlier_percentage": 0.0,
+        "method": "Modified Z-score"
+      },
+      "cons.price.idx": {
+        "outlier_count": 0,
+        "outlier_percentage": 0.0,
+        "method": "Modified Z-score"
+      },
+      "cons.conf.idx": {
+        "outlier_count": 0,
+        "outlier_percentage": 0.0,
+        "method": "Modified Z-score"
+      },
+      "euribor3m": {
+        "outlier_count": 17091,
+        "outlier_percentage": 0.41495095658929787,
+        "method": "Modified Z-score"
+      }
+    },
+    "multicollinearity_report": {},
+    "correlation_report": {
+      "numerical_numerical_path": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/correlations/numerical_corr.csv",
+      "categorical_categorical_path": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/correlations/categorical_corr.csv",
+      "categorical_numerical_path": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/correlations/categorical_numerical_corr.csv"
+    },
+    "class_imbalance_report": {
+      "class_counts": {
+        "no": 36548,
+        "yes": 4640
+      },
+      "class_percentages": {
+        "no": 0.8873458288821987,
+        "yes": 0.11265417111780131
+      }
+    },
+    "findings": [
+      {
+        "level": "WARNING",
+        "message": "Column 'duration' has a high percentage of potential outliers (8.5%). This may skew statistical analysis and impact model performance."
+      },
+      {
+        "level": "WARNING",
+        "message": "Column 'campaign' has a high percentage of potential outliers (5.8%). This may skew statistical analysis and impact model performance."
+      },
+      {
+        "level": "WARNING",
+        "message": "Column 'euribor3m' has a high percentage of potential outliers (41.5%). This may skew statistical analysis and impact model performance."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Numeric feature 'cons.price.idx' and categorical feature 'month' are highly associated (Correlation Ratio η = 0.61, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Numeric feature 'cons.conf.idx' and categorical feature 'month' are highly associated (Correlation Ratio η = 0.61, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Numeric feature 'pdays' and categorical feature 'poutcome' are highly associated (Correlation Ratio η = 0.95, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Numeric feature 'cons.price.idx' and categorical feature 'emp.var.rate' are highly associated (Correlation Ratio η = 0.88, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Numeric feature 'cons.conf.idx' and categorical feature 'emp.var.rate' are highly associated (Correlation Ratio η = 0.83, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Numeric feature 'euribor3m' and categorical feature 'emp.var.rate' are highly associated (Correlation Ratio η = 1.00, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Numeric feature 'cons.price.idx' and categorical feature 'nr.employed' are highly associated (Correlation Ratio η = 0.89, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Numeric feature 'cons.conf.idx' and categorical feature 'nr.employed' are highly associated (Correlation Ratio η = 0.87, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Numeric feature 'euribor3m' and categorical feature 'nr.employed' are highly associated (Correlation Ratio η = 1.00, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Categorical features 'housing' and 'loan' are highly associated (Cramér's V = 0.71, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Categorical features 'contact' and 'month' are highly associated (Cramér's V = 0.61, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Categorical features 'contact' and 'emp.var.rate' are highly associated (Cramér's V = 0.67, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Categorical features 'contact' and 'nr.employed' are highly associated (Cramér's V = 0.68, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Categorical features 'month' and 'emp.var.rate' are highly associated (Cramér's V = 0.65, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Categorical features 'month' and 'nr.employed' are highly associated (Cramér's V = 0.67, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Categorical features 'previous' and 'poutcome' are highly associated (Cramér's V = 0.73, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Strong Association: Categorical features 'emp.var.rate' and 'nr.employed' are highly associated (Cramér's V = 1.00, p=0)."
+      },
+      {
+        "level": "WARNING",
+        "message": "Class Imbalance Detected: The target variable 'y' is imbalanced. The majority class 'no' is 7.9 times more frequent than the minority class 'yes'. This can bias model training."
+      }
+    ]
+  },
+  "dimensionality_analysis": {
+    "pca_explained_variance_ratios": [
+      0.2677055113364221,
+      0.16958544981990914,
+      0.14881194821449398,
+      0.13503200554519862,
+      0.13184482652542612,
+      0.11411568786831565,
+      0.032904570690234385
+    ],
+    "pca_embeddings_path": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/embeddings/pca_embeddings.csv",
+    "tsne_embeddings_path": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/embeddings/tsne_embeddings.csv",
+    "umap_embeddings_path": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/embeddings/umap_embeddings.csv",
+    "findings": []
+  },
+  "visualizations": {
+    "univariate_plots": {
+      "age": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_age.png",
+      "job": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_job.png",
+      "marital": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_marital.png",
+      "education": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_education.png",
+      "default": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_default.png",
+      "housing": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_housing.png",
+      "loan": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_loan.png",
+      "contact": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_contact.png",
+      "month": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_month.png",
+      "day_of_week": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_day_of_week.png",
+      "duration": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_duration.png",
+      "campaign": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_campaign.png",
+      "pdays": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_pdays.png",
+      "previous": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_previous.png",
+      "poutcome": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_poutcome.png",
+      "emp.var.rate": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_emp.var.rate.png",
+      "cons.price.idx": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_cons.price.idx.png",
+      "cons.conf.idx": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_cons.conf.idx.png",
+      "euribor3m": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_euribor3m.png",
+      "nr.employed": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_nr.employed.png",
+      "y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/univariate_dist_y.png"
+    },
+    "bivariate_plots": {
+      "age_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_age_vs_y.png",
+      "job_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_job_vs_y.png",
+      "marital_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_marital_vs_y.png",
+      "education_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_education_vs_y.png",
+      "default_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_default_vs_y.png",
+      "housing_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_housing_vs_y.png",
+      "loan_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_loan_vs_y.png",
+      "contact_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_contact_vs_y.png",
+      "month_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_month_vs_y.png",
+      "day_of_week_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_day_of_week_vs_y.png",
+      "duration_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_duration_vs_y.png",
+      "campaign_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_campaign_vs_y.png",
+      "pdays_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_pdays_vs_y.png",
+      "previous_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_previous_vs_y.png",
+      "poutcome_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_poutcome_vs_y.png",
+      "emp.var.rate_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_emp.var.rate_vs_y.png",
+      "cons.price.idx_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_cons.price.idx_vs_y.png",
+      "cons.conf.idx_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_cons.conf.idx_vs_y.png",
+      "euribor3m_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_euribor3m_vs_y.png",
+      "nr.employed_vs_y": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/bivariate_nr.employed_vs_y.png"
+    },
+    "correlation_heatmap_plots": {
+      "numerical_numerical": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/numerical_numerical_heatmap.png",
+      "categorical_categorical": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/categorical_categorical_heatmap.png",
+      "categorical_numerical": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/categorical_numerical_heatmap.png"
+    },
+    "dim_reduction_scatter_plots": {
+      "pca_embeddings": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/pca_embeddings_scatterplot.png",
+      "tsne_embeddings": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/tsne_embeddings_scatterplot.png",
+      "umap_embeddings": "/home/eyad/NovaInsight/local_testing/novainsight_reports/Bank Marketing UCI/plots/umap_embeddings_scatterplot.png"
+    },
+    "findings": []
+  },
+  "llm_summary": {
+    "executive_summary": "This bank marketing dataset presents a significant challenge due to severe class imbalance in the target variable 'y' (88.7% 'no' vs 11.3% 'yes'). Furthermore, the critical feature 'duration' poses a high risk of target leakage and must be excluded or handled carefully during training. The data exhibits extreme multicollinearity among macroeconomic indicators (emp.var.rate, euribor3m, nr.employed), suggesting redundancy. Successful modeling will require robust imbalance handling techniques and careful feature selection to manage leakage and multicollinearity.",
+    "dataset_overview": "The dataset contains 41,188 rows and 21 columns, intended for a supervised classification task with the target variable 'y'. Features include 7 numerical columns (e.g., age, duration, euribor3m) and 13 categorical/object columns (e.g., job, marital, contact). There are 12 duplicate rows present in the dataset. All columns are fully populated with no explicit missing values, though several categorical features contain 'unknown' entries.",
+    "key_findings_and_patterns": "The target variable 'y' is highly imbalanced (7.9:1 ratio). Several macroeconomic features (`emp.var.rate`, `euribor3m`, `nr.employed`) show near-perfect correlation (Cramér's V / Correlation Ratio ≈ 1.00), indicating high redundancy. The feature `pdays` is heavily concentrated at 999 (not previously contacted), suggesting that previous contact information is sparse but potentially highly informative when available. The `euribor3m` column exhibits a high percentage of statistical outliers (41.5%), likely reflecting clustered or bimodal distribution rather than data errors.",
+    "potential_issues_and_warnings": "The primary issue is the high risk of target leakage associated with the 'duration' column, which measures the length of the last contact and is only known post-outcome. Severe class imbalance requires specific mitigation strategies. Multicollinearity among the macroeconomic indicators is extreme and could destabilize linear models or inflate variance. Several categorical features (`default`, `marital`, `education`, `housing`, `loan`) contain 'unknown' values, which must be treated as a distinct category or imputed.",
+    "recommendations": {
+      "preprocessing_steps": [
+        {
+          "category": "Data Cleaning",
+          "description": "Remove the 12 identified duplicate rows to ensure data integrity and prevent minor data inflation.",
+          "priority": 3
+        },
+        {
+          "category": "Transformation",
+          "description": "Apply robust scaling or normalization to numerical features like 'age', 'duration', and 'campaign' to mitigate the influence of outliers on distance-based models.",
+          "priority": 2
+        },
+        {
+          "category": "Encoding",
+          "description": "Apply one-hot encoding or binary encoding to nominal categorical features like 'job', 'marital', and 'education'.",
+          "priority": 2
+        }
+      ],
+      "feature_engineering_ideas": [
+        {
+          "category": "Feature Engineering",
+          "description": "Create a binary feature (e.g., 'was_previously_contacted') from 'pdays', where 999 indicates no prior contact and any other value indicates a prior contact.",
+          "priority": 1
+        },
+        {
+          "category": "Feature Selection",
+          "description": "Due to near-perfect correlation, select only one representative feature from the highly correlated group: 'emp.var.rate', 'euribor3m', and 'nr.employed', to mitigate severe multicollinearity.",
+          "priority": 1
+        },
+        {
+          "category": "Feature Engineering",
+          "description": "Explore interaction terms between client demographics (age, job, marital) and campaign results (poutcome, previous) to capture complex relationships.",
+          "priority": 2
+        }
+      ],
+      "modeling_suggestions": [
+        {
+          "category": "Modeling Strategy",
+          "description": "Employ tree-based ensemble methods (e.g., XGBoost, LightGBM, Random Forest) as they are generally robust to multicollinearity and non-linear relationships.",
+          "priority": 2
+        },
+        {
+          "category": "Evaluation",
+          "description": "Prioritize metrics like AUC-ROC, F1-score, and Precision/Recall curves, as simple accuracy will be misleading due to the severe class imbalance.",
+          "priority": 1
+        },
+        {
+          "category": "Imbalance Handling",
+          "description": "Implement techniques such as Synthetic Minority Over-sampling Technique (SMOTE), or use class weights/cost-sensitive learning during model training to address the 7.9:1 imbalance.",
+          "priority": 1
+        }
+      ],
+      "pitfall_warnings": [
+        {
+          "category": "Data Leakage",
+          "description": "CRITICAL: The 'duration' feature must be excluded from the final model training set, as its value is only known after the outcome ('y') is determined, leading to target leakage.",
+          "priority": 1
+        },
+        {
+          "category": "Data Quality",
+          "description": "Be cautious when interpreting the 'default' column, as the 'yes' class has only 3 instances, making its predictive power highly unreliable and prone to overfitting.",
+          "priority": 2
+        },
+        {
+          "category": "Preprocessing",
+          "description": "Avoid standard imputation for 'unknown' values in categorical features; treat 'unknown' as a valid, distinct category during one-hot encoding or target encoding.",
+          "priority": 2
+        }
+      ]
+    }
+  },
+  "raw_llm_output": null,
+  "findings": [
+    {
+      "level": "WARNING",
+      "message": "Column 'duration' has a high percentage of potential outliers (8.5%). This may skew statistical analysis and impact model performance."
+    },
+    {
+      "level": "WARNING",
+      "message": "Column 'campaign' has a high percentage of potential outliers (5.8%). This may skew statistical analysis and impact model performance."
+    },
+    {
+      "level": "WARNING",
+      "message": "Column 'euribor3m' has a high percentage of potential outliers (41.5%). This may skew statistical analysis and impact model performance."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Numeric feature 'cons.price.idx' and categorical feature 'month' are highly associated (Correlation Ratio η = 0.61, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Numeric feature 'cons.conf.idx' and categorical feature 'month' are highly associated (Correlation Ratio η = 0.61, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Numeric feature 'pdays' and categorical feature 'poutcome' are highly associated (Correlation Ratio η = 0.95, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Numeric feature 'cons.price.idx' and categorical feature 'emp.var.rate' are highly associated (Correlation Ratio η = 0.88, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Numeric feature 'cons.conf.idx' and categorical feature 'emp.var.rate' are highly associated (Correlation Ratio η = 0.83, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Numeric feature 'euribor3m' and categorical feature 'emp.var.rate' are highly associated (Correlation Ratio η = 1.00, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Numeric feature 'cons.price.idx' and categorical feature 'nr.employed' are highly associated (Correlation Ratio η = 0.89, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Numeric feature 'cons.conf.idx' and categorical feature 'nr.employed' are highly associated (Correlation Ratio η = 0.87, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Numeric feature 'euribor3m' and categorical feature 'nr.employed' are highly associated (Correlation Ratio η = 1.00, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Categorical features 'housing' and 'loan' are highly associated (Cramér's V = 0.71, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Categorical features 'contact' and 'month' are highly associated (Cramér's V = 0.61, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Categorical features 'contact' and 'emp.var.rate' are highly associated (Cramér's V = 0.67, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Categorical features 'contact' and 'nr.employed' are highly associated (Cramér's V = 0.68, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Categorical features 'month' and 'emp.var.rate' are highly associated (Cramér's V = 0.65, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Categorical features 'month' and 'nr.employed' are highly associated (Cramér's V = 0.67, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Categorical features 'previous' and 'poutcome' are highly associated (Cramér's V = 0.73, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Strong Association: Categorical features 'emp.var.rate' and 'nr.employed' are highly associated (Cramér's V = 1.00, p=0)."
+    },
+    {
+      "level": "WARNING",
+      "message": "Class Imbalance Detected: The target variable 'y' is imbalanced. The majority class 'no' is 7.9 times more frequent than the minority class 'yes'. This can bias model training."
+    }
+  ]
+}

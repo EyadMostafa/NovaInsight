@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import base64
 import os
+import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import pandas as pd
@@ -57,7 +58,8 @@ class ReportGenerator(BaseModule):
             html_content = template.render(
                 report=report,
                 images=images,
-                sample_data_html=sample_html
+                sample_data_html=sample_html,
+                includes_column_name=self.includes_column_name
             )
 
             # Save to Disk
@@ -153,3 +155,8 @@ class ReportGenerator(BaseModule):
         except Exception as e:
             logger.warning(f"Failed to encode image {path}: {e}")
             return None
+    
+    @staticmethod
+    def includes_column_name(name: str, string: str) -> bool:
+        pattern = rf"\b{re.escape(name)}\b"
+        return bool(re.search(pattern, string))
