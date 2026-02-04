@@ -1,6 +1,7 @@
-# **NovaInsight: Autonomous Data Analysis Agent**
+# **NovaInsight: Autonomous Data Diagnositics Tool**
 
-**NovaInsight** is a sophisticated, standalone CLI agent that performs end-to-end **Exploratory Data Analysis (EDA)**. It acts as a semi-autonomous data scientist, ingesting raw tabular data, performing rigorous statistical diagnostics, and generating rich, narrative-driven HTML reports powered by Large Language Models (LLM).
+**NovaInsight** is a sophisticated, standalone CLI tool that performs end-to-end **Exploratory Data Analysis (EDA)**. It acts as a semi-autonomous data diagnostician, ingesting raw tabular data, performing rigorous statistical diagnostics, and generating rich, narrative-driven HTML reports powered by Large Language Models (LLM).
+[View Sample Outputs](https://eyadmostafa.github.io/NovaInsight/)
 
 ---
 
