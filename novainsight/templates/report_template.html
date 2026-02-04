@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ report.metadata.report_title }}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --bg-light: #f4f6f8;
+            --success-surface: #d4edda;
+            --warning-surface: #fff3cd;
+            --danger-surface: #f8d7da;
+        }
+        body { background-color: var(--bg-light); font-family: 'Inter', sans-serif; color: #333; }
+        
+        /* Sticky Header */
+        .navbar-custom {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 1rem 0;
+            z-index: 1020;
+        }
+        .report-title { font-weight: 700; color: var(--primary); margin: 0; }
+        .meta-badge { font-size: 0.85rem; padding: 0.5em 1em; border-radius: 6px; background: #e9ecef; color: #555; margin-left: 8px;}
+
+        /* Sections */
+        .section-header {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+            color: var(--secondary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            transition: transform 0.2s;
+            margin-bottom: 1rem;
+        }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+        /* Checklist Recommendations */
+        .checklist-card {
+            border-left: 5px solid transparent;
+        }
+        .priority-1 { border-left-color: #dc3545; }
+        .priority-2 { border-left-color: #ffc107; }
+        .priority-3 { border-left-color: #28a745; }
+        
+        .form-check-input { width: 1.3em; height: 1.3em; margin-top: 0.1em; cursor: pointer; }
+        .form-check-label { margin-left: 0.5rem; font-weight: 600; cursor: pointer;}
+        .rec-desc { display: block; font-size: 0.9em; color: #666; margin-left: 2.3rem; margin-top: 4px; }
+
+        /* Health Dashboard */
+        .health-metric {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            height: 100%;
+            border: 1px solid #eee;
+        }
+        .metric-val { font-size: 2.2rem; font-weight: 800; color: var(--primary); }
+        .metric-label { text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; color: #888; }
+
+        /* Accordion Profiler */
+        .accordion-button:not(.collapsed) {
+            background-color: #eef2f5;
+            color: var(--primary);
+            box-shadow: none;
+        }
+        .accordion-button:focus { box-shadow: none; border-color: rgba(0,0,0,.125); }
+        .col-stat-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #eee; font-size: 0.9rem;}
+        .col-stat-val { font-family: monospace; font-weight: 600; color: var(--accent); }
+        
+        .alert-mini { padding: 6px 10px; font-size: 0.85rem; border-radius: 6px; margin-bottom: 6px; display: block; width: 100%; border: 1px solid transparent;}
+        
+        .plot-container {
+            text-align: center;
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #eee;
+        }
+        .plot-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        
+        /* Tables */
+        .table-custom th { background-color: #f8f9fa; font-size: 0.85rem; text-transform: uppercase; color: #6c757d; }
+        .table-custom td { font-size: 0.9rem; vertical-align: middle; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Header -->
+    <nav class="navbar navbar-custom sticky-top">
+        <div class="container">
+            <div class="d-flex align-items-center">
+                <div style="width: 40px; height: 40px; background: var(--primary); border-radius: 8px; margin-right: 15px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">NI</div>
+                <div>
+                    <h1 class="h5 report-title">{{ report.metadata.report_title }}</h1>
+                    <small class="text-muted">
+                        {{ report.metadata.run_timestamp.strftime('%Y-%m-%d %H:%M') }} • Mode: <span class="text-uppercase">{{ report.metadata.analysis_mode }}</span>
+                    </small>
+                </div>
+            </div>
+            <div>
+                {% if report.metadata.task == 'supervised' and report.target_analysis %}
+                <span class="meta-badge"><i class="bi bi-bullseye"></i> Target: <strong>{{ report.target_analysis.identified_target }}</strong></span>
+                {% endif %}
+                <span class="meta-badge"><i class="bi bi-cpu"></i> Task: <strong class="text-uppercase">{{ report.metadata.task }}</strong></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+
+        <!-- 2. Executive Summary -->
+        {% if report.llm_summary %}
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-body p-4">
+                <h5 class="text-uppercase text-muted small fw-bold mb-3"><i class="bi bi-robot me-2"></i>Executive Summary</h5>
+                <p class="lead mb-0" style="font-size: 1.1rem; line-height: 1.7;">
+                    {{ report.llm_summary.executive_summary }}
+                </p>
+                
+                <hr class="my-4">
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-secondary mb-2">Key Findings</h6>
+                        <p class="small text-muted">{{ report.llm_summary.key_findings_and_patterns }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-danger mb-2">Potential Issues</h6>
+                        <p class="small text-muted">{{ report.llm_summary.potential_issues_and_warnings }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 3. Action Plan (Recommendations) -->
+        {% if report.llm_summary and report.llm_summary.recommendations %}
+        <h3 class="section-header"><i class="bi bi-list-check"></i> Recommended Action Plan</h3>
+        <div class="row">
+            <div class="col-md-12">
+                {% for category, recs in report.llm_summary.recommendations.model_dump().items() %}
+                    {% for rec in recs %}
+                    <div class="card checklist-card priority-{{ rec.priority }} shadow-sm">
+                        <div class="card-body py-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rec-{{ loop.index }}-{{ category }}">
+                                <label class="form-check-label" for="rec-{{ loop.index }}-{{ category }}">{{ rec.description }}</label>
+                                
+                                {% if rec.priority == 1 %}
+                                <span class="badge bg-danger float-end">High Priority</span>
+                                {% elif rec.priority == 2 %}
+                                <span class="badge bg-warning text-dark float-end">Medium Priority</span>
+                                {% else %}
+                                <span class="badge bg-success float-end">Low Priority</span>
+                                {% endif %}
+                                
+                                <small class="rec-desc">Category: <strong>{{ rec.category }}</strong></small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 4. Dataset Health Dashboard -->
+        <h3 class="section-header"><i class="bi bi-activity"></i> Dataset Health</h3>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="health-metric">
+                    <div class="metric-val">{{ report.profile.dataset_stats.analyzed_row_count }}</div>
+                    <div class="metric-label">Rows Analyzed</div>
+                    <small class="text-muted" style="font-size: 0.7rem;">Original: {{ report.profile.dataset_stats.original_row_count }}</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="health-metric">
+                    <div class="metric-val">{{ report.profile.dataset_stats.column_count }}</div>
+                    <div class="metric-label">Columns</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="health-metric">
+                    {% set dup_pct = report.profile.dataset_stats.duplicates_pct * 100 %}
+                    <div class="metric-val {% if dup_pct > 0 %}text-warning{% else %}text-success{% endif %}">
+                        {{ "%.1f"|format(dup_pct) }}%
+                    </div>
+                    <div class="metric-label">Duplicates</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="health-metric">
+                    <div class="metric-val">{{ report.profile.dataset_stats.total_memory_usage_mb|round(2) }}</div>
+                    <div class="metric-label">MB Memory</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Critical Alerts from Findings -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-danger border-start border-4">
+                    <div class="card-body">
+                        <h6 class="fw-bold text-danger mb-3">System Alerts & Critical Findings</h6>
+                        <ul class="list-unstyled mb-0">
+                            {% for finding in report.findings %}
+                                {% if finding.level == 'ERROR' or finding.level == 'WARNING' %}
+                                <li class="mb-2">
+                                    <i class="bi {% if finding.level == 'ERROR' %}bi-exclamation-octagon-fill{% else %}bi-exclamation-triangle-fill{% endif %} text-danger me-2"></i>
+                                    <strong>{{ finding.level }}:</strong> {{ finding.message }}
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if not report.findings %}
+                                <li class="text-success"><i class="bi bi-check-circle-fill me-2"></i>No critical system warnings generated.</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Structural Analysis -->
+        <h3 class="section-header"><i class="bi bi-diagram-3"></i> Structural Analysis</h3>
+        <div class="row g-4">
+            <!-- Correlation Heatmaps -->
+            {% if images.correlation %}
+                {% for title, b64 in images.correlation.items() %}
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-white fw-bold">{{ title.replace('_', ' ').title() }} Heatmap</div>
+                        <div class="card-body">
+                            <div class="plot-container">
+                                <img src="data:image/png;base64,{{ b64 }}" class="plot-img" alt="{{ title }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Dimensionality Reduction -->
+            {% if images.dimensionality %}
+                {% for title, b64 in images.dimensionality.items() %}
+                <div class="col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-white fw-bold">{{ title.title() }} Projection</div>
+                        <div class="card-body">
+                            <div class="plot-container">
+                                <img src="data:image/png;base64,{{ b64 }}" class="plot-img" alt="{{ title }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <!-- 6. Key Relationships (Bivariate) -->
+        {% if images.bivariate %}
+        <h3 class="section-header"><i class="bi bi-arrow-left-right"></i> Key Relationships</h3>
+        <div class="row g-4">
+            {% for title, b64 in images.bivariate.items() %}
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="plot-container border-0">
+                            <img src="data:image/png;base64,{{ b64 }}" class="plot-img" alt="{{ title }}">
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-0">
+                        <small class="text-muted">{{ title.replace('bivariate_', '').replace('_vs_', ' vs ').title() }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- 7. Column Profiler (Accordion) -->
+        <h3 class="section-header"><i class="bi bi-bar-chart-steps"></i> Column Profiler</h3>
+        <div class="accordion shadow-sm" id="columnProfiler">
+            {% for col in report.profile.column_details %}
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#col-{{ loop.index }}">
+                        <div class="d-flex w-100 justify-content-between me-3 align-items-center">
+                            <strong>{{ col.column_name }}</strong>
+                            <div class="d-flex gap-2">
+                                <span class="badge bg-secondary">{{ col.inferred_type }}</span>
+                                {% if col.missing_values_pct > 0 %}
+                                <span class="badge bg-warning text-dark">{{ "%.1f"|format(col.missing_values_pct * 100) }}% Missing</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </button>
+                </h2>
+                <div id="col-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#columnProfiler">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <!-- Inside the Accordion Body -->
+                            <div class="col-md-4 border-end">
+                                <h6 class="text-uppercase small text-muted fw-bold mb-3">Key Metrics</h6>
+                                
+                                <!-- 1. Missing Values (with Visual Bar) -->
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1 small">
+                                        <span>Missing</span>
+                                        <span class="fw-bold">{{ col.missing_values_count }} ({{ "%.2f"|format(col.missing_values_pct * 100) }}%)</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-warning" role="progressbar" 
+                                             style="width: {{ col.missing_values_pct * 100 }}%" 
+                                             aria-valuenow="{{ col.missing_values_pct * 100 }}" aria-valuemin="0" aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                </div>
+                            
+                                <!-- 2. Unique Values -->
+                                <div class="col-stat-row">
+                                    <span>Unique Values #</span>
+                                    <span class="col-stat-val">{{ col.unique_values_count }}</span>
+                                </div>
+                                <div class="col-stat-row">
+                                    <span>Unique Values %</span>
+                                    <span class="col-stat-val">{{ "%.2f"|format(col.unique_values_pct * 100)}}%</span>
+                                </div>
+                            
+                                <!-- 3. Memory Usage -->
+                                <div class="col-stat-row">
+                                    <span>Memory</span>
+                                    <span class="col-stat-val">{{ "%.2f"|format(col.memory_usage_mb * 1024) }} KB</span>
+                                </div>
+
+                                <!-- 3. dtype -->
+                                <div class="col-stat-row">
+                                    <span>Dtype</span>
+                                    <span class="col-stat-val">{{ col.dtype}}</span>
+                                </div>
+                            
+                                <hr class="my-3 text-muted">
+                            
+                                <h6 class="text-uppercase small text-muted fw-bold mb-3">Distribution</h6>
+                                {% for k, v in col.stats.items() %}
+                                    {% if k not in ['value_counts', 'missing_count', 'unique_count', 'memory_usage_kb'] %}
+                                    <div class="col-stat-row">
+                                        <span>{{ k.replace('_', ' ').title() }}</span> 
+                                        <span class="col-stat-val">{{ v }}</span>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                <!-- 5. Top Values (Categorical) -->
+                                {% if col.stats.value_counts %}
+                                <hr class="my-3 text-muted">
+                                <h6 class="text-uppercase small text-muted fw-bold mb-2">Top Values</h6>
+                                <ul class="list-unstyled small mt-1">
+                                    {% for val, count in col.stats.value_counts.items() %}
+                                    <li class="d-flex justify-content-between">
+                                        <span class="text-truncate" style="max-width: 150px;" title="{{ val }}">{{ val }}</span>
+                                        <span class="text-muted fw-bold">{{ count }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Plot -->
+                            <div class="col-md-5 border-end">
+                                {% if images.univariate and col.column_name in images.univariate %}
+                                <div class="plot-container border-0">
+                                    <img src="data:image/png;base64,{{ images.univariate[col.column_name] }}" class="plot-img" alt="Dist">
+                                </div>
+                                {% else %}
+                                <div class="text-center text-muted py-5">No visualization available</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Specific Issues -->
+                            <div class="col-md-3">
+                                <h6 class="text-uppercase small text-muted fw-bold mb-3">Insights</h6>
+                                <!-- Findings specific to this column -->
+                                {% for finding in report.findings %}
+                                    {% if col.column_name in finding.message %}
+                                    <span class="alert-mini {% if finding.level == 'ERROR' %}bg-danger-subtle text-danger-emphasis{% else %}bg-warning-subtle text-warning-emphasis{% endif %}">
+                                        <i class="bi bi-exclamation-circle"></i> {{ finding.message }}
+                                    </span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- 8. Data Sample -->
+        <h3 class="section-header"><i class="bi bi-table"></i> Data Sample (First 5 Rows)</h3>
+        <div class="card shadow-sm">
+            <div class="card-body overflow-auto">
+                {{ sample_data_html | safe }}
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

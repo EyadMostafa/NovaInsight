@@ -33,7 +33,7 @@ class AnalysisPipeline:
         Operator.DIM_REDUCTION: [Operator.PROFILER],                # dim_reduction --> profiler
         Operator.VIZ: [Operator.STATS, Operator.DIM_REDUCTION],     # viz --> dim_reduction --> stats --> target? --> profiler
         Operator.LLM: [Operator.STATS],                             # llm --> stats --> target? --> profiler
-        Operator.REPORT: [Operator.LLM, Operator.VIZ]               # report --> llm --> viz --> dim_reduction --> stats --> target? --> profiler
+        # Operator.REPORT: [Operator.PROFILER]                        # report -> profiler
     }
 
     MODULES_REGISTRY = {
@@ -43,12 +43,13 @@ class AnalysisPipeline:
         Operator.DIM_REDUCTION: DimensionalityReducer,
         Operator.VIZ: Visualizer,
         Operator.LLM: LLMSummarizer,
-        Operator.REPORT: ReportGenerator
+        # Operator.REPORT: ReportGenerator
     }
     
     EXECUTION_ORDER = [
         Operator.PROFILER, Operator.TARGET, Operator.STATS, Operator.DIM_REDUCTION, 
-        Operator.VIZ, Operator.LLM, Operator.REPORT
+        Operator.VIZ, Operator.LLM,
+        # Operator.REPORT
     ]
 
     SUPPORTED_FILE_EXTENSIONS = ['.csv', '.xlsx', '.xls']
@@ -81,7 +82,7 @@ class AnalysisPipeline:
         self.report: AnalysisReport | None = None
         self.df: pd.DataFrame | None = None
         
-        modules_to_resolve = requested_modules or [Operator.REPORT]
+        modules_to_resolve = requested_modules or self.EXECUTION_ORDER
         self.execution_plan = self._resolve_execution_plan(modules_to_resolve)
 
     def run(self):
@@ -96,6 +97,10 @@ class AnalysisPipeline:
                 findings_unique[key] = f
             self.report.findings = list(findings_unique.values())
             self._generate_outputs()
+            
+            report_generator = ReportGenerator(config=self.config)
+            report_generator.run(self.df, self.report)
+
             logger.info("Analysis pipeline completed")
         except Exception as e:
             raise ValueError(f"A fatal error halted the pipeline: {e}")
@@ -216,6 +221,9 @@ class AnalysisPipeline:
                 continue
             
             try:
+                if self._is_module_completed(module_name):
+                    logger.info(f"Skipping {module_name}: Valid results found in cache.") 
+                    continue
                 module = self.MODULES_REGISTRY[module_name](self.config)
                 updated_report = module.run(df=self.df, report=self.report)
                 if updated_report:
@@ -335,3 +343,27 @@ class AnalysisPipeline:
                         added = True
 
         return skip_modules
+    
+    def _is_module_completed(self, module_name: Operator) -> bool:
+        if self.force_rerun:
+            return False
+        
+        if module_name == Operator.PROFILER:
+            return bool(self.report.profile.column_details)
+
+        elif module_name == Operator.TARGET:
+            return self.report.target_analysis is not None
+
+        elif module_name == Operator.STATS:
+            return self.report.statistical_analysis is not None
+
+        elif module_name == Operator.DIM_REDUCTION:
+            return self.report.dimensionality_analysis is not None
+
+        elif module_name == Operator.VIZ:
+            return self.report.visualizations is not None
+
+        elif module_name == Operator.LLM:
+            return self.report.llm_summary is not None
+
+        return False

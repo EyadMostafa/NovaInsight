@@ -37,19 +37,16 @@ class GeminiProvider(LLMProvider):
         self.max_tokens = max_tokens
 
     def generate(self, prompt: str, schema: Optional[Any] = None) -> str:
-        # Correctly create the GenerationConfig object
         generation_config = genai.GenerationConfig(
             temperature=self.temperature,
             max_output_tokens=self.max_tokens
         )
 
-        # Apply schema if provided
         if schema:
             generation_config.response_mime_type = "application/json"
             generation_config.response_schema = schema
 
         try:
-            # Pass the configured object to generate_content
             response = self.model.generate_content(
                 prompt,
                 generation_config=generation_config
@@ -96,7 +93,6 @@ class LLMSummarizer(BaseModule):
         """
         Constructs TOON context, queries LLM with JSON schema, validates response, updates report.
         """
-        if report.llm_summary: return report
         if not self.provider:
             report.findings.append(Finding(
                 level="WARNING",
@@ -110,10 +106,12 @@ class LLMSummarizer(BaseModule):
             
             logger.info("Querying LLM for structured analysis summary...")
             llm_output = self.provider.generate(prompt, schema=LLMSummary)
-            report.raw_llm_output = llm_output
+
+            json_response_text = json.loads(self._extract_json_string(llm_output))
+
             logger.info("Validating LLM response against schema...")
-            json_response_text = self._extract_json_string(llm_output)
-            summary = LLMSummary.model_validate_json(json_response_text)
+            normalized = self.normalize_llm_summary(json_response_text)
+            summary = LLMSummary.model_validate(normalized)
             
             report.llm_summary = summary
             logger.info("LLM summary and recommendations successfully generated.")
@@ -280,7 +278,8 @@ class LLMSummarizer(BaseModule):
         """
         return prompt
 
-    def _extract_json_string(self, text: str) -> str:
+    @staticmethod
+    def _extract_json_string(text: str) -> str:
         """
          robustly extracts the JSON object from the LLM response, handling markdown fences.
         """
@@ -302,3 +301,29 @@ class LLMSummarizer(BaseModule):
             return text[start : end + 1]
         
         return text
+    
+    @staticmethod
+    def normalize_llm_summary(data: dict) -> dict:
+        defaults = {
+            "executive_summary": "",
+            "dataset_overview": "",
+            "key_findings_and_patterns": "",
+            "potential_issues_and_warnings": "",
+            "recommendations": {
+                "preprocessing_steps": [],
+                "feature_engineering_ideas": [],
+                "modeling_suggestions": [],
+                "pitfall_warnings": []
+            }
+        }
+
+        for k, v in defaults.items():
+            if k not in data or data[k] is None:
+                data[k] = v
+
+        rec = data["recommendations"]
+        for k in defaults["recommendations"]:
+            if k not in rec or rec[k] is None:
+                rec[k] = []
+
+        return data

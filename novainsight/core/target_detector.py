@@ -34,7 +34,6 @@ class TargetDetector(BaseModule):
         It orchestrates the validation or inference of a target variable and then
         checks for potential data leakage.
         """
-        if report.target_analysis: return report
         user_specified_target = report.metadata.user_target
 
         if user_specified_target:
