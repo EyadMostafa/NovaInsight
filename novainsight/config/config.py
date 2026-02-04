@@ -15,12 +15,12 @@ import os
 import yaml
 from pathlib import Path
 from pydantic import BaseModel, Field, ValidationError
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 import logging 
 import warnings
 from typing import Literal, Union
 
-load_dotenv()
+load_dotenv(find_dotenv(usecwd=True), override=False)
 logger = logging.getLogger(__name__)
 
 # --- HELPER FUNCTIONS ---
@@ -178,30 +178,48 @@ def load_config(path: str | Path | None = None) -> NovaInsightConfig:
         logger.error(f"Error reading YAML config: {e}. Using defaults.")
 
     # Load environment variables (highest priority)
+    def clean_env_value(v):
+        return v if v not in ("", "None") else None
     env_vars = {
         "general": {
-            "debug": os.getenv("NOVA_INSIGHT_DEBUG"),
-            "log_level": os.getenv("NOVA_INSIGHT_LOG_LEVEL"),
-            "supress_user_warnings": os.getenv("NOVA_INSIGHT_SUPRESS_USER_WARNINGS")
+            "debug": clean_env_value(os.getenv("NOVA_INSIGHT_DEBUG")),
+            "log_level": clean_env_value(os.getenv("NOVA_INSIGHT_LOG_LEVEL")),
+            "supress_user_warnings": clean_env_value(os.getenv("NOVA_INSIGHT_SUPRESS_USER_WARNINGS"))
         },
         "analysis": {
             "output": {
-                "default_directory": os.getenv("NOVA_INSIGHT_ANALYSIS_OUTPUT_DEFAULT_DIRECTORY")
+                "default_directory": clean_env_value(os.getenv("NOVA_INSIGHT_ANALYSIS_OUTPUT_DEFAULT_DIRECTORY"))
             }
         },
         "cache": {
-            "enabled": os.getenv("NOVA_INSIGHT_CACHE_ENABLED"),
-            "directory_path": os.getenv("NOVA_INSIGHT_CACHE_DIRECTORY_PATH"),
+            "enabled": clean_env_value(os.getenv("NOVA_INSIGHT_CACHE_ENABLED")),
+            "directory_path": clean_env_value(os.getenv("NOVA_INSIGHT_CACHE_DIRECTORY_PATH")),
         },
         "llm": {
-            "api_key": os.getenv("NOVA_INSIGHT_LLM_API_KEY")
+            "api_key": clean_env_value(os.getenv("NOVA_INSIGHT_LLM_API_KEY"))
         }
     }
     # Clean up None values so we only override with set env vars
-    cleaned_env_vars = {
-        k: {k2: v2 for k2, v2 in v.items() if v2 is not None}
-        for k, v in env_vars.items() if isinstance(v, dict)
-    }
+    def clean_nested_dict(d):
+        """
+        Recursively removes keys where the value is None.
+        Also removes empty dictionaries that result from this cleaning.
+        """
+        if not isinstance(d, dict):
+            return d
+            
+        clean_d = {}
+        for k, v in d.items():
+            if isinstance(v, dict):
+                nested_clean = clean_nested_dict(v)
+                # Only keep the nested dict if it's not empty
+                if nested_clean:
+                    clean_d[k] = nested_clean
+            elif v is not None:
+                clean_d[k] = v
+        return clean_d
+    
+    cleaned_env_vars = clean_nested_dict(env_vars)
     cleaned_env_vars.update({k: v for k, v in env_vars.items() if not isinstance(v, dict) and v is not None})
     
     final_config_dict = deep_merge(cleaned_env_vars, final_config_dict)
