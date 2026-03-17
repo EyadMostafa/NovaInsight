@@ -100,14 +100,27 @@ class LLMSummarizer(BaseModule):
             ))
             return report
 
+        logger.info("Constructing TOON prompt context from analysis report...")
+        prompt = self._construct_prompt(report)
+
         try:
-            logger.info("Constructing TOON prompt context from analysis report...")
-            prompt = self._construct_prompt(report)
             
             logger.info("Querying LLM for structured analysis summary...")
             llm_output = self.provider.generate(prompt, schema=LLMSummary)
 
+        except Exception as e:
+            logger.error(f"LLM Query failed: {e}")
+            report.findings.append(Finding(
+                level="ERROR",
+                message=f"LLM Query failed: {e}"
+            ))
+        
+        report.raw_llm_output = llm_output
+
+        try:
+
             json_response_text = json.loads(self._extract_json_string(llm_output))
+            print(json_response_text)
 
             logger.info("Validating LLM response against schema...")
             normalized = self.normalize_llm_summary(json_response_text)
