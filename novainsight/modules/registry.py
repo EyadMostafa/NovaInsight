@@ -14,24 +14,25 @@ Adding a new module only requires:
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Callable, Type, TYPE_CHECKING
+from typing import Callable, Type
 
-from novainsight.schemas.analysis_report import AnalysisReport, Operator
+from pydantic import BaseModel, ConfigDict
+
 from novainsight.exceptions import OrchestratorError
-
-if TYPE_CHECKING:
-    from novainsight.modules.base_module import BaseModule
-
-_REGISTRY: dict[Operator, ModuleSpec] = {}
+from novainsight.modules.base_module import BaseModule
+from novainsight.schemas.analysis_report import AnalysisReport, Operator
 
 
-@dataclass
-class ModuleSpec:
+class ModuleSpec(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     operator: Operator
     cls: Type[BaseModule]
     dependencies: list[Operator]
     is_completed: Callable[[AnalysisReport], bool]
+
+
+_REGISTRY: dict[Operator, ModuleSpec] = {}
 
 
 def register_module(

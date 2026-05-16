@@ -14,13 +14,10 @@ from __future__ import annotations
 
 import logging
 from functools import lru_cache
-from typing import TYPE_CHECKING
 
+from novainsight.config.config import LLMSettings
 from novainsight.exceptions import LLMSummarizerError
 from novainsight.llm.providers.base import LLMProvider
-
-if TYPE_CHECKING:
-    from novainsight.config.config import LLMSettings
 
 logger = logging.getLogger(__name__)
 
