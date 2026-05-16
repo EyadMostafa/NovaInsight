@@ -11,8 +11,9 @@ from umap import UMAP
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from novainsight.core.base_module import BaseModule
+from novainsight.modules.base_module import BaseModule
 from novainsight.config.config import NovaInsightConfig
+from novainsight.exceptions import DimensionalityReducerError
 from novainsight.schemas.analysis_report import (
     AnalysisReport,
     DimensionalityAnalysis,
@@ -123,7 +124,7 @@ class DimensionalityReducer(BaseModule):
             return df_transformed, zero_var_finding
 
         except Exception as e:
-            raise ValueError(f"Failed to to prepare data for dimensionality reduction. Reason: {e}")
+            raise DimensionalityReducerError(f"Failed to prepare data for dimensionality reduction. Reason: {e}") from e
 
     def _run_pca(self, processed_df: pd.DataFrame) -> tuple[pd.DataFrame, List[float]]:
         """
@@ -153,7 +154,7 @@ class DimensionalityReducer(BaseModule):
             return embeddings_df, ratios
 
         except Exception as e:
-            raise ValueError(f"Failed to perform PCA transformation. Reason: {e}")
+            raise DimensionalityReducerError(f"Failed to perform PCA transformation. Reason: {e}") from e
 
     def _run_tsne(self, processed_df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -178,7 +179,7 @@ class DimensionalityReducer(BaseModule):
 
             return embeddings_df
         except Exception as e:
-            raise ValueError(f"Failed to perform TSNE transformation. Reason: {e}")
+            raise DimensionalityReducerError(f"Failed to perform t-SNE transformation. Reason: {e}") from e
 
     def _run_umap(self, processed_df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -203,7 +204,7 @@ class DimensionalityReducer(BaseModule):
 
             return embeddings_df
         except Exception as e:
-            raise ValueError(f"Failed to perform UMAP transformation. Reason: {e}")
+            raise DimensionalityReducerError(f"Failed to perform UMAP transformation. Reason: {e}") from e
 
     def _save_results(self, embeddings_df: pd.DataFrame, output_dir: Path | str, filename_prefix: str) -> str:
         """
@@ -221,5 +222,5 @@ class DimensionalityReducer(BaseModule):
 
             return file_path
         except Exception as e:
-            raise ValueError(f"Failed to save results to {str(file_path) if file_path else filename_prefix}. Reason: {e}")
+            raise DimensionalityReducerError(f"Failed to save results to {str(file_path) if file_path else filename_prefix}. Reason: {e}") from e
 

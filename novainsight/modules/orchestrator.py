@@ -8,15 +8,19 @@ from pathlib import Path
 from typing import List, Set, Optional
 from enum import Enum, auto
 from novainsight.config.config import NovaInsightConfig
-from novainsight.core.base_module import BaseModule
-from novainsight.core.data_profiler import DataProfiler
-from novainsight.core.target_detector import TargetDetector
-from novainsight.core.statistical_analyzer import StatisticalAnalyzer
-from novainsight.core.dimensionality_reducer import DimensionalityReducer
-from novainsight.core.visualizer import Visualizer
-from novainsight.core.llm_summarizer import LLMSummarizer
+from novainsight.exceptions import (
+    ModuleError, PipelineError,
+    DataLoadError, OrchestratorError,
+)
+from novainsight.modules.base_module import BaseModule
+from novainsight.modules.data_profiler import DataProfiler
+from novainsight.modules.target_detector import TargetDetector
+from novainsight.modules.statistical_analyzer import StatisticalAnalyzer
+from novainsight.modules.dimensionality_reducer import DimensionalityReducer
+from novainsight.modules.visualizer import Visualizer
+from novainsight.modules.llm_summarizer import LLMSummarizer
 from novainsight.schemas.analysis_report import AnalysisReport, RunMetadata, DatasetProfile, DatasetStats, Finding, Operator
-from novainsight.core.report_generator import ReportGenerator
+from novainsight.modules.report_generator import ReportGenerator
 from novainsight.utils.cache_manager import CacheManager
 from novainsight.utils.validators import validate_file_path, validate_directory
 
@@ -90,20 +94,16 @@ class AnalysisPipeline:
         try:
             self._initialize_report_and_data()
             self._run_analytical_modules()
-            # lazy fix to the duplicate findings bug
-            findings_unique = {}
-            for f in self.report.findings:
-                key = (f.level, f.message)
-                findings_unique[key] = f
-            self.report.findings = list(findings_unique.values())
             self._generate_outputs()
-            
+
             report_generator = ReportGenerator(config=self.config)
             report_generator.run(self.df, self.report)
 
             logger.info("Analysis pipeline completed")
+        except PipelineError:
+            raise
         except Exception as e:
-            raise ValueError(f"A fatal error halted the pipeline: {e}")
+            raise OrchestratorError(f"Unexpected fatal error in pipeline: {e}") from e
 
     def _resolve_execution_plan(self, requested: List[str]) -> List[str]:
         """Calculates the full list of modules to run based on dependencies."""
@@ -140,13 +140,13 @@ class AnalysisPipeline:
         """
         self.file_path = validate_file_path(self.file_path)
         file_extension = self.file_path.suffix.lower() 
-        if  file_extension not in self.SUPPORTED_FILE_EXTENSIONS:
-            raise ValueError(f"Fatal Error: Unsupported file extension. Supported extensions are: {','.join(self.SUPPORTED_FILE_EXTENSIONS)}") 
+        if file_extension not in self.SUPPORTED_FILE_EXTENSIONS:
+            raise DataLoadError(f"Unsupported file extension '{file_extension}'. Supported: {', '.join(self.SUPPORTED_FILE_EXTENSIONS)}")
 
         self.output_dir = Path(self.output_dir / "novainsight_reports") 
         is_valid, message, resolved_path = validate_directory(self.output_dir)
         if not is_valid:
-            raise IOError(f"Invalid output directory specified. Reason: {message}")
+            raise OrchestratorError(f"Invalid output directory. Reason: {message}")
         
         file_hash = self.cache_manager.hash_file(self.file_path)
 
@@ -231,18 +231,18 @@ class AnalysisPipeline:
                 #if hasattr(module, "findings"):
                 #    self.report.findings.extend(module.findings)
 
-            except Exception as e:
-                finding = Finding(
-                    level='ERROR',
-                    message=f"{module_name.capitalize()} module failed. Reason: {e}"
-                )
-                self.report.findings.append(finding)
+            except ModuleError as e:
+                msg = f"{module_name.capitalize()} module failed. Reason: {e}"
+                if e.column:
+                    msg += f" (column: '{e.column}')"
+                self.report.findings.append(Finding(level='ERROR', message=msg))
                 skip_modules = skip_modules | self._find_downstream_dependents(module_name)
-                logger.error(f'{module_name.capitalize()} module failed. Skipping and proceeding with the pipeline.')
-
-        for _, module in self.report:
-            if hasattr(module, 'findings'):
-                self.report.findings += module.findings
+                logger.error(f"{module_name.capitalize()} module failed — skipping downstream dependents.")
+            except Exception as e:
+                msg = f"{module_name.capitalize()} module raised an unexpected error: {e}"
+                self.report.findings.append(Finding(level='ERROR', message=msg))
+                skip_modules = skip_modules | self._find_downstream_dependents(module_name)
+                logger.error(msg, exc_info=True)
 
     def _generate_outputs(self):
         """
@@ -285,7 +285,7 @@ class AnalysisPipeline:
             raise
         except Exception as e:
             logger.error(f"An unexpected error occurred during row count pre-scan for {self.file_path}: {e}")
-            raise IOError(f"Could not read file to determine total row count. Reason: {e}") from e
+            raise DataLoadError(f"Could not determine row count for {self.file_path}. Reason: {e}") from e
 
     def _load_data_frame(self, file_extension) -> pd.DataFrame:
         """
@@ -321,7 +321,7 @@ class AnalysisPipeline:
             return df
 
         except Exception as e:
-            raise IOError(f"Failed to read the data file at {self.file_path}. Reason: {e}")
+            raise DataLoadError(f"Failed to read data file at {self.file_path}. Reason: {e}") from e
         
     def _generate_report_title(self) -> str:
         clean_stem = str(self.file_path.stem).replace("_", " ").replace("-", " ")

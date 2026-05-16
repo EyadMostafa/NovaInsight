@@ -9,8 +9,9 @@ from itertools import product, combinations
 from typing import List, Dict, Optional, Tuple, Any
 from pathlib import Path
 
-from novainsight.core.base_module import BaseModule
+from novainsight.modules.base_module import BaseModule
 from novainsight.config.config import NovaInsightConfig
+from novainsight.exceptions import StatisticalAnalyzerError
 from novainsight.schemas.analysis_report import (
     AnalysisReport,
     StatisticalAnalysis,
@@ -55,8 +56,8 @@ class StatisticalAnalyzer(BaseModule):
             output_dir.mkdir(parents=True, exist_ok=True)
 
             cat_num_matrix.to_csv(correlation_report.categorical_numerical_path)
-            num_num_matrix.to_csv(output_dir / correlation_report.numerical_numerical_path)
-            cat_cat_matrix.to_csv(output_dir / correlation_report.categorical_categorical_path)
+            num_num_matrix.to_csv(correlation_report.numerical_numerical_path)
+            cat_cat_matrix.to_csv(correlation_report.categorical_categorical_path)
         
         except Exception as e:
             self.findings.append(Finding(
@@ -74,24 +75,19 @@ class StatisticalAnalyzer(BaseModule):
             if target_details:
                 if target_details.inferred_type in ['categorical', 'boolean']:
                     target_column = df[report.target_analysis.identified_target]
-    
                     class_imbalance_report = self._analyze_class_imbalance(target_column)
-                
+
                 self._check_for_data_leakage(
                     report=report,
                     cat_num_corr=correlation_results.get('cat_num_corr_dict', {}),
                     cat_corr=correlation_results.get('cat_corr_dict', {}),
                     num_corr=correlation_results.get('num_corr_dict', {})
                 )
-
-        elif report.metadata.task == 'supervised':
-            self.findings.append(Finding(
-                level='WARNING', 
-                message=f"Supervised task specified, but target '{target_name}' details not found in profile."
-            ))
-
-        else: 
-            class_imbalance_report = None
+            else:
+                self.findings.append(Finding(
+                    level='WARNING',
+                    message=f"Supervised task specified, but target '{target_name}' details not found in profile."
+                ))
 
         statistical_analysis = StatisticalAnalysis(
             outlier_report=outlier_report,
@@ -162,7 +158,7 @@ class StatisticalAnalyzer(BaseModule):
 
                 return columns_outlier_analysis
             except Exception as e:
-                raise ValueError(f"Failed to perform outlier detection. Reason: {e}")
+                raise StatisticalAnalyzerError(f"Failed to perform outlier detection. Reason: {e}") from e
 
     def _detect_multicollinearity(self, df: pd.DataFrame, report: AnalysisReport) -> Dict[str, float]:
         """
@@ -205,7 +201,7 @@ class StatisticalAnalyzer(BaseModule):
 
         except Exception as e:
             self.findings.append(Finding(level='WARNING', message=f"Could not perform multicollinearity analysis: {e}"))
-            raise ValueError(f"Could not perform multicollinearity analysis. Reason: {e}")
+            raise StatisticalAnalyzerError(f"Could not perform multicollinearity analysis. Reason: {e}") from e
 
     def _analyze_correlations(self, df: pd.DataFrame, report: AnalysisReport) -> Dict[str, Any]:
         """
@@ -262,7 +258,9 @@ class StatisticalAnalyzer(BaseModule):
                 pair_df = df[[col1, col2]].dropna()
                 
                 if pair_df.shape[0] < 2:
-                    corr, pvalue = np.nan, np.nan
+                    num_corr[(col1, col2)] = 0.0
+                    num_corr_pvals[(col1, col2)] = np.nan
+                    continue
 
                 corr, pvalue = spearmanr(pair_df[col1], pair_df[col2])
                 if pd.isna(corr): corr = 0.0 
@@ -293,7 +291,7 @@ class StatisticalAnalyzer(BaseModule):
 
             return results
         except Exception as e:
-            raise ValueError(f"Failed to perform correlation analysis. Reason: {e}")
+            raise StatisticalAnalyzerError(f"Failed to perform correlation analysis. Reason: {e}") from e
 
     def _analyze_class_imbalance(self, target_column: pd.Series) -> Optional[ClassImbalanceReport]:
         """Analyzes and reports on the class distribution of the target variable."""

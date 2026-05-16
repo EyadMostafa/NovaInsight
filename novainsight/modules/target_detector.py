@@ -3,8 +3,9 @@ from __future__ import annotations
 import pandas as pd
 from typing import List, Optional, Literal, Tuple
 
-from novainsight.core.base_module import BaseModule
+from novainsight.modules.base_module import BaseModule
 from novainsight.config.config import NovaInsightConfig
+from novainsight.exceptions import TargetDetectorError
 from novainsight.schemas.analysis_report import (
     AnalysisReport,
     TargetVariableAnalysis,
@@ -70,11 +71,11 @@ class TargetDetector(BaseModule):
                     break
                 
             if not target_column_details:
-                raise ValueError(f"User specified target column '{user_target}' does not exist in the dataset.")
+                raise TargetDetectorError(f"User specified target column '{user_target}' does not exist in the dataset.")
 
             invalid_types = ['text', 'datetime', 'id']
             if target_column_details.inferred_type in invalid_types:
-                raise ValueError(
+                raise TargetDetectorError(
                     f"Specified target '{user_target}' has an unsuitable type "
                     f"('{target_column_details.inferred_type}'). Please choose a numeric, bool, or categorical column."
                 )
@@ -82,7 +83,7 @@ class TargetDetector(BaseModule):
             ml_task = self._task_detection(target_column_details)
 
             if not ml_task:
-                raise ValueError(f"Failed to infer ml task for user specified target column '{user_target}'.")
+                raise TargetDetectorError(f"Failed to infer ml task for user specified target column '{user_target}'.")
 
             candidate_target = CandidateTarget(
                 column_name=user_target,
@@ -92,8 +93,10 @@ class TargetDetector(BaseModule):
             )
 
             return candidate_target
+        except TargetDetectorError:
+            raise
         except Exception as e:
-            raise ValueError(f"Failed to validate user target. Reason {e}")
+            raise TargetDetectorError(f"Failed to validate user target. Reason: {e}") from e
 
     def _infer_target_from_profile(self, df: pd.DataFrame, columns: List[ColumnDetails]) -> TargetVariableAnalysis:
         """
@@ -149,20 +152,20 @@ class TargetDetector(BaseModule):
 
             if candidates:
                 candidates.sort(key=lambda c: c.confidence_score, reverse=True)
-            else: raise ValueError("Failed to identify candidate target columns.")
+            else: raise TargetDetectorError("No valid candidate target columns found.")
 
             for cand in candidates:
                 if not cand.ml_task:
                     finding = Finding(
                         level='WARNING',
-                        message=f"Failed to infer ml task for candidate column '{column_name}'. Skipping to next best candidate."
+                        message=f"Failed to infer ml task for candidate column '{cand.column_name}'. Skipping to next best candidate."
                     ) 
                     findings.append(finding)
                 else: 
                     best_candidate = cand.column_name
                     break
 
-            if not best_candidate: raise ValueError("Failed to identify candidate target columns.")
+            if not best_candidate: raise TargetDetectorError("Failed to identify a best candidate target column.")
 
             target_analysis = TargetVariableAnalysis(
                 detection_method='auto',
@@ -172,8 +175,10 @@ class TargetDetector(BaseModule):
             )
 
             return target_analysis
+        except TargetDetectorError:
+            raise
         except Exception as e:
-            raise ValueError(f"Failed to identify candidate target columns. Reason: {e}")
+            raise TargetDetectorError(f"Failed to infer target from profile. Reason: {e}") from e
             
 
     def _task_detection(self, column: ColumnDetails) -> Optional[Literal['classification', 'regression']]:
@@ -187,4 +192,4 @@ class TargetDetector(BaseModule):
 
             return None
         except Exception as e:
-            raise ValueError(f"Failed to perform task detection. Reason: {e}")
+            raise TargetDetectorError(f"Failed to perform task detection. Reason: {e}") from e

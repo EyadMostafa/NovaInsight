@@ -14,8 +14,9 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder
 from sklearn.feature_selection import f_classif, chi2
 
-from novainsight.core.base_module import BaseModule
+from novainsight.modules.base_module import BaseModule
 from novainsight.config.config import NovaInsightConfig
+from novainsight.exceptions import VisualizerError
 from novainsight.schemas.analysis_report import (
     AnalysisReport,
     VisualizationOutput,
@@ -232,8 +233,7 @@ class Visualizer(BaseModule):
             return pd.Series(labels, index=df.index, name="Discovered Cluster")
 
         except Exception as e:
-            logger.error(f"Error during K-Means clustering: {e}")
-            raise
+            raise VisualizerError(f"K-Means clustering failed: {e}") from e
 
     # --- Plot Generation Groups ---
 

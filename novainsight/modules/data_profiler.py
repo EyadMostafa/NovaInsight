@@ -2,15 +2,14 @@ import pandas as pd
 from pandas.api.types import (
     is_datetime64_any_dtype,
     is_timedelta64_dtype,
-    is_period_dtype,
-    is_interval_dtype,
     is_bool_dtype,
-    is_numeric_dtype
+    is_numeric_dtype,
 )
 from novainsight.schemas.analysis_report import (DatasetProfile, DatasetStats,
                                                  ColumnDetails, Finding, AnalysisReport)
 from novainsight.config.config import NovaInsightConfig
-from novainsight.core.base_module import BaseModule
+from novainsight.modules.base_module import BaseModule
+from novainsight.exceptions import ProfilerError
 from typing import Tuple, List
 
 
@@ -105,7 +104,7 @@ class DataProfiler(BaseModule):
             return dataset_stats
 
         except Exception as e:
-            raise ValueError(f"Failed to perform dataset level profiling. Reason: {e}")
+            raise ProfilerError(f"Failed to perform dataset-level profiling. Reason: {e}") from e
 
     def _profile_column_level(self, df: pd.DataFrame) -> List[ColumnDetails]:
         """
@@ -189,7 +188,7 @@ class DataProfiler(BaseModule):
             return columns_details_list
 
         except Exception as e:
-            raise ValueError(f"Failed to perform column level profiling. Reason: {e}")
+            raise ProfilerError(f"Failed to perform column-level profiling. Reason: {e}") from e
 
     def _infer_logical_type(self, column: pd.Series) -> str:
         """
@@ -222,8 +221,8 @@ class DataProfiler(BaseModule):
         if (
             is_datetime64_any_dtype(column)
             or is_timedelta64_dtype(column)
-            or is_period_dtype(column)
-            or is_interval_dtype(column)
+            or isinstance(column.dtype, pd.PeriodDtype)
+            or isinstance(column.dtype, pd.IntervalDtype)
         ):
             return 'datetime'
 

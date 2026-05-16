@@ -9,8 +9,9 @@ from typing import List, Dict, Any, Optional
 import pandas as pd
 from jinja2 import Template, FileSystemLoader, Environment
 
-from novainsight.core.base_module import BaseModule
+from novainsight.modules.base_module import BaseModule
 from novainsight.config.config import NovaInsightConfig
+from novainsight.exceptions import ReportGeneratorError
 from novainsight.schemas.analysis_report import (
     AnalysisReport,
     Finding
@@ -53,7 +54,6 @@ class ReportGenerator(BaseModule):
             )
 
             # Render Template
-            print(Path('../templates').exists())
             template = env.get_template('report_template.html')
             html_content = template.render(
                 report=report,
@@ -83,12 +83,7 @@ class ReportGenerator(BaseModule):
             ))
 
         except Exception as e:
-            logger.error(f"Failed to generate HTML report: {e}")
-            self.findings.append(Finding(
-                level="ERROR",
-                message=f"Failed to generate HTML report: {e}"
-            ))
-            report.findings.extend(self.findings)
+            raise ReportGeneratorError(f"Failed to generate HTML report: {e}") from e
 
         return report
 
