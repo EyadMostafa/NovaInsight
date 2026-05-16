@@ -12,14 +12,22 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 from novainsight.modules.base_module import BaseModule
+from novainsight.modules.registry import register_module
 from novainsight.config.config import NovaInsightConfig
 from novainsight.exceptions import DimensionalityReducerError
 from novainsight.schemas.analysis_report import (
     AnalysisReport,
     DimensionalityAnalysis,
-    Finding
+    Finding,
+    Operator,
 )
 
+
+@register_module(
+    operator=Operator.DIM_REDUCTION,
+    dependencies=[Operator.PROFILER],
+    is_completed=lambda report: report.dimensionality_analysis is not None,
+)
 class DimensionalityReducer(BaseModule):
     """
     Finds and visualizes latent data structures by running dimensionality

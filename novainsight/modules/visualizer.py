@@ -15,17 +15,25 @@ from sklearn.preprocessing import StandardScaler, OrdinalEncoder
 from sklearn.feature_selection import f_classif, chi2
 
 from novainsight.modules.base_module import BaseModule
+from novainsight.modules.registry import register_module
 from novainsight.config.config import NovaInsightConfig
 from novainsight.exceptions import VisualizerError
 from novainsight.schemas.analysis_report import (
     AnalysisReport,
     VisualizationOutput,
     Finding,
-    ColumnDetails
+    ColumnDetails,
+    Operator,
 )
 
 logger = logging.getLogger(__name__)
 
+
+@register_module(
+    operator=Operator.VIZ,
+    dependencies=[Operator.STATS, Operator.DIM_REDUCTION],
+    is_completed=lambda report: report.visualizations is not None,
+)
 class Visualizer(BaseModule):
     """
     Generates a gallery of plots based on all previous modules.

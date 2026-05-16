@@ -14,11 +14,17 @@ from novainsight.llm.factory import create_provider
 from novainsight.llm.prompts import build_correction_messages, build_messages
 from novainsight.llm.providers.base import LLMProvider
 from novainsight.modules.base_module import BaseModule
-from novainsight.schemas.analysis_report import AnalysisReport, Finding, LLMSummary
+from novainsight.modules.registry import register_module
+from novainsight.schemas.analysis_report import AnalysisReport, Finding, LLMSummary, Operator
 
 logger = logging.getLogger(__name__)
 
 
+@register_module(
+    operator=Operator.LLM,
+    dependencies=[Operator.STATS],
+    is_completed=lambda report: report.llm_summary is not None,
+)
 class LLMSummarizer(BaseModule):
     """
     The 'Language Brain' of NovaInsight.

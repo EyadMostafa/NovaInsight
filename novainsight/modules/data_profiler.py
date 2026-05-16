@@ -6,13 +6,19 @@ from pandas.api.types import (
     is_numeric_dtype,
 )
 from novainsight.schemas.analysis_report import (DatasetProfile, DatasetStats,
-                                                 ColumnDetails, Finding, AnalysisReport)
+                                                 ColumnDetails, Finding, AnalysisReport, Operator)
 from novainsight.config.config import NovaInsightConfig
 from novainsight.modules.base_module import BaseModule
+from novainsight.modules.registry import register_module
 from novainsight.exceptions import ProfilerError
 from typing import Tuple, List
 
 
+@register_module(
+    operator=Operator.PROFILER,
+    dependencies=[],
+    is_completed=lambda report: bool(report.profile.column_details),
+)
 class DataProfiler(BaseModule):
     """
     Analyzes a DataFrame to produce a detailed structural and statistical profile.

@@ -4,6 +4,7 @@ import pandas as pd
 from typing import List, Optional, Literal, Tuple
 
 from novainsight.modules.base_module import BaseModule
+from novainsight.modules.registry import register_module
 from novainsight.config.config import NovaInsightConfig
 from novainsight.exceptions import TargetDetectorError
 from novainsight.schemas.analysis_report import (
@@ -11,9 +12,16 @@ from novainsight.schemas.analysis_report import (
     TargetVariableAnalysis,
     CandidateTarget,
     ColumnDetails,
-    Finding
+    Finding,
+    Operator,
 )
 
+
+@register_module(
+    operator=Operator.TARGET,
+    dependencies=[Operator.PROFILER],
+    is_completed=lambda report: report.target_analysis is not None,
+)
 class TargetDetector(BaseModule):
     """
     Determines the machine learning context by identifying the target variable.

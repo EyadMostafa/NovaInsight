@@ -10,6 +10,7 @@ from typing import List, Dict, Optional, Tuple, Any
 from pathlib import Path
 
 from novainsight.modules.base_module import BaseModule
+from novainsight.modules.registry import register_module
 from novainsight.config.config import NovaInsightConfig
 from novainsight.exceptions import StatisticalAnalyzerError
 from novainsight.schemas.analysis_report import (
@@ -19,9 +20,16 @@ from novainsight.schemas.analysis_report import (
     ClassImbalanceReport,
     Finding,
     ColumnDetails,
-    CorrelationReport
+    CorrelationReport,
+    Operator,
 )
 
+
+@register_module(
+    operator=Operator.STATS,
+    dependencies=[Operator.PROFILER, Operator.TARGET],
+    is_completed=lambda report: report.statistical_analysis is not None,
+)
 class StatisticalAnalyzer(BaseModule):
     """
     Performs quantitative statistical analysis to uncover relationships,

@@ -5,20 +5,15 @@ import openpyxl
 import csv
 from logging import getLogger
 from pathlib import Path
-from typing import List, Set, Optional
-from enum import Enum, auto
+from typing import List
+
+import novainsight.modules  # noqa: F401 — triggers @register_module decorators
 from novainsight.config.config import NovaInsightConfig
 from novainsight.exceptions import (
     ModuleError, PipelineError,
     DataLoadError, OrchestratorError,
 )
-from novainsight.modules.base_module import BaseModule
-from novainsight.modules.data_profiler import DataProfiler
-from novainsight.modules.target_detector import TargetDetector
-from novainsight.modules.statistical_analyzer import StatisticalAnalyzer
-from novainsight.modules.dimensionality_reducer import DimensionalityReducer
-from novainsight.modules.visualizer import Visualizer
-from novainsight.modules.llm_summarizer import LLMSummarizer
+from novainsight.modules.registry import get_registry, topological_order
 from novainsight.schemas.analysis_report import AnalysisReport, RunMetadata, DatasetProfile, DatasetStats, Finding, Operator
 from novainsight.modules.report_generator import ReportGenerator
 from novainsight.utils.cache_manager import CacheManager
@@ -26,35 +21,9 @@ from novainsight.utils.validators import validate_file_path, validate_directory
 
 logger = getLogger(__name__)
 
-class AnalysisPipeline:
-    """
-    The main orchestrator for the NovaInsight analysis pipeline.
-    """
-    DEPENDENCY_GRAPH = {
-        Operator.PROFILER : [],                                     # profiler           
-        Operator.TARGET: [Operator.PROFILER],                       # target --> profiler
-        Operator.STATS: [Operator.PROFILER, Operator.TARGET],       # stats --> target? --> profiler
-        Operator.DIM_REDUCTION: [Operator.PROFILER],                # dim_reduction --> profiler
-        Operator.VIZ: [Operator.STATS, Operator.DIM_REDUCTION],     # viz --> dim_reduction --> stats --> target? --> profiler
-        Operator.LLM: [Operator.STATS],                             # llm --> stats --> target? --> profiler
-        # Operator.REPORT: [Operator.PROFILER]                        # report -> profiler
-    }
 
-    MODULES_REGISTRY = {
-        Operator.PROFILER: DataProfiler,
-        Operator.TARGET: TargetDetector,
-        Operator.STATS: StatisticalAnalyzer,
-        Operator.DIM_REDUCTION: DimensionalityReducer,
-        Operator.VIZ: Visualizer,
-        Operator.LLM: LLMSummarizer,
-        # Operator.REPORT: ReportGenerator
-    }
-    
-    EXECUTION_ORDER = [
-        Operator.PROFILER, Operator.TARGET, Operator.STATS, Operator.DIM_REDUCTION, 
-        Operator.VIZ, Operator.LLM,
-        # Operator.REPORT
-    ]
+class AnalysisPipeline:
+    """The main orchestrator for the NovaInsight analysis pipeline."""
 
     SUPPORTED_FILE_EXTENSIONS = ['.csv', '.xlsx', '.xls']
 
@@ -86,8 +55,7 @@ class AnalysisPipeline:
         self.report: AnalysisReport | None = None
         self.df: pd.DataFrame | None = None
         
-        modules_to_resolve = requested_modules or self.EXECUTION_ORDER
-        self.execution_plan = self._resolve_execution_plan(modules_to_resolve)
+        self.execution_plan = self._resolve_execution_plan(requested_modules)
 
     def run(self):
         """Executes the full, resolved analysis pipeline from start to finish."""
@@ -105,33 +73,54 @@ class AnalysisPipeline:
         except Exception as e:
             raise OrchestratorError(f"Unexpected fatal error in pipeline: {e}") from e
 
-    def _resolve_execution_plan(self, requested: List[str]) -> List[str]:
-        """Calculates the full list of modules to run based on dependencies."""
-        final_modules: Set[str] = set()
-        
-        def find_deps(module_name: str):
-            if module_name not in self.DEPENDENCY_GRAPH:
-                logger.warning(f"Unknown module '{module_name}' requested. Ignoring.")
-                return
-            
-            if self.task == 'unsupervised' and module_name == Operator.TARGET:
-                return
-            
-            if module_name in final_modules:
-                return
-            
-            final_modules.add(module_name)
+    def _resolve_execution_plan(self, requested: List[str] | None) -> List[Operator]:
+        """
+        Calculates the full ordered list of operators to run.
 
-            for dep in self.DEPENDENCY_GRAPH.get(module_name, []):
-                find_deps(dep)
+        If specific modules were requested, walks their transitive dependencies
+        and returns them in topological order. Otherwise returns all registered
+        modules in topological order.
 
-        for module in requested:
-            find_deps(module)
-        
-        sorted_plan = sorted(list(final_modules), key=self.EXECUTION_ORDER.index)
-            
-        logger.info(f"Execution plan resolved: {sorted_plan}")
-        return sorted_plan
+        The TARGET operator is silently excluded for unsupervised tasks.
+        """
+        registry = get_registry()
+        full_order = topological_order()
+
+        if not requested:
+            plan = [op for op in full_order if not (self.task == 'unsupervised' and op == Operator.TARGET)]
+            logger.info(f"Execution plan resolved: {plan}")
+            return plan
+
+        # Resolve transitive deps for the explicitly requested subset
+        requested_ops: set[Operator] = set()
+        for name in requested:
+            try:
+                op = Operator(name) if isinstance(name, str) else name
+            except ValueError:
+                logger.warning(f"Unknown module '{name}' requested. Ignoring.")
+                continue
+            if op not in registry:
+                logger.warning(f"Module '{op}' is not registered. Ignoring.")
+                continue
+            requested_ops.add(op)
+
+        final: set[Operator] = set()
+
+        def collect(op: Operator) -> None:
+            if op in final:
+                return
+            if self.task == 'unsupervised' and op == Operator.TARGET:
+                return
+            final.add(op)
+            for dep in registry[op].dependencies:
+                collect(dep)
+
+        for op in requested_ops:
+            collect(op)
+
+        plan = [op for op in full_order if op in final]
+        logger.info(f"Execution plan resolved: {plan}")
+        return plan
 
     def _initialize_report_and_data(self):
         """
@@ -208,40 +197,37 @@ class AnalysisPipeline:
         Iterates through the execution plan and runs each analytical module
         sequentially, with graceful error handling for module-level failures.
         """
-        module: Optional[BaseModule] = None
-        skip_modules = set()
-        
-        for module_name in self.execution_plan:
-            if module_name in skip_modules: 
-                finding = Finding(
+        registry = get_registry()
+        skip_modules: set[Operator] = set()
+
+        for op in self.execution_plan:
+            if op in skip_modules:
+                self.report.findings.append(Finding(
                     level='WARNING',
-                    message=f"{module_name.capitalize()} module skipped due to the failure or skipping of a dependency module."
-                )
-                self.report.findings.append(finding)
+                    message=f"{op.capitalize()} module skipped due to the failure or skipping of a dependency module."
+                ))
                 continue
-            
+
+            spec = registry[op]
             try:
-                if self._is_module_completed(module_name):
-                    logger.info(f"Skipping {module_name}: Valid results found in cache.") 
+                if not self.force_rerun and spec.is_completed(self.report):
+                    logger.info(f"Skipping {op}: valid results found in cache.")
                     continue
-                module = self.MODULES_REGISTRY[module_name](self.config)
-                updated_report = module.run(df=self.df, report=self.report)
+                updated_report = spec.cls(self.config).run(df=self.df, report=self.report)
                 if updated_report:
                     self.report = updated_report
-                #if hasattr(module, "findings"):
-                #    self.report.findings.extend(module.findings)
 
             except ModuleError as e:
-                msg = f"{module_name.capitalize()} module failed. Reason: {e}"
+                msg = f"{op.capitalize()} module failed. Reason: {e}"
                 if e.column:
                     msg += f" (column: '{e.column}')"
                 self.report.findings.append(Finding(level='ERROR', message=msg))
-                skip_modules = skip_modules | self._find_downstream_dependents(module_name)
-                logger.error(f"{module_name.capitalize()} module failed — skipping downstream dependents.")
+                skip_modules |= self._find_downstream_dependents(op)
+                logger.error(f"{op.capitalize()} module failed — skipping downstream dependents.")
             except Exception as e:
-                msg = f"{module_name.capitalize()} module raised an unexpected error: {e}"
+                msg = f"{op.capitalize()} module raised an unexpected error: {e}"
                 self.report.findings.append(Finding(level='ERROR', message=msg))
-                skip_modules = skip_modules | self._find_downstream_dependents(module_name)
+                skip_modules |= self._find_downstream_dependents(op)
                 logger.error(msg, exc_info=True)
 
     def _generate_outputs(self):
@@ -328,42 +314,14 @@ class AnalysisPipeline:
         return f"{clean_stem.title()} Analysis"
 
     def _find_downstream_dependents(self, failed_module: Operator) -> set[Operator]:
-        """
-        Returns all modules that depend directly or indirectly on the failed module.
-        """
-        skip_modules = {failed_module}
+        """Returns all operators that depend directly or indirectly on failed_module."""
+        registry = get_registry()
+        skip: set[Operator] = {failed_module}
         added = True
-
         while added:
             added = False
-            for k, dependencies in self.DEPENDENCY_GRAPH.items():
-                if any(dep in skip_modules for dep in dependencies):
-                    if k not in skip_modules:
-                        skip_modules.add(k)
-                        added = True
-
-        return skip_modules
-    
-    def _is_module_completed(self, module_name: Operator) -> bool:
-        if self.force_rerun:
-            return False
-        
-        if module_name == Operator.PROFILER:
-            return bool(self.report.profile.column_details)
-
-        elif module_name == Operator.TARGET:
-            return self.report.target_analysis is not None
-
-        elif module_name == Operator.STATS:
-            return self.report.statistical_analysis is not None
-
-        elif module_name == Operator.DIM_REDUCTION:
-            return self.report.dimensionality_analysis is not None
-
-        elif module_name == Operator.VIZ:
-            return self.report.visualizations is not None
-
-        elif module_name == Operator.LLM:
-            return self.report.llm_summary is not None
-
-        return False
+            for op, spec in registry.items():
+                if op not in skip and any(dep in skip for dep in spec.dependencies):
+                    skip.add(op)
+                    added = True
+        return skip
