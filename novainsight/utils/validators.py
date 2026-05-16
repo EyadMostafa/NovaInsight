@@ -1,10 +1,7 @@
 """
 validators.py
 
-A collection of standalone utility functions for validating file system paths.
-
-This module provides reusable functions for checking input files and ensuring
-output directories are valid and writable.
+Utility functions for validating file-system paths.
 """
 from __future__ import annotations
 
@@ -13,38 +10,36 @@ from pathlib import Path
 from typing import Tuple
 from logging import getLogger
 
+from novainsight.exceptions import DataLoadError
+
 logger = getLogger(__name__)
 
-def validate_file_path(file_path: str) -> Path:
-    """
-    Validates a file path based on existence, type, permissions, and extension.
-    """
+
+def validate_file_path(file_path: str | Path) -> Path:
+    """Validates a file path for existence, type, and read permissions."""
     p = Path(file_path).expanduser().resolve()
     if not p.exists():
-        raise FileNotFoundError(f"Input file not found at the specified path: {p}")
-
+        raise DataLoadError(f"Input file not found: {p}")
     if not p.is_file():
-        raise ValueError(f"The provided path points to a directory, not a file: {p}")
-
+        raise DataLoadError(f"Path points to a directory, not a file: {p}")
     if not os.access(p, os.R_OK):
-        raise PermissionError(f"Read access denied for the file: {p}")
-    
+        raise DataLoadError(f"Read access denied for file: {p}")
     return p
+
 
 def validate_directory(path_str: str | Path) -> Tuple[bool, str, Path | str]:
     """
-    Validates a path intended to be a directory, ensuring it can be written to.
-    If the directory does not exist, it attempts to create it.
+    Validates a path as a writable directory, creating it if absent.
+    Returns (is_valid, error_message, resolved_path).
     """
     try:
         p = Path(path_str).expanduser().resolve()
         p.mkdir(parents=True, exist_ok=True)
-
         logger.debug(f"Directory is valid and ready at: {p}")
         return True, "", p
     except FileExistsError:
-        return False, f"Directory '{path_str}' cannot be created because a file with the same name exists: {path_str}", ""
+        return False, f"A file already exists at the directory path: {path_str}", ""
     except PermissionError:
-        return False, f"Write access denied for the output directory: {path_str}", ""
+        return False, f"Write access denied for output directory: {path_str}", ""
     except Exception as e:
-        return False, f"An unexpected OS error occurred while creating the directory: {path_str}: {e}", ""
+        return False, f"Unexpected OS error creating directory {path_str}: {e}", ""

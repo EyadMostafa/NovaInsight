@@ -1,36 +1,50 @@
 """
 config.py
 
-This module provides a robust, hierarchical configuration system for NovaInsight
-using Pydantic for validation, type casting, and default management.
+Hierarchical configuration system for NovaInsight.
 
-The loading priority is as follows (each level overrides the one below it):
-1. Environment Variables (from .env or system) - Highest Priority
-2. config.yaml - Project-specific, shared settings
-3. Pydantic Model Defaults - Hardcoded, safe fallbacks
+Loading priority (highest wins):
+1. Environment variables (from .env / system)
+2. config.yaml (or config.dev.yaml in dev env)
+3. Pydantic model defaults
 """
 from __future__ import annotations
 
 import os
 import yaml
-from pathlib import Path
-from pydantic import BaseModel, Field, ValidationError
-from dotenv import load_dotenv, find_dotenv
-import logging 
+import logging
 import warnings
-from typing import Literal, Union
+from pathlib import Path
+from typing import Any, Literal, Union
 
-load_dotenv(find_dotenv(usecwd=True), override=False)
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError
+from dotenv import load_dotenv, find_dotenv
+from novainsight.exceptions import ConfigError
+
+# --- ENVIRONMENT DETECTION ---
+
+PROJECT_ENV_PREFIX = "NOVA_INSIGHT_"
+
+_NOVA_INSIGHT_ENV = os.getenv("NOVA_INSIGHT_ENV", "prod").lower()
+if _NOVA_INSIGHT_ENV == "dev":
+    _ENV_FILENAME = ".env.dev"
+    _YAML_FILENAME = "config.dev.yaml"
+else:
+    _ENV_FILENAME = ".env"
+    _YAML_FILENAME = "config.yaml"
+
+load_dotenv(find_dotenv(_ENV_FILENAME, usecwd=True), override=False)
+
 logger = logging.getLogger(__name__)
 
-# --- HELPER FUNCTIONS ---
+# --- HELPERS ---
 
 def get_project_root() -> Path:
-    """Returns the absolute path to the project's root directory."""
     return Path(__file__).parent.parent
 
+
 def deep_merge(source: dict, destination: dict) -> dict:
-    """Recursively merges a source dict into a destination dict."""
+    """Recursively merges source into destination; source values win on conflicts."""
     for key, value in source.items():
         if isinstance(value, dict) and key in destination and isinstance(destination[key], dict):
             destination[key] = deep_merge(value, destination[key])
@@ -38,30 +52,51 @@ def deep_merge(source: dict, destination: dict) -> dict:
             destination[key] = value
     return destination
 
-# --- PYDANTIC MODELS: THE SINGLE SOURCE OF TRUTH FOR DEFAULTS ---
+
+def clean_env_value(v: str | None) -> str | None:
+    """Treats empty string and the literal 'None' as absent."""
+    return None if v in (None, "", "None") else v
+
+
+def clean_nested_dict(d: Any) -> Any:
+    """Recursively removes None values and the empty dicts that result."""
+    if not isinstance(d, dict):
+        return d
+    result: dict = {}
+    for k, v in d.items():
+        if isinstance(v, dict):
+            cleaned = clean_nested_dict(v)
+            if cleaned:
+                result[k] = cleaned
+        elif v is not None:
+            result[k] = v
+    return result
+
+
+# --- PYDANTIC MODELS ---
 
 class GeneralSettings(BaseModel):
-    debug: bool = Field(False, description="Enable verbose debug logging.")
-    log_level: str = Field("INFO", description="Logging level (DEBUG, INFO, WARNING, ERROR).")
-    supress_user_warnings: bool = Field(True, description="Globally supresses all user warnings.")
+    debug: bool = Field(False)
+    log_level: str = Field("INFO")
+    suppress_user_warnings: bool = Field(True)
+
 
 class OutputSettings(BaseModel):
-    default_directory: Path = Field(Path("."), description="Default parent directory for analysis reports.")
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    default_directory: Path = Field(Path("."))
 
-    class Config:
-        arbitrary_types_allowed = True # Allow Path type
 
 class AnalysisSettings(BaseModel):
-    default_mode: str = Field("full", description="Default mode: 'fast' or 'full'.")
-    fast_mode_sample_rows: int = Field(5000, description="Number of rows to sample in fast mode.")
+    default_mode: str = Field("full")
+    fast_mode_sample_rows: int = Field(5000)
     output: OutputSettings = Field(default_factory=OutputSettings)
 
-class CacheSettings(BaseModel):
-    enabled: bool = Field(True, description="Enables or disables the pipeline resumption feature.")
-    directory_path: Path = Field(Path("~/.novainsight_cache"), description="Root directory for storing all cached analysis workspaces.")
 
-    class Config:
-        arbitrary_types_allowed = True # Allow Path type
+class CacheSettings(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    enabled: bool = Field(True)
+    directory_path: Path = Field(Path("~/.novainsight_cache"))
+
 
 class ProfilerSettings(BaseModel):
     duplicate_threshold: float = Field(0.10)
@@ -73,9 +108,11 @@ class ProfilerSettings(BaseModel):
     memory_hog_threshold: float = Field(0.20)
     max_categorical_cardinality: int = Field(50)
 
+
 class TargetDetectionSettings(BaseModel):
     max_categorical_cardinality: int = Field(50)
     id_uniqueness_threshold: float = Field(0.99)
+
 
 class StatisticsSettings(BaseModel):
     outlier_zscore_threshold: float = Field(3.0)
@@ -92,6 +129,7 @@ class StatisticsSettings(BaseModel):
     p_value_threshold: float = Field(0.05)
     bivariate_significance_level: float = Field(0.05)
 
+
 class DimensionalityReduction(BaseModel):
     imputation_method: Literal['median', 'mean'] = Field('median')
     pca_n_ratios: int = Field(10)
@@ -102,6 +140,7 @@ class DimensionalityReduction(BaseModel):
     umap_min_dist: float = Field(0.1)
     umap_metric: str = Field('euclidean')
 
+
 class VisualizationSettings(BaseModel):
     dpi: int = Field(300)
     theme: str = Field("whitegrid")
@@ -110,15 +149,17 @@ class VisualizationSettings(BaseModel):
     univariate_countplot_n: int = Field(10)
     bivariate_top_n: int = Field(-1)
 
+
 class LLMSettings(BaseModel):
     provider: str = Field("google")
     model_name: str = Field("models/gemini-flash-latest")
     temperature: float = Field(0.3)
     max_tokens: int = Field(8192)
-    api_key: str | None = None
+    api_key: SecretStr | None = None
+    enable_prompt_caching: bool = Field(False)
+
 
 class NovaInsightConfig(BaseModel):
-    """The main configuration object, bringing all settings together."""
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     analysis: AnalysisSettings = Field(default_factory=AnalysisSettings)
     cache: CacheSettings = Field(default_factory=CacheSettings)
@@ -129,109 +170,83 @@ class NovaInsightConfig(BaseModel):
     visualization: VisualizationSettings = Field(default_factory=VisualizationSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)
 
-# --- LOGGING SETUP FUNCTION ---
 
-def setup_logging(config: NovaInsightConfig):
-    """
-    Configures the root logger based on the loaded application settings.
-    This function should be called once at application startup.
-    """
+# --- LOGGING SETUP ---
+
+def setup_logging(cfg: NovaInsightConfig) -> None:
     root_logger = logging.getLogger()
-    log_level_str = config.general.log_level.upper()
-    log_level = getattr(logging, log_level_str, logging.INFO)
+    log_level = getattr(logging, cfg.general.log_level.upper(), logging.INFO)
     root_logger.setLevel(log_level)
-
-   
     if not root_logger.handlers:
         handler = logging.StreamHandler()
-        formatter = logging.Formatter(
+        handler.setFormatter(logging.Formatter(
             "[%(asctime)s] [%(levelname)-8s] [%(name)s] --- %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S"
-        )
-        handler.setFormatter(formatter)
+        ))
         root_logger.addHandler(handler)
-    
-    logger.debug(f"Root logger configured to level: {log_level_str}")
 
-# --- THE UNIFIED LOADER FUNCTION ---
+
+# --- ENVIRONMENT VARIABLE MAPPING ---
+
+def load_environment_variables() -> dict[str, Any]:
+    def get(key: str) -> str | None:
+        return clean_env_value(os.getenv(f"{PROJECT_ENV_PREFIX}{key}"))
+
+    mapping: dict[str, Any] = {
+        "general": {
+            "debug": get("DEBUG"),
+            "log_level": get("LOG_LEVEL"),
+            "suppress_user_warnings": get("SUPPRESS_USER_WARNINGS"),
+        },
+        "analysis": {
+            "default_mode": get("ANALYSIS_DEFAULT_MODE"),
+            "fast_mode_sample_rows": get("ANALYSIS_FAST_MODE_SAMPLE_ROWS"),
+            "output": {"default_directory": get("OUTPUT_DEFAULT_DIRECTORY")},
+        },
+        "cache": {
+            "enabled": get("CACHE_ENABLED"),
+            "directory_path": get("CACHE_DIRECTORY_PATH"),
+        },
+        "llm": {
+            "provider": get("LLM_PROVIDER"),
+            "model_name": get("LLM_MODEL_NAME"),
+            "api_key": get("LLM_API_KEY"),
+            "enable_prompt_caching": get("LLM_ENABLE_PROMPT_CACHING"),
+        },
+    }
+    return clean_nested_dict(mapping)
+
+
+# --- LOADER ---
 
 def load_config(path: str | Path | None = None) -> NovaInsightConfig:
-    """
-    Loads configuration from YAML and environment variables, providing defaults for missing values.
-    """
-    config_path = Path(path) if path else get_project_root() / "config/config.yaml"
-    final_config_dict = NovaInsightConfig().model_dump()
-    # A temporary, basic logger to catch early messages logged before logger initialization via setup_logging.
-    logging.basicConfig(level=logging.INFO, format="[%(levelname)s] [%(name)s] %(message)s")
+    config_path = Path(path) if path else get_project_root() / f"config/{_YAML_FILENAME}"
+    final_config_dict: dict[str, Any] = {}
 
     try:
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             yaml_config = yaml.safe_load(f)
-            if isinstance(yaml_config, dict):
-                final_config_dict = deep_merge(yaml_config, final_config_dict)
-                logger.info(f"Loaded configuration from {config_path}")
-            else:
-                logger.warning(f"Config file at {config_path} is malformed. Using defaults.")
+        if isinstance(yaml_config, dict):
+            final_config_dict = deep_merge(yaml_config, final_config_dict)
+            logger.info(f"Loaded configuration from {config_path}")
+        else:
+            logger.warning(f"Config file at {config_path} is malformed. Using defaults.")
     except FileNotFoundError:
         logger.info(f"Config file not found at {config_path}. Using defaults.")
     except Exception as e:
         logger.error(f"Error reading YAML config: {e}. Using defaults.")
 
-    # Load environment variables (highest priority)
-    def clean_env_value(v):
-        return v if v not in ("", "None") else None
-    env_vars = {
-        "general": {
-            "debug": clean_env_value(os.getenv("NOVA_INSIGHT_DEBUG")),
-            "log_level": clean_env_value(os.getenv("NOVA_INSIGHT_LOG_LEVEL")),
-            "supress_user_warnings": clean_env_value(os.getenv("NOVA_INSIGHT_SUPRESS_USER_WARNINGS"))
-        },
-        "analysis": {
-            "output": {
-                "default_directory": clean_env_value(os.getenv("NOVA_INSIGHT_ANALYSIS_OUTPUT_DEFAULT_DIRECTORY"))
-            }
-        },
-        "cache": {
-            "enabled": clean_env_value(os.getenv("NOVA_INSIGHT_CACHE_ENABLED")),
-            "directory_path": clean_env_value(os.getenv("NOVA_INSIGHT_CACHE_DIRECTORY_PATH")),
-        },
-        "llm": {
-            "api_key": clean_env_value(os.getenv("NOVA_INSIGHT_LLM_API_KEY"))
-        }
-    }
-    # Clean up None values so we only override with set env vars
-    def clean_nested_dict(d):
-        """
-        Recursively removes keys where the value is None.
-        Also removes empty dictionaries that result from this cleaning.
-        """
-        if not isinstance(d, dict):
-            return d
-            
-        clean_d = {}
-        for k, v in d.items():
-            if isinstance(v, dict):
-                nested_clean = clean_nested_dict(v)
-                # Only keep the nested dict if it's not empty
-                if nested_clean:
-                    clean_d[k] = nested_clean
-            elif v is not None:
-                clean_d[k] = v
-        return clean_d
-    
-    cleaned_env_vars = clean_nested_dict(env_vars)
-    cleaned_env_vars.update({k: v for k, v in env_vars.items() if not isinstance(v, dict) and v is not None})
-    
-    final_config_dict = deep_merge(cleaned_env_vars, final_config_dict)
+    env_vars = load_environment_variables()
+    final_config_dict = deep_merge(env_vars, final_config_dict)
 
     try:
-        config = NovaInsightConfig(**final_config_dict)
-        setup_logging(config)
-        if config.general.supress_user_warnings:
+        loaded_config = NovaInsightConfig(**final_config_dict)
+        setup_logging(loaded_config)
+        if loaded_config.general.suppress_user_warnings:
             warnings.filterwarnings("ignore", category=UserWarning)
-        return config
+        return loaded_config
     except ValidationError as e:
-        config = NovaInsightConfig()
-        setup_logging(config)
-        logger.error(f"Configuration validation error: {e}. Falling back to default settings.")
-        return config
+        raise ConfigError(f"Configuration validation failed: {e}") from e
+
+
+config = load_config()

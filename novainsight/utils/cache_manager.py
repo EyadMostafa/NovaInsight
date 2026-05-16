@@ -12,6 +12,7 @@ from typing import Optional
 from logging import getLogger
 from pydantic import ValidationError
 from novainsight.config.config import CacheSettings
+from novainsight.exceptions import CacheError
 from novainsight.schemas.analysis_report import AnalysisReport
 from novainsight.utils.validators import validate_directory
 
@@ -48,8 +49,7 @@ class CacheManager:
                     hasher.update(chunk)
             return hasher.hexdigest()
         except (IOError, PermissionError) as e:
-            logger.error(f"Could not read file for hashing: {file_path}. Reason: {e}")
-            raise # Re-raise as this is a fatal error for the orchestrator to handle
+            raise CacheError(f"Could not read file for hashing: {file_path}. Reason: {e}") from e
 
     def load_report(self, file_hash: str) -> Optional[AnalysisReport]:
         """

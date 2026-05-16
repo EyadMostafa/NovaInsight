@@ -8,11 +8,11 @@
 general:
   debug: false
   log_level: INFO
-  supress_user_warnings: true
+  suppress_user_warnings: true
 
 analysis:
   default_mode: full
-  fast_mode_sample_rows: 5000
+  fast_mode_sample_rows: 50000
 
   output:
     default_directory: "."
@@ -82,3 +82,4 @@ llm:
   model_name: "models/gemini-flash-latest"
   temperature: 0.3
   max_tokens: 8192
+  enable_prompt_caching: false

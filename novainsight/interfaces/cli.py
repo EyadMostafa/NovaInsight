@@ -2,11 +2,11 @@ import click
 import logging
 import sys
 from pathlib import Path
-from novainsight.config.config import load_config
-from novainsight.core.orchestrator import AnalysisPipeline
+from novainsight.config.config import config
+from novainsight.modules.orchestrator import AnalysisPipeline
+from novainsight.exceptions import PipelineError, NovaInsightError
 from novainsight.schemas.analysis_report import Operator
 
-config = load_config()
 logger = logging.getLogger(__name__)
 
 @click.group()
@@ -73,7 +73,7 @@ def analyze(file_path, **kwargs):
       pipeline = AnalysisPipeline(
         file_path=file_path_obj,
         config=config,
-        output_dir=kwargs.get('output_dir'),
+        output_dir=Path(v) if (v := kwargs.get('output_dir')) else None,
         task=kwargs.get('task'),
         requested_modules=kwargs.get('requested_modules'),
         user_target=kwargs.get('target'),
@@ -83,9 +83,15 @@ def analyze(file_path, **kwargs):
         advanced=kwargs.get('advanced')
       )
       pipeline.run()
+    except PipelineError as e:
+      logger.error(f"Pipeline error: {e}")
+      sys.exit(1)
+    except NovaInsightError as e:
+      logger.error(f"Analysis error: {e}")
+      sys.exit(1)
     except Exception as e:
-      logger.error(f"A fatal error occurred during the analysis: {e}")
-    sys.exit(1)
+      logger.error(f"Unexpected error: {e}")
+      sys.exit(1)
 
 if __name__ == '__main__':
     main()

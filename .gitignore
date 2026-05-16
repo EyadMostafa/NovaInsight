@@ -210,3 +210,6 @@ __marimo__/
 test.ipynb
 local_testing
 .history/
+.claude/
+CLAUDE.md
+IMPROVEMENTS.md
