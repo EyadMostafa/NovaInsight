@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import logging
+from novainsight.utils.logger import get_logger
 import base64
 import os
 import re
@@ -17,7 +17,7 @@ from novainsight.schemas.analysis_report import (
     Finding
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger("novainsight.modules.report_generator")
 
 class ReportGenerator(BaseModule):
     """

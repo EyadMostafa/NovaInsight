@@ -9,14 +9,14 @@ import hashlib
 import json
 from pathlib import Path
 from typing import Optional
-from logging import getLogger
 from pydantic import ValidationError
+from novainsight.utils.logger import get_logger
 from novainsight.config.config import CacheSettings
 from novainsight.exceptions import CacheError
 from novainsight.schemas.analysis_report import AnalysisReport
 from novainsight.utils.validators import validate_directory
 
-logger = getLogger(__name__)
+logger = get_logger("novainsight.utils.cache_manager")
 
 class CacheManager:
     """

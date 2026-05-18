@@ -6,7 +6,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple, Any
-import logging
+from novainsight.utils.logger import get_logger
 
 from sklearn.cluster import KMeans
 from sklearn.pipeline import Pipeline
@@ -26,7 +26,7 @@ from novainsight.schemas.analysis_report import (
     Operator,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger("novainsight.modules.visualizer")
 
 
 @register_module(

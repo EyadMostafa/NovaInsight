@@ -1,13 +1,13 @@
 import click
-import logging
 import sys
 from pathlib import Path
 from novainsight.config.config import config
 from novainsight.modules.orchestrator import AnalysisPipeline
 from novainsight.exceptions import PipelineError, NovaInsightError
 from novainsight.schemas.analysis_report import Operator
+from novainsight.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger("novainsight.interfaces.cli")
 
 @click.group()
 def main():

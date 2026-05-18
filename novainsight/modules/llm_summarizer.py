@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-import logging
+from novainsight.utils.logger import get_logger
 from typing import Optional
 
 import pandas as pd
@@ -17,7 +17,7 @@ from novainsight.modules.base_module import BaseModule
 from novainsight.modules.registry import register_module
 from novainsight.schemas.analysis_report import AnalysisReport, Finding, LLMSummary, Operator
 
-logger = logging.getLogger(__name__)
+logger = get_logger("novainsight.modules.llm_summarizer")
 
 
 @register_module(

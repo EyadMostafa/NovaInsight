@@ -12,14 +12,14 @@ break imports for users who don't need them.
 """
 from __future__ import annotations
 
-import logging
+from novainsight.utils.logger import get_logger
 from functools import lru_cache
 
 from novainsight.config.config import LLMSettings
 from novainsight.exceptions import LLMSummarizerError
 from novainsight.llm.providers.base import LLMProvider
 
-logger = logging.getLogger(__name__)
+logger = get_logger("novainsight.llm.factory")
 
 _SUPPORTED_PROVIDERS = ("google", "anthropic", "openai")
 

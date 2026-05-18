@@ -20,6 +20,7 @@ from typing import Any, Literal, Union
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError
 from dotenv import load_dotenv, find_dotenv
 from novainsight.exceptions import ConfigError
+from novainsight.utils.logger import ColorFormatter, get_logger
 
 # --- ENVIRONMENT DETECTION ---
 
@@ -35,7 +36,7 @@ else:
 
 load_dotenv(find_dotenv(_ENV_FILENAME, usecwd=True), override=False)
 
-logger = logging.getLogger(__name__)
+logger = get_logger("novainsight.config.config")
 
 # --- HELPERS ---
 
@@ -181,8 +182,8 @@ def setup_logging(cfg: NovaInsightConfig) -> None:
     root_logger.setLevel(log_level)
     if not root_logger.handlers:
         handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter(
-            "[%(asctime)s] [%(levelname)-8s] [%(name)s] --- %(message)s",
+        handler.setFormatter(ColorFormatter(
+            "[%(asctime)s] [%(levelname)s] [%(name)s] --- %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S"
         ))
         root_logger.addHandler(handler)

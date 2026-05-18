@@ -23,7 +23,7 @@ Graceful fallback:
 """
 from __future__ import annotations
 
-import logging
+from novainsight.utils.logger import get_logger
 from typing import Any
 
 from google import genai
@@ -32,7 +32,7 @@ from google.genai import types
 from novainsight.exceptions import LLMSummarizerError
 from novainsight.llm.providers.base import LLMProvider, PromptMessage
 
-logger = logging.getLogger(__name__)
+logger = get_logger("novainsight.llm.providers.gemini")
 
 _CACHE_TTL = "300s"  # 5 minutes — matches Anthropic's ephemeral TTL
 

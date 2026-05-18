@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import openpyxl
 import csv
-from logging import getLogger
+from novainsight.utils.logger import get_logger
 from pathlib import Path
 from typing import List
 
@@ -19,7 +19,7 @@ from novainsight.modules.report_generator import ReportGenerator
 from novainsight.utils.cache_manager import CacheManager
 from novainsight.utils.validators import validate_file_path, validate_directory
 
-logger = getLogger(__name__)
+logger = get_logger("novainsight.modules.orchestrator")
 
 
 class AnalysisPipeline:

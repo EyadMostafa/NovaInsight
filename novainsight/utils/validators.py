@@ -8,11 +8,11 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from typing import Tuple
-from logging import getLogger
 
 from novainsight.exceptions import DataLoadError
+from novainsight.utils.logger import get_logger
 
-logger = getLogger(__name__)
+logger = get_logger("novainsight.utils.validators")
 
 
 def validate_file_path(file_path: str | Path) -> Path:

@@ -9,7 +9,7 @@ prompt first and keeping it unchanged across calls achieves cache hits transpare
 """
 from __future__ import annotations
 
-import logging
+from novainsight.utils.logger import get_logger
 from typing import Any
 
 from openai import OpenAI as _OpenAI
@@ -17,7 +17,7 @@ from openai import OpenAI as _OpenAI
 from novainsight.exceptions import LLMSummarizerError
 from novainsight.llm.providers.base import LLMProvider, PromptMessage
 
-logger = logging.getLogger(__name__)
+logger = get_logger("novainsight.llm.providers.openai")
 
 
 class OpenAIProvider(LLMProvider):
