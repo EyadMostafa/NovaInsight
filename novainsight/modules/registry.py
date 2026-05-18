@@ -21,6 +21,9 @@ from pydantic import BaseModel, ConfigDict
 from novainsight.exceptions import OrchestratorError
 from novainsight.modules.base_module import BaseModule
 from novainsight.schemas.analysis_report import AnalysisReport, Operator
+from novainsight.utils.logger import get_logger
+
+logger = get_logger("novainsight.modules.registry")
 
 
 class ModuleSpec(BaseModel):
@@ -97,5 +100,6 @@ def topological_order() -> list[Operator]:
 
     if len(order) != len(_REGISTRY):
         raise OrchestratorError("Cycle detected in module dependency graph")
-
+    
+    logger.debug(order)
     return order
