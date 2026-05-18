@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import matplotlib
+matplotlib.use('Agg')  # thread-safe non-interactive backend; must precede pyplot import
 import pandas as pd
 import numpy as np
 import seaborn as sns
