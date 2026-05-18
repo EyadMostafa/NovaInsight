@@ -9,7 +9,7 @@ from json_repair import repair_json
 from toon import encode
 
 from novainsight.config.config import NovaInsightConfig
-from novainsight.exceptions import LLMSummarizerError
+from novainsight.exceptions import LLMSummarizerError, ModuleError
 from novainsight.llm.factory import create_provider
 from novainsight.llm.prompts import build_correction_messages, build_messages
 from novainsight.llm.providers.base import LLMProvider
@@ -39,23 +39,14 @@ class LLMSummarizer(BaseModule):
 
     def _initialize_provider(self) -> None:
         if not self.config.llm.api_key:
-            logger.warning(
-                "LLM API key not set (NOVA_INSIGHT_LLM_API_KEY). "
-                "LLM Summarizer will be skipped."
-            )
-            return
+            raise ModuleError("LLM Summarizer skipped: NOVA_INSIGHT_LLM_API_KEY not set")
         try:
             self.provider = create_provider(self.config.llm)
         except LLMSummarizerError as e:
-            logger.error(f"Failed to initialize LLM provider: {e}")
+            raise ModuleError(f"Failed to initialize LLM provider: {e}") from e
 
     def run(self, df: pd.DataFrame, report: AnalysisReport) -> AnalysisReport:
-        if not self.provider:
-            report.findings.append(Finding(
-                level="WARNING",
-                message="LLM Summarizer skipped: no valid provider initialized.",
-            ))
-            return report
+        local_findings: list[Finding] = []
 
         logger.info("Constructing TOON prompt context from analysis report...")
         toon_context = self._build_toon_context(report)
@@ -73,26 +64,27 @@ class LLMSummarizer(BaseModule):
             llm_output = self.provider.generate(messages, response_schema=LLMSummary)
         except Exception as e:
             logger.error(f"LLM query failed: {e}")
-            report.findings.append(Finding(level="ERROR", message=f"LLM query failed: {e}"))
+            local_findings.append(Finding(level="ERROR", message=f"LLM query failed: {e}"))
 
         report.raw_llm_output = llm_output
         if llm_output is None:
-            return report
+            raise ModuleError(local_findings[0].message if local_findings else "LLM query returned no output")
 
-        parsed = self._parse_with_fallback(llm_output, report)
+        parsed = self._parse_with_fallback(llm_output, report, local_findings)
         if parsed is None:
-            return report
+            msgs = "; ".join(f.message for f in local_findings)
+            raise ModuleError(msgs or "LLM output could not be parsed as valid JSON")
 
         try:
             logger.info("Validating LLM response against schema...")
             report.llm_summary = LLMSummary.model_validate(self._normalize(parsed))
+            report.llm_summary.findings = local_findings
             logger.info("LLM summary successfully generated.")
         except Exception as e:
             logger.error(f"LLM schema validation failed: {e}")
-            report.findings.append(Finding(
-                level="ERROR",
-                message=f"LLM schema validation failed: {e}",
-            ))
+            local_findings.append(Finding(level="ERROR", message=f"LLM schema validation failed: {e}"))
+            msgs = "; ".join(f.message for f in local_findings)
+            raise ModuleError(msgs) from e
 
         return report
 
@@ -131,12 +123,17 @@ class LLMSummarizer(BaseModule):
             pass
         return None
 
-    def _parse_with_fallback(self, raw: str, report: AnalysisReport) -> dict | None:
+    def _parse_with_fallback(
+        self,
+        raw: str,
+        report: AnalysisReport,
+        local_findings: list[Finding],
+    ) -> dict | None:
         """
         Three-layer JSON recovery:
           1. Direct parse + repair.
           2. LLM correction retry.
-          3. Degrade gracefully — append Finding, return None.
+          3. Buffer a Finding and return None — caller raises ModuleError.
         """
         result = self._try_parse(raw)
         if result is not None:
@@ -154,7 +151,7 @@ class LLMSummarizer(BaseModule):
         except Exception as e:
             logger.error(f"LLM correction retry failed: {e}")
 
-        report.findings.append(Finding(
+        local_findings.append(Finding(
             level="ERROR",
             message=(
                 "LLM output could not be parsed as valid JSON after repair and retry. "

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 import openpyxl
 import csv
@@ -197,59 +198,95 @@ class AnalysisPipeline:
         
         logger.info("Analysis report initialized successfully.")
 
+    @staticmethod
+    def _compute_waves(
+        plan: list[Operator],
+        registry: dict,
+    ) -> list[list[Operator]]:
+        """Groups plan operators into ordered execution waves.
+        A module enters a wave once all its in-plan dependencies are in a prior wave.
+        """
+        plan_set = set(plan)
+        completed: set[Operator] = set()
+        waves: list[list[Operator]] = []
+        remaining = list(plan)
+        while remaining:
+            wave = [
+                op for op in remaining
+                if all(dep in completed for dep in registry[op].dependencies if dep in plan_set)
+            ]
+            waves.append(wave)
+            completed.update(wave)
+            remaining = [op for op in remaining if op not in completed]
+        return waves
+
+    def _run_module(self, op: Operator, spec) -> None:
+        """Executes a single module. Called from worker threads."""
+        if not self.force_rerun and spec.is_completed(self.report):
+            logger.info(f"Skipping {op}: valid results found in cache.")
+            self._module_times[op.value] = 0.0
+            return
+        t0 = time.perf_counter()
+        spec.cls(self.config).run(df=self.df, report=self.report)
+        self._module_times[op.value] = time.perf_counter() - t0
+
     def _run_analytical_modules(self) -> dict[str, float]:
         """
-        Iterates through the execution plan and runs each analytical module
-        sequentially, with graceful error handling for module-level failures.
-        Returns a per-module timing dict (operator value → seconds elapsed).
+        Runs all modules in the execution plan using wave-based parallelism.
+        Modules within the same wave have no mutual dependencies and run concurrently
+        via ThreadPoolExecutor. Returns a per-module timing dict.
         """
         registry = get_registry()
         skip_modules: set[Operator] = set()
-        module_times: dict[str, float] = {}
+        self._module_times: dict[str, float] = {}
+        waves = self._compute_waves(self.execution_plan, registry)
 
-        for op in self.execution_plan:
-            if op in skip_modules:
-                self.report.findings.append(Finding(
-                    level='WARNING',
-                    message=f"{op.capitalize()} module skipped due to the failure or skipping of a dependency module."
-                ))
-                module_times[op.value] = 0.0
-                continue
+        with ThreadPoolExecutor() as executor:
+            for wave in waves:
+                active = [op for op in wave if op not in skip_modules]
+                skipped = [op for op in wave if op in skip_modules]
 
-            spec = registry[op]
-            t0 = time.perf_counter()
-            try:
-                if not self.force_rerun and spec.is_completed(self.report):
-                    logger.info(f"Skipping {op}: valid results found in cache.")
-                    module_times[op.value] = 0.0
+                for op in skipped:
+                    self._module_times[op.value] = 0.0
+                    self.report.findings.append(Finding(
+                        level='WARNING',
+                        message=f"{op.capitalize()} module skipped due to the failure or skipping of a dependency module.",
+                    ))
+
+                if not active:
                     continue
-                updated_report = spec.cls(self.config).run(df=self.df, report=self.report)
-                module_times[op.value] = time.perf_counter() - t0
-                if updated_report:
-                    self.report = updated_report
 
-            except ModuleError as e:
-                module_times[op.value] = time.perf_counter() - t0
-                msg = f"{op.capitalize()} module failed. Reason: {e}"
-                if e.column:
-                    msg += f" (column: '{e.column}')"
-                self.report.findings.append(Finding(level='ERROR', message=msg))
-                skip_modules |= self._find_downstream_dependents(op)
-                logger.error(f"{op.capitalize()} module failed — skipping downstream dependents.")
-            except Exception as e:
-                module_times[op.value] = time.perf_counter() - t0
-                msg = f"{op.capitalize()} module raised an unexpected error: {e}"
-                self.report.findings.append(Finding(level='ERROR', message=msg))
-                skip_modules |= self._find_downstream_dependents(op)
-                logger.error(msg, exc_info=True)
+                futures = {
+                    executor.submit(self._run_module, op, registry[op]): op
+                    for op in active
+                }
+
+                for future in as_completed(futures):
+                    op = futures[future]
+                    try:
+                        future.result()
+                    except ModuleError as e:
+                        self._module_times.setdefault(op.value, 0.0)
+                        msg = f"{op.capitalize()} module failed. Reason: {e}"
+                        if e.column:
+                            msg += f" (column: '{e.column}')"
+                        self.report.findings.append(Finding(level='ERROR', message=msg))
+                        skip_modules |= self._find_downstream_dependents(op)
+                        logger.error(f"{op.capitalize()} module failed — skipping downstream dependents.")
+                    except Exception as e:
+                        self._module_times.setdefault(op.value, 0.0)
+                        msg = f"{op.capitalize()} module raised an unexpected error: {e}"
+                        self.report.findings.append(Finding(level='ERROR', message=msg))
+                        skip_modules |= self._find_downstream_dependents(op)
+                        logger.error(msg, exc_info=True)
 
         lines = [f"  {'module':<18} {'time':>8}", "  " + "-" * 28]
-        for op_val, elapsed in module_times.items():
+        for op_val, elapsed in self._module_times.items():
             tag = "  (cached)" if elapsed == 0.0 else ""
             lines.append(f"  {op_val:<18} {elapsed:>7.2f}s{tag}")
         logger.info("Module timing breakdown:\n" + "\n".join(lines))
 
-        return module_times
+        return self._module_times
 
     def _generate_outputs(self):
         """

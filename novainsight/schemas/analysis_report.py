@@ -164,6 +164,7 @@ class LLMSummary(BaseModel):
     key_findings_and_patterns: str
     potential_issues_and_warnings: str
     recommendations: Recommendations
+    findings: List[Finding] = Field(default_factory=list)
 
 
 class PipelineTiming(BaseModel):
