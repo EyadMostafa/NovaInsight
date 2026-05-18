@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import time
 import pandas as pd
 import openpyxl
 import csv
-from novainsight.utils.logger import get_logger
 from pathlib import Path
 from typing import List
 
+from novainsight.utils.logger import get_logger
 import novainsight.modules  # noqa: F401 — triggers @register_module decorators
 from novainsight.config.config import NovaInsightConfig
 from novainsight.exceptions import (
@@ -14,7 +15,7 @@ from novainsight.exceptions import (
     DataLoadError, OrchestratorError,
 )
 from novainsight.modules.registry import get_registry, topological_order
-from novainsight.schemas.analysis_report import AnalysisReport, RunMetadata, DatasetProfile, DatasetStats, Finding, Operator
+from novainsight.schemas.analysis_report import AnalysisReport, RunMetadata, DatasetProfile, DatasetStats, Finding, Operator, PipelineTiming
 from novainsight.modules.report_generator import ReportGenerator
 from novainsight.utils.cache_manager import CacheManager
 from novainsight.utils.validators import validate_file_path, validate_directory
@@ -59,9 +60,13 @@ class AnalysisPipeline:
 
     def run(self):
         """Executes the full, resolved analysis pipeline from start to finish."""
+        pipeline_start = time.perf_counter()
         try:
             self._initialize_report_and_data()
-            self._run_analytical_modules()
+            module_times = self._run_analytical_modules()
+            total = time.perf_counter() - pipeline_start
+            self.report.timing = PipelineTiming(total_seconds=total, modules=module_times)
+            logger.info(f"Total pipeline time: {total:.2f}s")
             self._generate_outputs()
 
             report_generator = ReportGenerator(config=self.config)
@@ -192,13 +197,15 @@ class AnalysisPipeline:
         
         logger.info("Analysis report initialized successfully.")
 
-    def _run_analytical_modules(self):
+    def _run_analytical_modules(self) -> dict[str, float]:
         """
         Iterates through the execution plan and runs each analytical module
         sequentially, with graceful error handling for module-level failures.
+        Returns a per-module timing dict (operator value → seconds elapsed).
         """
         registry = get_registry()
         skip_modules: set[Operator] = set()
+        module_times: dict[str, float] = {}
 
         for op in self.execution_plan:
             if op in skip_modules:
@@ -206,18 +213,23 @@ class AnalysisPipeline:
                     level='WARNING',
                     message=f"{op.capitalize()} module skipped due to the failure or skipping of a dependency module."
                 ))
+                module_times[op.value] = 0.0
                 continue
 
             spec = registry[op]
+            t0 = time.perf_counter()
             try:
                 if not self.force_rerun and spec.is_completed(self.report):
                     logger.info(f"Skipping {op}: valid results found in cache.")
+                    module_times[op.value] = 0.0
                     continue
                 updated_report = spec.cls(self.config).run(df=self.df, report=self.report)
+                module_times[op.value] = time.perf_counter() - t0
                 if updated_report:
                     self.report = updated_report
 
             except ModuleError as e:
+                module_times[op.value] = time.perf_counter() - t0
                 msg = f"{op.capitalize()} module failed. Reason: {e}"
                 if e.column:
                     msg += f" (column: '{e.column}')"
@@ -225,10 +237,19 @@ class AnalysisPipeline:
                 skip_modules |= self._find_downstream_dependents(op)
                 logger.error(f"{op.capitalize()} module failed — skipping downstream dependents.")
             except Exception as e:
+                module_times[op.value] = time.perf_counter() - t0
                 msg = f"{op.capitalize()} module raised an unexpected error: {e}"
                 self.report.findings.append(Finding(level='ERROR', message=msg))
                 skip_modules |= self._find_downstream_dependents(op)
                 logger.error(msg, exc_info=True)
+
+        lines = [f"  {'module':<18} {'time':>8}", "  " + "-" * 28]
+        for op_val, elapsed in module_times.items():
+            tag = "  (cached)" if elapsed == 0.0 else ""
+            lines.append(f"  {op_val:<18} {elapsed:>7.2f}s{tag}")
+        logger.info("Module timing breakdown:\n" + "\n".join(lines))
+
+        return module_times
 
     def _generate_outputs(self):
         """

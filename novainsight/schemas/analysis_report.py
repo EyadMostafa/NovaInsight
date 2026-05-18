@@ -165,6 +165,12 @@ class LLMSummary(BaseModel):
     potential_issues_and_warnings: str
     recommendations: Recommendations
 
+
+class PipelineTiming(BaseModel):
+    """Wall-clock timing for the pipeline and each individual module."""
+    total_seconds: float
+    modules: Dict[str, float]  # operator value → seconds elapsed
+
 # ===================================================================
 # The Top-Level Schema: AnalysisReport
 # This is the master object that contains all other schemas.
@@ -182,8 +188,9 @@ class AnalysisReport(BaseModel):
     dimensionality_analysis: Optional[DimensionalityAnalysis] = None
     visualizations: Optional[VisualizationOutput] = None
     llm_summary: Optional[LLMSummary] = None
-    raw_llm_output: Optional[str] = None # Mainly used for debugging
+    raw_llm_output: Optional[str] = None  # Mainly used for debugging
     findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
+    timing: Optional[PipelineTiming] = None
 
     model_config = {
         "arbitrary_types_allowed": True,
