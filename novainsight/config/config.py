@@ -74,31 +74,33 @@ def clean_nested_dict(d: Any) -> Any:
 
 
 # --- PYDANTIC MODELS ---
+class BaseSettings(BaseModel):
+    model_config = ConfigDict(frozen=True)
 
-class GeneralSettings(BaseModel):
+class GeneralSettings(BaseSettings):
     debug: bool = Field(False)
     log_level: str = Field("INFO")
     suppress_user_warnings: bool = Field(True)
 
 
-class OutputSettings(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+class OutputSettings(BaseSettings):
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
     default_directory: Path = Field(Path("."))
 
 
-class AnalysisSettings(BaseModel):
+class AnalysisSettings(BaseSettings):
     default_mode: str = Field("full")
     fast_mode_sample_rows: int = Field(5000)
     output: OutputSettings = Field(default_factory=OutputSettings)
 
 
-class CacheSettings(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+class CacheSettings(BaseSettings):
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
     enabled: bool = Field(True)
     directory_path: Path = Field(Path("~/.novainsight_cache"))
 
 
-class ProfilerSettings(BaseModel):
+class ProfilerSettings(BaseSettings):
     duplicate_threshold: float = Field(0.10)
     dimensionality_threshold: float = Field(0.5)
     total_memory_threshold: float = Field(500)
@@ -109,12 +111,12 @@ class ProfilerSettings(BaseModel):
     max_categorical_cardinality: int = Field(50)
 
 
-class TargetDetectionSettings(BaseModel):
+class TargetDetectionSettings(BaseSettings):
     max_categorical_cardinality: int = Field(50)
     id_uniqueness_threshold: float = Field(0.99)
 
 
-class StatisticsSettings(BaseModel):
+class StatisticsSettings(BaseSettings):
     outlier_zscore_threshold: float = Field(3.0)
     multicollinearity_vif_threshold: float = Field(10.0)
     outlier_warning_threshold: float = Field(0.05)
@@ -130,7 +132,7 @@ class StatisticsSettings(BaseModel):
     bivariate_significance_level: float = Field(0.05)
 
 
-class DimensionalityReduction(BaseModel):
+class DimensionalityReduction(BaseSettings):
     imputation_method: Literal['median', 'mean'] = Field('median')
     pca_n_ratios: int = Field(10)
     tsne_perplexity: float = Field(30.0)
@@ -141,7 +143,7 @@ class DimensionalityReduction(BaseModel):
     umap_metric: str = Field('euclidean')
 
 
-class VisualizationSettings(BaseModel):
+class VisualizationSettings(BaseSettings):
     dpi: int = Field(300)
     theme: str = Field("whitegrid")
     color_palette: str = Field("mako")
@@ -150,7 +152,7 @@ class VisualizationSettings(BaseModel):
     bivariate_top_n: int = Field(-1)
 
 
-class LLMSettings(BaseModel):
+class LLMSettings(BaseSettings):
     provider: str = Field("google")
     model_name: str = Field("models/gemini-flash-latest")
     temperature: float = Field(0.3)
@@ -159,7 +161,7 @@ class LLMSettings(BaseModel):
     enable_prompt_caching: bool = Field(False)
 
 
-class NovaInsightConfig(BaseModel):
+class NovaInsightConfig(BaseSettings):
     general: GeneralSettings = Field(default_factory=GeneralSettings)
     analysis: AnalysisSettings = Field(default_factory=AnalysisSettings)
     cache: CacheSettings = Field(default_factory=CacheSettings)

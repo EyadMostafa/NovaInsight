@@ -128,10 +128,11 @@ class GeminiProvider(LLMProvider):
             )
 
     def _delete_cache(self) -> None:
-        if self._cache_name:
+        cache_name = getattr(self, "_cache_name", None)
+        if cache_name:
             try:
-                self._client.caches.delete(name=self._cache_name)
-                logger.debug(f"Gemini context cache deleted: {self._cache_name}")
+                self._client.caches.delete(name=cache_name)
+                logger.debug(f"Gemini context cache deleted: {cache_name}")
             except Exception:
                 pass  # TTL will expire it regardless
             self._cache_name = None
