@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "novainsight"
+name = "sleuth"
 version = "0.1.0"
 description = "Autonomous Data Analysis Agent that performs EDA using quantitative analysis and LLM interpretation."
 readme = "README.md"
@@ -39,6 +39,10 @@ dependencies = [
 test = [
     "pytest",
     "pytest-mock",
+    "pytest-cov",
+    "hypothesis",
+    "pytest-xdist",
+    "openpyxl",
 ]
 gemini = [
     "google-genai>=2.0",
@@ -56,11 +60,20 @@ all-providers = [
 ]
 
 [project.scripts]
-novainsight = "novainsight.interfaces.cli:main"
+sleuth = "sleuth.interfaces.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["novainsight*"]
+include = ["sleuth*"]
 
 [tool.pytest.ini_options]
 pythonpath = "."
+addopts = "-ra --strict-markers --cov=sleuth --cov-report=term-missing --cov-report=xml"
+markers = [
+    "slow: long-running integration tests",
+    "integration: end-to-end pipeline tests",
+    "live: tests requiring real API keys",
+]
+
+[tool.coverage.run]
+omit = ["**/templates/*", "**/__init__.py"]
 

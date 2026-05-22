@@ -1,13 +1,13 @@
-# **NovaInsight: Autonomous Data Diagnositics Tool**
+# **Sleuth: Autonomous Data Diagnositics Tool**
 
-**NovaInsight** is a sophisticated, standalone CLI tool that performs end-to-end **Exploratory Data Analysis (EDA)**. It acts as a semi-autonomous data diagnostician, ingesting raw tabular data, performing rigorous statistical diagnostics, and generating rich, narrative-driven HTML reports powered by Large Language Models (LLM).
-[View Sample Outputs](https://eyadmostafa.github.io/NovaInsight/)
+**Sleuth** is a sophisticated, standalone CLI tool that performs end-to-end **Exploratory Data Analysis (EDA)**. It acts as a semi-autonomous data diagnostician, ingesting raw tabular data, performing rigorous statistical diagnostics, and generating rich, narrative-driven HTML reports powered by Large Language Models (LLM).
+[View Sample Outputs](https://eyadmostafa.github.io/Sleuth/)
 
 ---
 
 ## **The "Dual Brain" Architecture**
 
-NovaInsight is built on a unique architectural separation of concerns:
+Sleuth is built on a unique architectural separation of concerns:
 
 1. **The Quantitative Brain (Deterministic):**  
    * Uses robust libraries (Pandas, Scikit-learn, SciPy, Statsmodels) to calculate objective facts.  
@@ -15,7 +15,7 @@ NovaInsight is built on a unique architectural separation of concerns:
    * **Zero Hallucination:** All statistics are mathematically calculated, not guessed.
 
 2. **The Language Brain (Probabilistic):**  
-   * Uses Google's Gemini to synthesize the quantitative findings.  
+   * Pluggable LLM providers — **Google Gemini**, **Anthropic Claude**, and **OpenAI** all supported out of the box.  
    * Translates complex stats into executive summaries, prioritized recommendations, and warnings.  
    * **Context Aware:** Understands if the task is supervised or unsupervised and tailors the narrative accordingly.
 
@@ -29,7 +29,8 @@ NovaInsight is built on a unique architectural separation of concerns:
   * **Data Leakage Detection:** Identifies features that are "too good to be true."  
   * **Manifold Learning:** Visualizes high-dimensional data using **PCA**, **t-SNE**, and **UMAP**.  
   * **Correlations:** Generates Num-Num, Cat-Cat, and Cat-Num heatmaps.  
-* **Fast Mode:** Intelligent pre-scanning and sampling for massive datasets to get structural insights in seconds.  
+* **Fast Mode:** Intelligent pre-scanning and sampling for massive datasets to get structural insights in seconds.
+* **Parallel Execution:** Independent pipeline modules run concurrently — the LLM API call overlaps with plot generation, cutting wall-clock time significantly on full runs.
 * **Single-File Reports:** Generates a self-contained, professional HTML report with embedded interactive plots and base64 images—easy to share via email.  
 * **Smart Caching:** Resumes interrupted pipelines without re-calculating expensive steps.
 
@@ -40,7 +41,7 @@ NovaInsight is built on a unique architectural separation of concerns:
 ### **Prerequisites**
 
 * Python 3.10+  
-* A Google Cloud API Key (for Gemini LLM features)
+* An LLM API key — Google Gemini, Anthropic Claude, or OpenAI (LLM features are optional; all other modules run without one)
 
 ---
 
@@ -48,8 +49,8 @@ NovaInsight is built on a unique architectural separation of concerns:
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/EyadMostafa/NovaInsight.git
-cd NovaInsight
+git clone https://github.com/EyadMostafa/Sleuth.git
+cd Sleuth
 ```
 
 2. **Set up the environment:**
@@ -74,7 +75,9 @@ pip install -e .
 4. **Configure API Key:**  
 Create a `.env` file in the root directory:
 ```env
-NOVA_INSIGHT_LLM_API_KEY=your_google_gemini_api_key_here
+SLEUTH_LLM_API_KEY=your_api_key_here
+SLEUTH_LLM_PROVIDER=google        # google | anthropic | openai (default: google)
+SLEUTH_LLM_MODEL_NAME=models/gemini-2.0-flash  # optional override
 ```
 
 ---
@@ -87,7 +90,7 @@ The `analyze` command accepts a dataset file path and several options that contr
 ### **Usage**
 
 ```bash
-novainsight analyze FILE_PATH [OPTIONS]
+sleuth analyze FILE_PATH [OPTIONS]
 ```
 
 ---
@@ -112,7 +115,7 @@ Controls the overall task type.
 #### `--modules <module1,module2,...>`
 
 Comma-separated list of specific modules to run (e.g., `profiler,stats`).  
-If omitted, NovaInsight attempts to run the full pipeline.
+If omitted, Sleuth attempts to run the full pipeline.
 
 **Available Modules:**
 ```
@@ -123,7 +126,7 @@ profiler, target, stats, dim_reduction, viz, llm
 
 #### `--target <column_name>`
 
-Manually specifies the supervised target variable. If omitted, NovaInsight attempts automatic detection.
+Manually specifies the supervised target variable. If omitted, Sleuth attempts automatic detection.
 
 ---
 
@@ -138,7 +141,7 @@ Controls dataset size processed.
 
 #### `--output-dir <path>`
 
-Outputs all results to a `novainsight_reports` folder inside the specified directory.  
+Outputs all results to a `Sleuth_reports` folder inside the specified directory.  
 Default: current working directory.
 
 ---
@@ -164,7 +167,7 @@ Ignores cached results and forces a full recomputation.
 Attempts to detect a target and runs the full pipeline.
 
 ```bash
-novainsight analyze titanic.csv
+sleuth analyze titanic.csv
 ```
 
 ---
@@ -174,7 +177,7 @@ novainsight analyze titanic.csv
 Focuses on clustering and structure discovery instead of prediction.
 
 ```bash
-novainsight analyze customer_segments.csv --task unsupervised
+sleuth analyze customer_segments.csv --task unsupervised
 ```
 
 ---
@@ -184,7 +187,7 @@ novainsight analyze customer_segments.csv --task unsupervised
 Analyzes a sample (default 5,000 rows) of a large file to check data quality quickly.
 
 ```bash
-novainsight analyze huge_dataset.csv --mode fast
+sleuth analyze huge_dataset.csv --mode fast
 ```
 
 ---
@@ -192,14 +195,14 @@ novainsight analyze huge_dataset.csv --mode fast
 ### **Specific Target & Title**
 
 ```bash
-novainsight analyze housing.csv --target SalePrice --title "Housing Market Q3 Analysis"
+sleuth analyze housing.csv --target SalePrice --title "Housing Market Q3 Analysis"
 ```
 
 ---
 
 ## **🛠️ Configuration**
 
-NovaInsight is highly configurable via `config/config.yaml`. You can tune:
+Sleuth is highly configurable via `config/config.yaml`. You can tune:
 
 * **Statistical Thresholds:** Correlation strength, Outlier sensitivity (Z-Score), VIF limits.  
 * **Dimensionality Reduction:** Perplexity for t-SNE, Neighbors for UMAP.  
@@ -212,7 +215,7 @@ NovaInsight is highly configurable via `config/config.yaml`. You can tune:
 
 ## **📂 Output Artifacts**
 
-For every run, NovaInsight creates a dedicated folder in `novainsight_reports/`.
+For every run, Sleuth creates a dedicated folder in `Sleuth_reports/`.
 
 * **report_title.html** — The main artifact. A polished, interactive dashboard.  
 * **report.json** — The raw machine-readable data of the entire analysis.  
@@ -220,7 +223,7 @@ For every run, NovaInsight creates a dedicated folder in `novainsight_reports/`.
 * **correlations/** — CSVs of the correlation matrices.  
 * **embeddings/** — CSVs of the PCA/t-SNE coordinates.
 
-[View Sample Outputs](https://eyadmostafa.github.io/NovaInsight/)
+[View Sample Outputs](https://eyadmostafa.github.io/Sleuth/)
 
 ---
 
