@@ -8,7 +8,6 @@ from sleuth.exceptions import TargetDetectorError
 from sleuth.modules.target_detector import TargetDetector
 from sleuth.schemas.analysis_report import ColumnDetails
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

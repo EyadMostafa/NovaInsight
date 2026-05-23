@@ -59,7 +59,6 @@ class TestCreateProvider:
             create_provider(cfg)
 
     def test_lru_cache_returns_same_instance(self, monkeypatch):
-        from pydantic import SecretStr
 
         fake_provider = MagicMock(spec=LLMProvider)
 
@@ -85,12 +84,11 @@ class TestCreateProvider:
         assert p1 is p2
 
     def test_google_provider_instantiated(self):
-        from pydantic import SecretStr
 
         fake = MagicMock(spec=LLMProvider)
         _create_provider_cached.cache_clear()
         with patch("sleuth.llm.providers.gemini.GeminiProvider", return_value=fake) as mock_cls:
-            result = _create_provider_cached(
+            _create_provider_cached(
                 provider="google",
                 model_name="models/x",
                 api_key="k",

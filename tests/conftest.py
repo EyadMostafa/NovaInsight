@@ -10,23 +10,24 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import matplotlib
+
 matplotlib.use("Agg")
 
 import pandas as pd
 import pytest
 
 from sleuth.config.config import (
-    SleuthConfig,
-    CacheSettings,
     AnalysisSettings,
+    CacheSettings,
+    DimensionalityReduction,
+    GeneralSettings,
+    LLMSettings,
     OutputSettings,
     ProfilerSettings,
-    TargetDetectionSettings,
+    SleuthConfig,
     StatisticsSettings,
-    DimensionalityReduction,
+    TargetDetectionSettings,
     VisualizationSettings,
-    LLMSettings,
-    GeneralSettings,
 )
 from sleuth.llm.providers.base import LLMProvider
 from sleuth.schemas.analysis_report import (

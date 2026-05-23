@@ -4,7 +4,6 @@ import csv
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -45,7 +44,7 @@ class AnalysisPipeline:
         file_path: Path,
         config: SleuthConfig,
         output_dir: Path | None = None,
-        requested_modules: List[str] | None = None,
+        requested_modules: list[str] | None = None,
         force_rerun: bool = False,
         user_target: str | None = None,
         analysis_mode: str | None = None,
@@ -87,7 +86,7 @@ class AnalysisPipeline:
         except Exception as e:
             raise OrchestratorError(f"Unexpected fatal error in pipeline: {e}") from e
 
-    def _resolve_execution_plan(self, requested: List[str] | None) -> List[Operator]:
+    def _resolve_execution_plan(self, requested: list[str] | None) -> list[Operator]:
         """
         Calculates the full ordered list of operators to run.
 
@@ -329,7 +328,7 @@ class AnalysisPipeline:
 
         try:
             if file_extension == '.csv':
-                with open(self.file_path, 'r', encoding='utf-8', errors='replace', newline='') as f:
+                with open(self.file_path, encoding='utf-8', errors='replace', newline='') as f:
                     reader = csv.reader(f, delimiter=self._csv_delimiter)
                     return sum(1 for _ in reader) - 1  # subtract header row
 
@@ -436,7 +435,7 @@ class AnalysisPipeline:
         detection edge-case.
         """
         try:
-            with open(self.file_path, 'r', encoding='utf-8', errors='replace', newline='') as f:
+            with open(self.file_path, encoding='utf-8', errors='replace', newline='') as f:
                 sample = f.read(16_384)
             dialect = csv.Sniffer().sniff(sample, delimiters=',;\t|')
             logger.debug(f"Detected CSV delimiter: {repr(dialect.delimiter)}")

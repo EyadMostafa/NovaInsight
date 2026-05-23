@@ -12,12 +12,12 @@ break imports for users who don't need them.
 """
 from __future__ import annotations
 
-from sleuth.utils.logger import get_logger
 from functools import lru_cache
 
 from sleuth.config.config import LLMSettings
 from sleuth.exceptions import LLMSummarizerError
 from sleuth.llm.providers.base import LLMProvider
+from sleuth.utils.logger import get_logger
 
 logger = get_logger("sleuth.llm.factory")
 

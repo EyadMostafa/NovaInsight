@@ -14,7 +14,7 @@ Adding a new module only requires:
 """
 from __future__ import annotations
 
-from typing import Callable, Type
+from collections.abc import Callable
 
 from pydantic import BaseModel, ConfigDict
 
@@ -30,7 +30,7 @@ class ModuleSpec(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     operator: Operator
-    cls: Type[BaseModule]
+    cls: type[BaseModule]
     dependencies: list[Operator]
     is_completed: Callable[[AnalysisReport], bool]
 
@@ -42,7 +42,7 @@ def register_module(
     operator: Operator,
     dependencies: list[Operator],
     is_completed: Callable[[AnalysisReport], bool],
-) -> Callable[[Type[BaseModule]], Type[BaseModule]]:
+) -> Callable[[type[BaseModule]], type[BaseModule]]:
     """
     Class decorator that registers a pipeline module with its metadata.
 
@@ -55,7 +55,7 @@ def register_module(
         class DataProfiler(BaseModule):
             ...
     """
-    def decorator(cls: Type[BaseModule]) -> Type[BaseModule]:
+    def decorator(cls: type[BaseModule]) -> type[BaseModule]:
         _REGISTRY[operator] = ModuleSpec(
             operator=operator,
             cls=cls,
@@ -100,6 +100,6 @@ def topological_order() -> list[Operator]:
 
     if len(order) != len(_REGISTRY):
         raise OrchestratorError("Cycle detected in module dependency graph")
-    
+
     logger.debug(order)
     return order

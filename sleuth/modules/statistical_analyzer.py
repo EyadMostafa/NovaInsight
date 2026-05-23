@@ -1,27 +1,28 @@
 from __future__ import annotations
 
-import pandas as pd
+from itertools import combinations, product
+from pathlib import Path
+from typing import Any
+
 import numpy as np
-from scipy.stats import chi2_contingency, spearmanr, f_oneway 
+import pandas as pd
+from scipy.stats import chi2_contingency, f_oneway, spearmanr
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.tools.tools import add_constant
-from itertools import product, combinations
-from typing import List, Dict, Optional, Tuple, Any
-from pathlib import Path
 
-from sleuth.modules.base_module import BaseModule
-from sleuth.modules.registry import register_module
 from sleuth.config.config import SleuthConfig
 from sleuth.exceptions import StatisticalAnalyzerError
+from sleuth.modules.base_module import BaseModule
+from sleuth.modules.registry import register_module
 from sleuth.schemas.analysis_report import (
     AnalysisReport,
-    StatisticalAnalysis,
-    OutlierReport,
     ClassImbalanceReport,
-    Finding,
     ColumnDetails,
     CorrelationReport,
+    Finding,
     Operator,
+    OutlierReport,
+    StatisticalAnalysis,
 )
 
 
@@ -40,7 +41,7 @@ class StatisticalAnalyzer(BaseModule):
         """Initializes the StatisticalAnalyzer with app configuration."""
         super().__init__(config)
 
-        self.findings: List[Finding] = []
+        self.findings: list[Finding] = []
 
     def run(self, df: pd.DataFrame, report: AnalysisReport) -> AnalysisReport:
         """
@@ -66,13 +67,13 @@ class StatisticalAnalyzer(BaseModule):
             cat_num_matrix.to_csv(correlation_report.categorical_numerical_path)
             num_num_matrix.to_csv(correlation_report.numerical_numerical_path)
             cat_cat_matrix.to_csv(correlation_report.categorical_categorical_path)
-        
+
         except Exception as e:
             self.findings.append(Finding(
-                level='WARNING', 
+                level='WARNING',
                 message=f"Could not save correlation matrices to disk. Reason: {e}"
             ))
-            
+
             correlation_report.categorical_numerical_path = None
             correlation_report.numerical_numerical_path = None
             correlation_report.categorical_categorical_path = None
@@ -109,7 +110,7 @@ class StatisticalAnalyzer(BaseModule):
 
         return report
 
-    def _detect_outliers(self, df: pd.DataFrame, columns_details: List[ColumnDetails]) -> Dict[str, OutlierReport]:
+    def _detect_outliers(self, df: pd.DataFrame, columns_details: list[ColumnDetails]) -> dict[str, OutlierReport]:
             """
             Identifies outliers in numeric columns using the configured method.
             Appends findings to self.findings.
@@ -119,7 +120,7 @@ class StatisticalAnalyzer(BaseModule):
             try:
                 for col_details in columns_details:
                     if col_details.inferred_type != 'numerical':
-                        continue 
+                        continue
 
                     column_name = col_details.column_name
                     column = df[column_name].dropna()
@@ -153,7 +154,7 @@ class StatisticalAnalyzer(BaseModule):
                     if outlier_percentage > self.config.statistics.outlier_warning_threshold:
                         self.findings.append(Finding(
                             level='WARNING',
-                            message=(f"Column '{column_name}' has a high percentage of potential outliers ({outlier_percentage:.1%}). " 
+                            message=(f"Column '{column_name}' has a high percentage of potential outliers ({outlier_percentage:.1%}). "
                                      "This may skew statistical analysis and impact model performance.")
                         ))
 
@@ -168,19 +169,19 @@ class StatisticalAnalyzer(BaseModule):
             except Exception as e:
                 raise StatisticalAnalyzerError(f"Failed to perform outlier detection. Reason: {e}") from e
 
-    def _detect_multicollinearity(self, df: pd.DataFrame, report: AnalysisReport) -> Dict[str, float]:
+    def _detect_multicollinearity(self, df: pd.DataFrame, report: AnalysisReport) -> dict[str, float]:
         """
         ... (docstring) ...
         """
-        multicollinearity_report: Dict[str, float] = {}
+        multicollinearity_report: dict[str, float] = {}
 
         target_column = report.target_analysis.identified_target if report.target_analysis else None
 
         numerical_columns = [
-            col.column_name for col in report.profile.column_details 
+            col.column_name for col in report.profile.column_details
             if col.inferred_type == 'numerical' and col.column_name != target_column
         ]
-        
+
         if len(numerical_columns) < 2:
             return multicollinearity_report
 
@@ -204,27 +205,27 @@ class StatisticalAnalyzer(BaseModule):
                             "This suggests it is highly correlated with other features and may be redundant."
                         )
                     ))
-            
+
             return multicollinearity_report
 
         except Exception as e:
             self.findings.append(Finding(level='WARNING', message=f"Could not perform multicollinearity analysis: {e}"))
             raise StatisticalAnalyzerError(f"Could not perform multicollinearity analysis. Reason: {e}") from e
 
-    def _analyze_correlations(self, df: pd.DataFrame, report: AnalysisReport) -> Dict[str, Any]:
+    def _analyze_correlations(self, df: pd.DataFrame, report: AnalysisReport) -> dict[str, Any]:
         """
         Calculates comprehensive correlations for all variable type pairs (cat-cat, num-num, cat-num).
         Generates findings based on both strength and statistical significance.
         """
         try:
-            
-            cat_num_corr: Dict[Tuple[str, str], float] = {}
-            num_corr: Dict[Tuple[str, str], float] = {}
-            cat_corr: Dict[Tuple[str, str], float] = {}
-            
-            cat_num_corr_pvals: Dict[Tuple[str, str], float] = {}
-            num_corr_pvals: Dict[Tuple[str, str], float] = {}
-            cat_corr_pvals: Dict[Tuple[str, str], float] = {}
+
+            cat_num_corr: dict[tuple[str, str], float] = {}
+            num_corr: dict[tuple[str, str], float] = {}
+            cat_corr: dict[tuple[str, str], float] = {}
+
+            cat_num_corr_pvals: dict[tuple[str, str], float] = {}
+            num_corr_pvals: dict[tuple[str, str], float] = {}
+            cat_corr_pvals: dict[tuple[str, str], float] = {}
 
             p_value_threshold = self.config.statistics.p_value_threshold
 
@@ -235,7 +236,7 @@ class StatisticalAnalyzer(BaseModule):
             cat_num_pairs = list(product(categorical_columns, numerical_columns))
             cat_pairs = list(combinations(categorical_columns, 2))
             num_pairs = list(combinations(numerical_columns, 2))
-            
+
             corr_ratio_threshold = float(self.config.statistics.correlation_ratio_threshold)
             for cat_col, num_col in cat_num_pairs:
                 corr, pvalue = self._compute_correlation_ratio(df[cat_col], df[num_col])
@@ -264,14 +265,15 @@ class StatisticalAnalyzer(BaseModule):
             for col1, col2 in num_pairs:
 
                 pair_df = df[[col1, col2]].dropna()
-                
+
                 if pair_df.shape[0] < 2:
                     num_corr[(col1, col2)] = 0.0
                     num_corr_pvals[(col1, col2)] = np.nan
                     continue
 
                 corr, pvalue = spearmanr(pair_df[col1], pair_df[col2])
-                if pd.isna(corr): corr = 0.0 
+                if pd.isna(corr):
+                    corr = 0.0
                 num_corr[(col1, col2)] = corr
                 num_corr_pvals[(col1, col2)] = pvalue
                 if abs(corr) > spearman_threshold and pvalue < p_value_threshold:
@@ -301,7 +303,7 @@ class StatisticalAnalyzer(BaseModule):
         except Exception as e:
             raise StatisticalAnalyzerError(f"Failed to perform correlation analysis. Reason: {e}") from e
 
-    def _analyze_class_imbalance(self, target_column: pd.Series) -> Optional[ClassImbalanceReport]:
+    def _analyze_class_imbalance(self, target_column: pd.Series) -> ClassImbalanceReport | None:
         """Analyzes and reports on the class distribution of the target variable."""
         try:
             value_counts = target_column.value_counts()
@@ -310,8 +312,8 @@ class StatisticalAnalyzer(BaseModule):
             if total == 0:
                 return ClassImbalanceReport(class_counts={}, class_percentages={})
 
-            percentages = {str(k): float((v / total)) for k, v in value_counts.items()}
-            
+            percentages = {str(k): float(v / total) for k, v in value_counts.items()}
+
             if len(percentages) < 2:
                 return ClassImbalanceReport(class_counts={str(k): int(v) for k, v in value_counts.items()}, class_percentages=percentages)
 
@@ -335,7 +337,7 @@ class StatisticalAnalyzer(BaseModule):
                 class_counts=value_counts_str_keys,
                 class_percentages=percentages
             )
-            
+
             return class_imbalance_report
         except Exception as e:
             finding = Finding(level='WARNING', message=f"Could not perform class imbalance analysis: {e}")
@@ -345,9 +347,9 @@ class StatisticalAnalyzer(BaseModule):
     def _check_for_data_leakage(
             self,
             report: AnalysisReport,
-            cat_num_corr: Dict[Tuple[str, str], Tuple[float, float]],
-            cat_corr: Dict[Tuple[str, str], Tuple[float, float]],
-            num_corr: Dict[Tuple[str, str], Tuple[float, float]]
+            cat_num_corr: dict[tuple[str, str], tuple[float, float]],
+            cat_corr: dict[tuple[str, str], tuple[float, float]],
+            num_corr: dict[tuple[str, str], tuple[float, float]]
         ) -> None:
             """
             Checks for features that are almost perfectly correlated with the target.
@@ -356,7 +358,8 @@ class StatisticalAnalyzer(BaseModule):
             p_value_threshold = self.config.statistics.p_value_threshold
 
             target_name = report.target_analysis.identified_target
-            if not target_name: return
+            if not target_name:
+                return
 
             try:
                 target_type = next((column.inferred_type for column in report.profile.column_details if column.column_name == target_name), "")
@@ -396,7 +399,7 @@ class StatisticalAnalyzer(BaseModule):
                 self.findings.append(Finding(level='WARNING', message=f"Failed to perform data leakage detection: {e}"))
 
     @staticmethod
-    def _compute_modified_z_scores(column: pd.Series) -> Optional[pd.Series]:
+    def _compute_modified_z_scores(column: pd.Series) -> pd.Series | None:
         """
         Computes the modified z-score of a column.
         """
@@ -405,11 +408,11 @@ class StatisticalAnalyzer(BaseModule):
         mad = np.median(np.abs(deviations_from_median))
         if mad == 0:
             return None
-        
+
         return (0.6745 * deviations_from_median) / mad
 
     @staticmethod
-    def _compute_z_scores(column: pd.Series) -> Optional[pd.Series]:
+    def _compute_z_scores(column: pd.Series) -> pd.Series | None:
         """
         Computes the z-score of a column.
         """
@@ -423,7 +426,7 @@ class StatisticalAnalyzer(BaseModule):
         return deviations_from_mean / std
 
     @staticmethod
-    def _compute_correlation_ratio(categories: pd.Series, values: pd.Series) -> Tuple[float, float]:
+    def _compute_correlation_ratio(categories: pd.Series, values: pd.Series) -> tuple[float, float]:
         """Computes Correlation Ratio (η) and its p-value (from F-test)."""
         data = pd.DataFrame({'categories': categories, 'values': values}).dropna()
 
@@ -437,7 +440,7 @@ class StatisticalAnalyzer(BaseModule):
             return np.nan, np.nan
 
         groups = [data['values'][data['categories'] == cat] for cat in np.unique(data['categories'])]
-        
+
         groups_for_f_test = [g for g in groups if len(g) >= 2]
         try:
             if len(groups_for_f_test) < 2:
@@ -445,26 +448,26 @@ class StatisticalAnalyzer(BaseModule):
             else:
                  f_value, p_value = f_oneway(*groups_for_f_test)
         except ValueError:
-             f_value, p_value = np.nan, np.nan
+             _f_value, p_value = np.nan, np.nan
 
         n_per_group = [len(group) for group in groups]
         mean_per_group = [np.mean(group) for group in groups if not group.empty]
-        n_per_group = [n for n in n_per_group if n > 0] 
+        n_per_group = [n for n in n_per_group if n > 0]
 
         ss_between = np.sum(n_per_group * (np.array(mean_per_group) - population_mean) ** 2)
 
         ratio = ss_between / ss_total
-        return np.sqrt(max(0, ratio)), p_value 
+        return np.sqrt(max(0, ratio)), p_value
 
     @staticmethod
-    def _compute_cramers_v(column1: pd.Series, column2: pd.Series) -> Tuple[float, float]:
+    def _compute_cramers_v(column1: pd.Series, column2: pd.Series) -> tuple[float, float]:
         """Computes Cramér's V statistic and its p-value."""
         confusion_matrix = pd.crosstab(column1, column2)
         chi2, pvalue, _, _ = chi2_contingency(confusion_matrix)
         n = confusion_matrix.sum().sum()
 
         k = min(confusion_matrix.shape)
-        
+
         if k == 1 or n == 0 or (n * (k - 1)) == 0:
              return np.nan, np.nan
 

@@ -11,7 +11,6 @@ from sleuth.exceptions import ModuleError
 from sleuth.modules.llm_summarizer import LLMSummarizer
 from sleuth.schemas.analysis_report import LLMSummary
 
-
 FIXTURES = Path(__file__).parent.parent.parent / "fixtures"
 
 

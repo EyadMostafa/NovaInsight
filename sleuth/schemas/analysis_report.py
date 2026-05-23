@@ -7,11 +7,12 @@ the analysis pipeline, with each module enriching its designated section.
 """
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional, Literal
-from pathlib import Path
 from datetime import datetime, timezone
 from enum import Enum, auto
+from pathlib import Path
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field
 
 # ===================================================================
 # Section 1: Metadata & Core Profiling Schemas
@@ -42,7 +43,7 @@ class RunMetadata(BaseModel):
     run_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="The ISO 8601 timestamp when the analysis was started.")
     analysis_mode: Literal['full', 'fast'] = Field(..., description="The mode of the analysis ('full' or 'fast').")
     task: Literal['supervised', 'unsupervised'] = Field(..., description="The task to be performed using the dataset (supervised or unsupervised)")
-    user_target: Optional[str] = Field(None, description="The target provided by the user if any.")
+    user_target: str | None = Field(None, description="The target provided by the user if any.")
     original_row_count: int = Field(0, description="Total row count of the full input file, set before sampling in fast mode.")
 
 class DatasetStats(BaseModel):
@@ -64,14 +65,14 @@ class ColumnDetails(BaseModel):
     missing_values_pct: float = Field(..., description="The percentage of values in the column that are missing.")
     unique_values_count: int = Field(..., description="The number of distinct, non-null values in the column.")
     unique_values_pct: float = Field(..., description="The percentage of values in the column that are unique.")
-    stats: Dict[str, Any] = Field(..., description="Descriptive statistics (mean, std, etc.) or value counts.")
+    stats: dict[str, Any] = Field(..., description="Descriptive statistics (mean, std, etc.) or value counts.")
     memory_usage_mb: float = Field(..., description="The memory usage of the column in megabytes (MB).")
 
 class DatasetProfile(BaseModel):
     """The complete output from the Data Ingestion & Profiling module."""
     dataset_stats: DatasetStats
-    column_details: List[ColumnDetails]
-    findings: Optional[List[Finding]] = Field([], description="A list to hold findings from any module-level failures, warnings, or info")
+    column_details: list[ColumnDetails]
+    findings: list[Finding] | None = Field([], description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
 # Section 2: Target Variable Analysis Schemas
@@ -87,9 +88,9 @@ class CandidateTarget(BaseModel):
 class TargetVariableAnalysis(BaseModel):
     """The complete output from the Target Variable Detection module."""
     detection_method: Literal['auto', 'user_specified'] = Field(..., description="How the target was chosen ('auto' or 'user_specified').")
-    candidate_targets: List[CandidateTarget]
-    identified_target: Optional[str] = Field(None, description="The column name chosen as the most likely target.")
-    findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
+    candidate_targets: list[CandidateTarget]
+    identified_target: str | None = Field(None, description="The column name chosen as the most likely target.")
+    findings: list[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
 # Section 3: Statistical & Structural Analysis Schemas
@@ -103,22 +104,22 @@ class OutlierReport(BaseModel):
 
 class ClassImbalanceReport(BaseModel):
     """A summary of the class distribution for a classification target."""
-    class_counts: Dict[str, int]
-    class_percentages: Dict[str, float]
+    class_counts: dict[str, int]
+    class_percentages: dict[str, float]
 
 class CorrelationReport(BaseModel):
     """Holds paths to the various correlation matrix data files."""
-    numerical_numerical_path: Optional[str | Path] = Field(None, description="Path to the Spearman correlation matrix for numeric pairs.")
-    categorical_categorical_path: Optional[str | Path] = Field(None, description="Path to the Cramér's V association matrix for categorical pairs.")
-    categorical_numerical_path: Optional[str | Path] = Field(None, description="Path to the Correlation Ratio association matrix for categorical-numeric pairs.")
+    numerical_numerical_path: str | Path | None = Field(None, description="Path to the Spearman correlation matrix for numeric pairs.")
+    categorical_categorical_path: str | Path | None = Field(None, description="Path to the Cramér's V association matrix for categorical pairs.")
+    categorical_numerical_path: str | Path | None = Field(None, description="Path to the Correlation Ratio association matrix for categorical-numeric pairs.")
 
 class StatisticalAnalysis(BaseModel):
     """The complete output from the Statistical & Structural Insights module."""
-    outlier_report: Dict[str, OutlierReport] = Field(..., description="A mapping of column names to their outlier reports.")
-    multicollinearity_report: Optional[Dict[str, float]] = Field(default_factory=dict, description="A mapping of highly collinear features to their VIF scores.")
+    outlier_report: dict[str, OutlierReport] = Field(..., description="A mapping of column names to their outlier reports.")
+    multicollinearity_report: dict[str, float] | None = Field(default_factory=dict, description="A mapping of highly collinear features to their VIF scores.")
     correlation_report: CorrelationReport = Field(...)
-    class_imbalance_report: Optional[ClassImbalanceReport] = Field(None)
-    findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
+    class_imbalance_report: ClassImbalanceReport | None = Field(None)
+    findings: list[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
 # Section 4: Advanced Analysis & Visualization Schemas
@@ -126,19 +127,19 @@ class StatisticalAnalysis(BaseModel):
 
 class DimensionalityAnalysis(BaseModel):
     """The complete output from the Dimensionality Reduction module."""
-    pca_explained_variance_ratios: Optional[List[float]] = Field(default=None)
-    pca_embeddings_path: Optional[str | Path] = Field(default=None)
-    tsne_embeddings_path: Optional[str | Path] = Field(default=None)
-    umap_embeddings_path: Optional[str | Path] = Field(default=None)
-    findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
+    pca_explained_variance_ratios: list[float] | None = Field(default=None)
+    pca_embeddings_path: str | Path | None = Field(default=None)
+    tsne_embeddings_path: str | Path | None = Field(default=None)
+    umap_embeddings_path: str | Path | None = Field(default=None)
+    findings: list[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
 
 class VisualizationOutput(BaseModel):
     """A collection of file paths to all generated plot images."""
-    univariate_plots: Dict[str, str | Path] = Field(..., description="Mapping of column names to their distribution plot paths.")
-    bivariate_plots: Dict[str, str | Path] = Field(..., description="Mapping of plot types (e.g., 'target_vs_feature_x') to their paths.")
-    correlation_heatmap_plots: Optional[Dict[str, str | Path]] = Field(default=None)
-    dim_reduction_scatter_plots: Optional[Dict[str, str | Path]] = Field(default=None)
-    findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
+    univariate_plots: dict[str, str | Path] = Field(..., description="Mapping of column names to their distribution plot paths.")
+    bivariate_plots: dict[str, str | Path] = Field(..., description="Mapping of plot types (e.g., 'target_vs_feature_x') to their paths.")
+    correlation_heatmap_plots: dict[str, str | Path] | None = Field(default=None)
+    dim_reduction_scatter_plots: dict[str, str | Path] | None = Field(default=None)
+    findings: list[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
 # Section 5: LLM Summaries & Final Recommendations Schemas
@@ -152,10 +153,10 @@ class Recommendation(BaseModel):
 
 class Recommendations(BaseModel):
     """A structured and prioritized list of all recommendations."""
-    preprocessing_steps: List[Recommendation]
-    feature_engineering_ideas: List[Recommendation]
-    modeling_suggestions: List[Recommendation]
-    pitfall_warnings: List[Recommendation]
+    preprocessing_steps: list[Recommendation]
+    feature_engineering_ideas: list[Recommendation]
+    modeling_suggestions: list[Recommendation]
+    pitfall_warnings: list[Recommendation]
 
 class LLMSummary(BaseModel):
     """Holds the natural language summaries generated by the LLM."""
@@ -164,13 +165,13 @@ class LLMSummary(BaseModel):
     key_findings_and_patterns: str
     potential_issues_and_warnings: str
     recommendations: Recommendations
-    findings: List[Finding] = Field(default_factory=list)
+    findings: list[Finding] = Field(default_factory=list)
 
 
 class PipelineTiming(BaseModel):
     """Wall-clock timing for the pipeline and each individual module."""
     total_seconds: float
-    modules: Dict[str, float]  # operator value → seconds elapsed
+    modules: dict[str, float]  # operator value → seconds elapsed
 
 # ===================================================================
 # The Top-Level Schema: AnalysisReport
@@ -183,16 +184,16 @@ class AnalysisReport(BaseModel):
     This object is initialized by the orchestrator and progressively enriched by each module.
     """
     metadata: RunMetadata
-    profile: Optional[DatasetProfile] = None
-    target_analysis: Optional[TargetVariableAnalysis] = None
-    statistical_analysis: Optional[StatisticalAnalysis] = None
-    dimensionality_analysis: Optional[DimensionalityAnalysis] = None
-    visualizations: Optional[VisualizationOutput] = None
-    llm_summary: Optional[LLMSummary] = None
-    raw_llm_output: Optional[str] = None  # Mainly used for debugging
-    html_report_path: Optional[str] = None
-    findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
-    timing: Optional[PipelineTiming] = None
+    profile: DatasetProfile | None = None
+    target_analysis: TargetVariableAnalysis | None = None
+    statistical_analysis: StatisticalAnalysis | None = None
+    dimensionality_analysis: DimensionalityAnalysis | None = None
+    visualizations: VisualizationOutput | None = None
+    llm_summary: LLMSummary | None = None
+    raw_llm_output: str | None = None  # Mainly used for debugging
+    html_report_path: str | None = None
+    findings: list[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
+    timing: PipelineTiming | None = None
 
     model_config = {
         "arbitrary_types_allowed": True,

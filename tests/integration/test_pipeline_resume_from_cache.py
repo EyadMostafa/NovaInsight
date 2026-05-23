@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests.conftest import make_test_config, STUDENT_PERF_SMALL_CSV
+from tests.conftest import STUDENT_PERF_SMALL_CSV, make_test_config
 from tests.integration.conftest import MODULES_NO_LLM
 
 

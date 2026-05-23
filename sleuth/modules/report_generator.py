@@ -1,23 +1,24 @@
 from __future__ import annotations
 
-from sleuth.utils.logger import get_logger
 import base64
 import os
 import re
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-import pandas as pd
-from jinja2 import Template, FileSystemLoader, Environment
+from typing import Any
 
-from sleuth.modules.base_module import BaseModule
-from sleuth.modules.registry import register_module
+import pandas as pd
+from jinja2 import Environment, FileSystemLoader
+
 from sleuth.config.config import SleuthConfig
 from sleuth.exceptions import ReportGeneratorError
+from sleuth.modules.base_module import BaseModule
+from sleuth.modules.registry import register_module
 from sleuth.schemas.analysis_report import (
     AnalysisReport,
     Finding,
     Operator,
 )
+from sleuth.utils.logger import get_logger
 
 logger = get_logger("sleuth.modules.report_generator")
 
@@ -35,7 +36,7 @@ class ReportGenerator(BaseModule):
 
     def __init__(self, config: SleuthConfig):
         super().__init__(config)
-        self.findings: List[Finding] = []
+        self.findings: list[Finding] = []
 
     def run(self, df: pd.DataFrame, report: AnalysisReport) -> AnalysisReport:
         """
@@ -92,7 +93,7 @@ class ReportGenerator(BaseModule):
 
         return report
 
-    def _prepare_images(self, report: AnalysisReport) -> Dict[str, Any]:
+    def _prepare_images(self, report: AnalysisReport) -> dict[str, Any]:
         """
         Reads image paths from the report schema and converts them to
         Base64 strings for embedding in HTML.
@@ -141,7 +142,7 @@ class ReportGenerator(BaseModule):
 
         return images
 
-    def _image_to_base64(self, path: str | Path) -> Optional[str]:
+    def _image_to_base64(self, path: str | Path) -> str | None:
         """Reads an image file and returns base64 string."""
         if not path:
             return None

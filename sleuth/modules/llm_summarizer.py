@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import json
-from sleuth.utils.logger import get_logger
-from typing import Optional
 
 import pandas as pd
 from json_repair import repair_json
@@ -16,6 +14,7 @@ from sleuth.llm.providers.base import LLMProvider
 from sleuth.modules.base_module import BaseModule
 from sleuth.modules.registry import register_module
 from sleuth.schemas.analysis_report import AnalysisReport, Finding, LLMSummary, Operator
+from sleuth.utils.logger import get_logger
 
 logger = get_logger("sleuth.modules.llm_summarizer")
 
@@ -34,7 +33,7 @@ class LLMSummarizer(BaseModule):
 
     def __init__(self, config: SleuthConfig) -> None:
         super().__init__(config)
-        self.provider: Optional[LLMProvider] = None
+        self.provider: LLMProvider | None = None
         self._initialize_provider()
 
     def _initialize_provider(self) -> None:

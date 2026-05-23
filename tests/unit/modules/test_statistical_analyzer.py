@@ -7,8 +7,6 @@ import pytest
 
 from sleuth.modules.statistical_analyzer import StatisticalAnalyzer
 from sleuth.modules.target_detector import TargetDetector
-from sleuth.schemas.analysis_report import ColumnDetails, Finding
-
 
 # ---------------------------------------------------------------------------
 # Helpers

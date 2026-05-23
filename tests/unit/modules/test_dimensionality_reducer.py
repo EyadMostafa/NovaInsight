@@ -3,10 +3,8 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from sleuth.modules.dimensionality_reducer import DimensionalityReducer
-from sleuth.schemas.analysis_report import DimensionalityAnalysis
 
 
 def _reducer(test_config):

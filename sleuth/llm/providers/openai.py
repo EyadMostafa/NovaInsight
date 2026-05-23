@@ -9,13 +9,13 @@ prompt first and keeping it unchanged across calls achieves cache hits transpare
 """
 from __future__ import annotations
 
-from sleuth.utils.logger import get_logger
 from typing import Any
 
 from openai import OpenAI as _OpenAI
 
 from sleuth.exceptions import LLMSummarizerError
 from sleuth.llm.providers.base import LLMProvider, PromptMessage
+from sleuth.utils.logger import get_logger
 
 logger = get_logger("sleuth.llm.providers.openai")
 

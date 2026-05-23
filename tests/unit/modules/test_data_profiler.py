@@ -3,14 +3,11 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-import numpy as np
 import pandas as pd
 import pytest
 
 from sleuth.exceptions import ProfilerError
 from sleuth.modules.data_profiler import DataProfiler
-from sleuth.schemas.analysis_report import AnalysisReport
-
 
 # ---------------------------------------------------------------------------
 # Helpers

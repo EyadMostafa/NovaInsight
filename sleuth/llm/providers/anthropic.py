@@ -10,13 +10,13 @@ significantly when the static system prompt is re-sent across repeated runs.
 """
 from __future__ import annotations
 
-from sleuth.utils.logger import get_logger
 from typing import Any
 
 import anthropic as _anthropic
 
 from sleuth.exceptions import LLMSummarizerError
 from sleuth.llm.providers.base import LLMProvider, PromptMessage
+from sleuth.utils.logger import get_logger
 
 logger = get_logger("sleuth.llm.providers.anthropic")
 

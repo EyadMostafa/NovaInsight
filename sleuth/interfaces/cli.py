@@ -1,9 +1,11 @@
-import click
 import sys
 from pathlib import Path
+
+import click
+
 from sleuth.config.config import config
-from sleuth.modules.orchestrator import AnalysisPipeline
 from sleuth.exceptions import PipelineError, SleuthError
+from sleuth.modules.orchestrator import AnalysisPipeline
 from sleuth.schemas.analysis_report import Operator
 from sleuth.utils.logger import get_logger
 

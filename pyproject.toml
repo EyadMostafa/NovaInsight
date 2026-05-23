@@ -81,3 +81,19 @@ markers = [
 [tool.coverage.run]
 omit = ["**/templates/*", "**/__init__.py"]
 
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = [
+    "E501",   # line too long — enforced by the formatter, not the linter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "E701",   # one-liner def run(self,...): return ... is acceptable in test stubs
+    "B017",   # assertRaises(Exception) is intentional in failure-isolation tests
+]
+

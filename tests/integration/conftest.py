@@ -3,9 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
-from tests.conftest import make_test_config, STUDENT_PERF_SMALL_CSV
+from tests.conftest import STUDENT_PERF_SMALL_CSV, make_test_config
 
 MODULES_NO_LLM = ["profiler", "target", "stats", "dim_reduction", "viz", "report"]
 MODULES_NO_LLM_UNSUPERVISED = ["profiler", "stats", "dim_reduction", "viz", "report"]

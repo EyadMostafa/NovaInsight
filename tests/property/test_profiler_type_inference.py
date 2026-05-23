@@ -4,12 +4,11 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
-from hypothesis import given, settings, HealthCheck
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from sleuth.exceptions import ProfilerError
 from sleuth.modules.data_profiler import DataProfiler
-
 
 VALID_INFERRED_TYPES = {"id", "boolean", "numerical", "categorical", "datetime", "text"}
 

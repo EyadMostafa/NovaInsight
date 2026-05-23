@@ -1,8 +1,6 @@
 """Unit tests for LLM prompt builders."""
 from __future__ import annotations
 
-import pytest
-
 from sleuth.llm.prompts import (
     SYSTEM_PROMPT,
     build_correction_messages,

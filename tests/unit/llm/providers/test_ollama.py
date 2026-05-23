@@ -8,7 +8,6 @@ import pytest
 from sleuth.exceptions import LLMSummarizerError
 from sleuth.llm.providers.base import PromptMessage
 
-
 # ---------------------------------------------------------------------------
 # Fixture: OllamaProvider with the ollama client fully mocked
 # ---------------------------------------------------------------------------
@@ -92,7 +91,7 @@ class TestOllamaProvider:
         with patch.dict("sys.modules", {"ollama": MagicMock(Client=mock_client_cls)}):
             import importlib
             importlib.reload(ollama_module)
-            from sleuth.llm.providers.ollama import OllamaProvider, _DEFAULT_HOST
+            from sleuth.llm.providers.ollama import _DEFAULT_HOST, OllamaProvider
             OllamaProvider(model_name="llama3.2", temperature=0.3, max_tokens=512)
 
         mock_client_cls.assert_called_once_with(host=_DEFAULT_HOST)
@@ -127,7 +126,6 @@ class TestOllamaProvider:
             )
 
     def test_missing_ollama_package_raises_llm_error(self):
-        import sys
         import importlib
 
         # Temporarily hide the ollama package.

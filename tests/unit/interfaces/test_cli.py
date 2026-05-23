@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner
@@ -40,7 +40,7 @@ class TestAnalyzeCommand:
 
         with patch("sleuth.modules.orchestrator.AnalysisPipeline.__init__", fake_pipeline_init):
             with patch("sleuth.modules.orchestrator.AnalysisPipeline.run", fake_pipeline_run):
-                result = runner.invoke(
+                runner.invoke(
                     main,
                     ["analyze", str(TITANIC_CSV), "--modules", "profiler,stats"],
                 )

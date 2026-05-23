@@ -1,32 +1,31 @@
 from __future__ import annotations
 
 import matplotlib
+
 matplotlib.use('Agg')  # thread-safe non-interactive backend; must precede pyplot import
-import pandas as pd
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple, Any
-from sleuth.utils.logger import get_logger
 
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 from sklearn.cluster import KMeans
-from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import chi2, f_classif
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler, OrdinalEncoder
-from sklearn.feature_selection import f_classif, chi2
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 
-from sleuth.modules.base_module import BaseModule
-from sleuth.modules.registry import register_module
 from sleuth.config.config import SleuthConfig
 from sleuth.exceptions import VisualizerError
+from sleuth.modules.base_module import BaseModule
+from sleuth.modules.registry import register_module
 from sleuth.schemas.analysis_report import (
     AnalysisReport,
-    VisualizationOutput,
-    Finding,
     ColumnDetails,
+    Finding,
     Operator,
+    VisualizationOutput,
 )
+from sleuth.utils.logger import get_logger
 
 logger = get_logger("sleuth.modules.visualizer")
 
@@ -46,8 +45,8 @@ class Visualizer(BaseModule):
     def __init__(self, config: SleuthConfig):
         """Initializes the Visualizer with app configuration."""
         super().__init__(config)
-        self.output_dir: Optional[Path] = None
-        self.findings: List[Finding] = []
+        self.output_dir: Path | None = None
+        self.findings: list[Finding] = []
 
     def run(self, df: pd.DataFrame, report: AnalysisReport) -> AnalysisReport:
         """
@@ -65,7 +64,7 @@ class Visualizer(BaseModule):
         bivariate_plots = self._run_bivariate_plots(df, report, hue_data, hue_name)
         corr_plots = self._run_correlation_visuals(report)
         dim_reduction_plots = self._run_dimensionality_visuals(report, hue_data, hue_name)
-        
+
         viz_output = VisualizationOutput(
             univariate_plots=univariate_plots,
             bivariate_plots=bivariate_plots,
@@ -91,9 +90,9 @@ class Visualizer(BaseModule):
 
             plt.rcParams['figure.dpi'] = self.config.visualization.dpi
             plt.rcParams['figure.figsize'] = (10, 6)
-            
+
             logger.debug(f"Seaborn theme set to '{self.config.visualization.theme}'")
-            
+
         except Exception as e:
             logger.warning(f"Failed to apply visualization theme: {e}. Using defaults.")
 
@@ -104,7 +103,7 @@ class Visualizer(BaseModule):
 
             self.findings.append(finding)
 
-    def _save_plot(self, fig: plt.Figure, filename: str) -> Optional[str | Path]:
+    def _save_plot(self, fig: plt.Figure, filename: str) -> str | Path | None:
         """
         Utility to save a matplotlib figure to the output_dir.
         Returns the path or None if saving fails.
@@ -120,35 +119,35 @@ class Visualizer(BaseModule):
                 filename = f"{filename}.png"
 
             full_path = self.output_dir / filename
-            
+
             fig.savefig(full_path, bbox_inches='tight')
-            
+
             plt.close(fig)
-            
+
             return full_path
-            
+
         except Exception as e:
             logger.error(f"Failed to save plot {filename}: {e}")
-            
+
             finding = Finding(
                 level="WARNING",
                 message=f"Failed to generate plot: {filename}. Reason: {e}"
             )
 
             self.findings.append(finding)
-            
+
             plt.close(fig)
-            
+
             return None
 
-    def _get_task_aware_hue(self, df: pd.DataFrame, report: AnalysisReport) -> Tuple[Optional[pd.Series], str]:
+    def _get_task_aware_hue(self, df: pd.DataFrame, report: AnalysisReport) -> tuple[pd.Series | None, str]:
         """
         Determines what data to use for coloring plots ('hue').
 
         - Supervised task: Returns the target variable series.
         - Unsupervised task: Runs K-Means and returns the cluster labels.
         """
-        hue_data: Optional[pd.Series] = None
+        hue_data: pd.Series | None = None
         hue_name: str = "N/A"
 
         if report.metadata.task == 'supervised':
@@ -195,7 +194,7 @@ class Visualizer(BaseModule):
         """
         try:
             identified_target = report.target_analysis.identified_target if report.target_analysis else None
-            
+
             initial_numeric_columns = [
                 col.column_name for col in report.profile.column_details
                 if col.inferred_type == 'numerical' and col.column_name != identified_target
@@ -229,7 +228,7 @@ class Visualizer(BaseModule):
             n_samples = processed_data.shape[0]
             n_clusters_config = self.config.visualization.kmeans_n_clusters
             actual_n_clusters = max(1, min(n_clusters_config, n_samples))
-            
+
             if actual_n_clusters < n_clusters_config:
                 logger.warning(f"K-Means n_clusters reduced to {actual_n_clusters} (number of samples).")
 
@@ -247,35 +246,35 @@ class Visualizer(BaseModule):
 
     # --- Plot Generation Groups ---
 
-    def _run_univariate_plots(self, df: pd.DataFrame, report: AnalysisReport) -> Dict[str, str | Path]:
+    def _run_univariate_plots(self, df: pd.DataFrame, report: AnalysisReport) -> dict[str, str | Path]:
         """
         Generates and saves all univariate plots (histograms, count plots).
         Returns a dictionary mapping column_name to plot_path.
         """
-        plot_paths: Dict[str, str] = {}
+        plot_paths: dict[str, str] = {}
 
         for col_details in report.profile.column_details:
             col_name = col_details.column_name
-            
+
             if col_details.inferred_type in ['id', 'text', 'datetime']:
-                continue 
+                continue
 
             plot_func = None
             if col_details.inferred_type == 'numerical':
                 plot_func = self._plot_histogram
             elif col_details.inferred_type in ['categorical', 'boolean']:
                 plot_func = self._plot_countplot
-            
+
             if plot_func is None:
                 continue
 
             try:
                 fig, ax = plt.subplots(figsize=(10, 6))
                 plot_func(ax, df[col_name], col_name)
-                
+
                 filename = f"univariate_dist_{col_name}"
                 path = self._save_plot(fig, filename)
-                
+
                 if path:
                     plot_paths[col_name] = path
             except Exception as e:
@@ -286,15 +285,15 @@ class Visualizer(BaseModule):
                 )
                 self.findings.append(finding)
                 plt.close('all')
-                
+
         return plot_paths
 
-    def _run_bivariate_plots(self, df: pd.DataFrame, report: AnalysisReport, hue_data: pd.Series, hue_name: str) -> Dict[str, str | Path]:
+    def _run_bivariate_plots(self, df: pd.DataFrame, report: AnalysisReport, hue_data: pd.Series, hue_name: str) -> dict[str, str | Path]:
         """
         Generates and saves key feature-vs-target/cluster plots.
         Returns a dictionary mapping plot_name to plot_path.
         """
-        plot_paths: Dict[str, str] = {}
+        plot_paths: dict[str, str] = {}
         if hue_data is None:
             logger.info("Skipping bivariate plots as no hue (target/cluster) data is available.")
             return plot_paths
@@ -305,11 +304,11 @@ class Visualizer(BaseModule):
             col for col in report.profile.column_details
             if col.column_name != hue_name and col.inferred_type not in ['id', 'text', 'datetime']
         ]
-        
+
         top_n = min(self.config.visualization.bivariate_top_n, len(all_features))
         top_n = len(all_features) if top_n == -1 else top_n # -1 selects all elligible features
 
-        selected_features: List[ColumnDetails] = []
+        selected_features: list[ColumnDetails] = []
 
         try:
             if report.metadata.task == 'supervised':
@@ -324,11 +323,11 @@ class Visualizer(BaseModule):
         # 4. Loop over selected features and generate plots
         for col in selected_features:
             fig, ax = plt.subplots(figsize=(10, 6))
-            plot_func: Optional[callable] = None
-            
+            plot_func: callable | None = None
+
             try:
                 feature_data = df[col.column_name]
-                
+
                 if col.inferred_type == 'numerical' and not hue_is_numeric: # num - cat
                     plot_func = self._plot_violinplot
                     plot_func(ax, hue_data, feature_data, hue_name, col.column_name)
@@ -341,16 +340,16 @@ class Visualizer(BaseModule):
                 elif col.inferred_type in ['categorical', 'boolean'] and hue_is_numeric: # cat - num
                     plot_func = self._plot_violinplot
                     plot_func(ax, feature_data, hue_data, col.column_name, hue_name) # Flipped
-                
+
                 if plot_func is None:
                     plt.close(fig)
                     continue
-                    
+
                 filename = f"bivariate_{col.column_name}_vs_{hue_name}"
                 path = self._save_plot(fig, filename)
                 if path:
                     plot_paths[f"{col.column_name}_vs_{hue_name}"] = path
-                    
+
             except Exception as e:
                 logger.error(f"Failed to generate bivariate plot for {col.column_name} vs {hue_name}: {e}")
                 self.findings.append(Finding(
@@ -358,15 +357,15 @@ class Visualizer(BaseModule):
                     message=f"Failed to generate plot for {col.column_name} vs {hue_name}: {e}"
                 ))
                 plt.close(fig) # Ensure figure is closed on error
-        
+
         return plot_paths
-    
-    def _run_correlation_visuals(self, report: AnalysisReport) -> Dict[str, str | Path]:
+
+    def _run_correlation_visuals(self, report: AnalysisReport) -> dict[str, str | Path]:
         """
         Generates and saves heatmaps for the correlation matrices.
         Returns a dictionary mapping heatmap_name to plot_path.
         """
-        plot_paths: Dict[str, str] = {}
+        plot_paths: dict[str, str] = {}
         if not report.statistical_analysis.correlation_report:
             logger.info("Correlation report not found. Skipping correlation heatmaps visualization.")
             finding = Finding(
@@ -382,7 +381,8 @@ class Visualizer(BaseModule):
         try:
             for name, path in corr_report.items():
                 matrix = pd.read_csv(path, index_col=0)
-                if matrix.empty: continue
+                if matrix.empty:
+                    continue
 
                 clean_name = name.replace('_path', '')
 
@@ -405,12 +405,12 @@ class Visualizer(BaseModule):
 
         return plot_paths
 
-    def _run_dimensionality_visuals(self, report: AnalysisReport, hue_data: pd.Series, hue_name: str) -> Dict[str, str | Path]:
+    def _run_dimensionality_visuals(self, report: AnalysisReport, hue_data: pd.Series, hue_name: str) -> dict[str, str | Path]:
         """
         Generates 2D scatter plots for PCA, UMAP, and t-SNE embeddings.
         Returns a dictionary mapping plot_name to plot_path.
         """
-        plot_paths: Dict[str, str] = {}
+        plot_paths: dict[str, str] = {}
         dimensionality_report = report.dimensionality_analysis.model_dump()
         clean_name = ""
 
@@ -425,10 +425,12 @@ class Visualizer(BaseModule):
 
         try:
             for k, v in dimensionality_report.items():
-                if not "_embeddings_path" in k or not v: continue
+                if "_embeddings_path" not in k or not v:
+                    continue
 
                 embeddings = pd.read_csv(v)
-                if embeddings.empty or embeddings.shape[1] < 2: continue
+                if embeddings.empty or embeddings.shape[1] < 2:
+                    continue
 
                 fig, ax = plt.subplots(figsize=(10, 8))
                 clean_name = k.replace("_path", "")
@@ -454,8 +456,8 @@ class Visualizer(BaseModule):
         """Generates a histogram and KDE plot on the given axes."""
         data = data.dropna()
         if data.empty:
-            ax.text(0.5, 0.5, "No data to plot (all values are NaN)", 
-                    horizontalalignment='center', verticalalignment='center', 
+            ax.text(0.5, 0.5, "No data to plot (all values are NaN)",
+                    horizontalalignment='center', verticalalignment='center',
                     transform=ax.transAxes, color='gray')
             ax.set_title(f"Distribution of {title}", fontsize=16)
             return
@@ -471,23 +473,23 @@ class Visualizer(BaseModule):
 
         unique_count = data.nunique()
         n_cats = min(self.config.visualization.univariate_countplot_n, unique_count)
-        n_cats = 20 if n_cats > 20 else n_cats 
+        n_cats = 20 if n_cats > 20 else n_cats
 
         top_n_counts = data.value_counts().head(n_cats)
         sns.barplot(x=top_n_counts.index, y=top_n_counts.values, ax=ax, order=top_n_counts.index)
         ax.set_title(f"Count of {title}")
         ax.set_ylabel("Count")
         ax.tick_params(axis='x', rotation=90)
-        
+
     def _plot_heatmap(self, ax: plt.Axes, matrix: pd.DataFrame, title: str):
         """Generates a correlation heatmap on the given axes."""
         sns.heatmap(
-            data=matrix, 
-            ax=ax, 
-            cmap='coolwarm', 
-            center=0, 
-            annot=True, 
-            fmt=".2f", 
+            data=matrix,
+            ax=ax,
+            cmap='coolwarm',
+            center=0,
+            annot=True,
+            fmt=".2f",
             linewidths=0.5
         )
         ax.set_title(title)
@@ -498,12 +500,12 @@ class Visualizer(BaseModule):
 
         embeddings = embeddings.loc[hue_data.index]
         plot_data = pd.concat([embeddings, hue_data], axis=1)
-        
+
         sns.scatterplot(
-            data=plot_data, 
-            x=names[0], 
-            y=names[1], 
-            hue=hue_name, 
+            data=plot_data,
+            x=names[0],
+            y=names[1],
+            hue=hue_name,
             ax=ax,
             alpha=0.7,
             palette='viridis' if pd.api.types.is_numeric_dtype(hue_data) else 'tab10'
@@ -524,23 +526,23 @@ class Visualizer(BaseModule):
 
     def _plot_violinplot(self, ax: plt.Axes, x_data: pd.Series, y_data: pd.Series, x_name: str, y_name: str):
             """
-            Generates a violin plot to show the distribution of a numeric variable 
+            Generates a violin plot to show the distribution of a numeric variable
             across levels of a categorical variable.
             """
             plot_data = pd.concat([x_data, y_data], axis=1).dropna()
             if plot_data.empty:
                 return
-            
+
             # Current logic assumes x_data is the categorical one based on the caller
             if x_data.nunique() > 20:
                 top_cats = x_data.value_counts().head(20).index
                 plot_data = plot_data[plot_data[x_name].isin(top_cats)]
 
             sns.violinplot(data=plot_data, x=x_name, y=y_name, hue=x_name, ax=ax, inner="box", palette='muted', legend=False)
-            
+
             if x_data.nunique() > 4 or x_data.astype(str).str.len().mean() > 8:
                 ax.tick_params(axis='x', rotation=45)
-    
+
             ax.set_title(f"Distribution of {y_name} vs {x_name}", fontsize=14)
 
     def _plot_grouped_countplot(self, ax: plt.Axes, feature_data: pd.Series, hue_data: pd.Series, feature_name: str, hue_name: str):
@@ -565,11 +567,11 @@ class Visualizer(BaseModule):
 
             # 3. Plot grouped bar chart
             sns.barplot(
-                data=counts, 
-                x=feature_name, 
-                y='count', 
-                hue=hue_name, 
-                ax=ax, 
+                data=counts,
+                x=feature_name,
+                y='count',
+                hue=hue_name,
+                ax=ax,
                 order=order
             )
 
@@ -581,13 +583,14 @@ class Visualizer(BaseModule):
             ax.tick_params(axis='x', rotation=45)
             ax.legend(title=hue_name, bbox_to_anchor=(1.05, 1), loc='upper left')
 
-    def _get_top_correlated_features(self, report: AnalysisReport, target_name: str, all_features: List[ColumnDetails], top_n: int) -> List[ColumnDetails]:
+    def _get_top_correlated_features(self, report: AnalysisReport, target_name: str, all_features: list[ColumnDetails], top_n: int) -> list[ColumnDetails]:
         """(Helper for Bivariate) Gets top N features correlated with the target."""
         all_correlations = {}
         corr_report = report.statistical_analysis.correlation_report
-        
-        def read_corr_matrix(path_str: str) -> Optional[pd.DataFrame]:
-            if not path_str: return None
+
+        def read_corr_matrix(path_str: str) -> pd.DataFrame | None:
+            if not path_str:
+                return None
             try:
                 return pd.read_csv(path_str, index_col=0)
             except Exception as e:
@@ -607,35 +610,35 @@ class Visualizer(BaseModule):
                 all_correlations.update(df_cat_num.loc[target_name].to_dict())
         if df_cat_cat is not None and target_name in df_cat_cat.columns:
             all_correlations.update(df_cat_cat[target_name].to_dict())
-            
+
         if not all_correlations:
             logger.info("No correlation data found for target, cannot select top features.")
             return []
 
         corr_series = pd.Series(all_correlations).drop(target_name, errors='ignore').abs()
         selected_feature_names = corr_series.nlargest(top_n).index
-        
+
         return [col for col in all_features if col.column_name in selected_feature_names]
 
-    def _get_top_associated_features(self, df: pd.DataFrame, hue_data: pd.Series, all_features: List[ColumnDetails], top_n: int) -> List[ColumnDetails]:
+    def _get_top_associated_features(self, df: pd.DataFrame, hue_data: pd.Series, all_features: list[ColumnDetails], top_n: int) -> list[ColumnDetails]:
         """
         (Helper for Bivariate) Gets top N features associated with clusters
         using a robust p-value filter and test statistic ranking.
         """
         numeric_features = [col.column_name for col in all_features if col.inferred_type == 'numerical']
         categorical_features = [col.column_name for col in all_features if col.inferred_type in ['categorical', 'boolean']]
-        
+
         feature_stats = []
-        
+
         p_value_threshold = self.config.statistics.bivariate_significance_level
-        
+
         hue_data_clean = hue_data.dropna()
         df_aligned = df.loc[hue_data_clean.index]
 
         if numeric_features:
             X_numeric = df_aligned[numeric_features]
             X_numeric_imputed = SimpleImputer(strategy='median').fit_transform(X_numeric)
-            
+
             variance = X_numeric_imputed.var(axis=0)
             valid_numeric_features = [col for i, col in enumerate(numeric_features) if variance[i] > 1e-6]
             X_numeric_final = X_numeric_imputed[:, variance > 1e-6]
@@ -648,11 +651,11 @@ class Visualizer(BaseModule):
         if categorical_features:
             X_categorical = df_aligned[categorical_features]
             X_cat_imputed = X_categorical.apply(lambda col: col.fillna(col.mode()[0] if not col.mode().empty else 'missing'))
-            
+
             valid_categorical_features = [col for col in categorical_features if X_cat_imputed[col].nunique() > 1]
             if valid_categorical_features:
                 X_cat_encoded = X_cat_imputed[valid_categorical_features].apply(lambda col: OrdinalEncoder().fit_transform(col.to_frame())[:, 0])
-            
+
                 if X_cat_encoded.shape[1] > 0:
                     chi2_scores, p_values = chi2(X_cat_encoded, hue_data_clean)
                     for i, col_name in enumerate(valid_categorical_features):
@@ -660,11 +663,11 @@ class Visualizer(BaseModule):
 
         if not feature_stats:
             return []
-            
+
         significant_features = [f for f in feature_stats if f['pvalue'] < p_value_threshold]
 
         significant_features.sort(key=lambda x: x['score'], reverse=True)
-        
+
         selected_feature_names = [f['name'] for f in significant_features[:top_n]]
-        
+
         return [col for col in all_features if col.column_name in selected_feature_names]

@@ -4,8 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
-import pytest
-from hypothesis import given, settings, HealthCheck
+from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from sleuth.config.config import CacheSettings
@@ -13,7 +12,6 @@ from sleuth.schemas.analysis_report import (
     AnalysisReport,
     DatasetProfile,
     DatasetStats,
-    Finding,
     RunMetadata,
 )
 from sleuth.utils.cache_manager import CacheManager

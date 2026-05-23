@@ -1,20 +1,19 @@
 from __future__ import annotations
 
-import pandas as pd
-import numpy as np
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE
-from umap import UMAP
 from pathlib import Path
-from typing import List, Optional, Tuple
 
-from sleuth.modules.base_module import BaseModule
-from sleuth.modules.registry import register_module
+import pandas as pd
+from sklearn.decomposition import PCA
+from sklearn.impute import SimpleImputer
+from sklearn.manifold import TSNE
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from umap import UMAP
+
 from sleuth.config.config import SleuthConfig
 from sleuth.exceptions import DimensionalityReducerError
+from sleuth.modules.base_module import BaseModule
+from sleuth.modules.registry import register_module
 from sleuth.schemas.analysis_report import (
     AnalysisReport,
     DimensionalityAnalysis,
@@ -71,7 +70,7 @@ class DimensionalityReducer(BaseModule):
 
         return report
 
-    def _prepare_data(self, df: pd.DataFrame, report: AnalysisReport) -> Tuple[Optional[pd.DataFrame], Optional[Finding]]:
+    def _prepare_data(self, df: pd.DataFrame, report: AnalysisReport) -> tuple[pd.DataFrame | None, Finding | None]:
         """
         Selects, filters (for zero variance), imputes, and scales the numeric
         columns from the dataset. Returns a Finding if skipping or filtering.
@@ -134,7 +133,7 @@ class DimensionalityReducer(BaseModule):
         except Exception as e:
             raise DimensionalityReducerError(f"Failed to prepare data for dimensionality reduction. Reason: {e}") from e
 
-    def _run_pca(self, processed_df: pd.DataFrame) -> tuple[pd.DataFrame, List[float]]:
+    def _run_pca(self, processed_df: pd.DataFrame) -> tuple[pd.DataFrame, list[float]]:
         """
         Performs Principal Component Analysis (PCA) on the processed data.
         Dynamically adjusts n_components based on data shape.
@@ -146,14 +145,16 @@ class DimensionalityReducer(BaseModule):
             n_ratios_desired = self.config.dimensionality_reduction.pca_n_ratios
             actual_n_ratios = min(n_ratios_desired, max_possible_components)
 
-            if actual_n_ratios <= 0: return pd.DataFrame(index=processed_df.index), []
+            if actual_n_ratios <= 0:
+                return pd.DataFrame(index=processed_df.index), []
 
             pca_variance = PCA(n_components=actual_n_ratios)
             pca_variance.fit(processed_df)
             ratios = [float(r) for r in pca_variance.explained_variance_ratio_]
 
             n_components_embedding = min(2, max_possible_components)
-            if n_components_embedding <= 0: return pd.DataFrame(index=processed_df.index), ratios
+            if n_components_embedding <= 0:
+                return pd.DataFrame(index=processed_df.index), ratios
 
             embedding_data = pca_variance.transform(processed_df)[:, :n_components_embedding]
             embedding_cols = [f'PC{i+1}' for i in range(n_components_embedding)]

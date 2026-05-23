@@ -1,9 +1,6 @@
 """Unit tests for ReportGenerator."""
 from __future__ import annotations
 
-import pandas as pd
-import pytest
-
 from sleuth.modules.report_generator import ReportGenerator
 from sleuth.schemas.analysis_report import VisualizationOutput
 

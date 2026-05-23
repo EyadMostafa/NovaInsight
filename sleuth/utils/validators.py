@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Tuple
 
 from sleuth.exceptions import DataLoadError
 from sleuth.utils.logger import get_logger
@@ -27,7 +26,7 @@ def validate_file_path(file_path: str | Path) -> Path:
     return p
 
 
-def validate_directory(path_str: str | Path) -> Tuple[bool, str, Path | str]:
+def validate_directory(path_str: str | Path) -> tuple[bool, str, Path | str]:
     """
     Validates a path as a writable directory, creating it if absent.
     Returns (is_valid, error_message, resolved_path).

@@ -1,17 +1,24 @@
+
 import pandas as pd
 from pandas.api.types import (
-    is_datetime64_any_dtype,
-    is_timedelta64_dtype,
     is_bool_dtype,
+    is_datetime64_any_dtype,
     is_numeric_dtype,
+    is_timedelta64_dtype,
 )
-from sleuth.schemas.analysis_report import (DatasetProfile, DatasetStats,
-                                                 ColumnDetails, Finding, AnalysisReport, Operator)
+
 from sleuth.config.config import SleuthConfig
+from sleuth.exceptions import ProfilerError
 from sleuth.modules.base_module import BaseModule
 from sleuth.modules.registry import register_module
-from sleuth.exceptions import ProfilerError
-from typing import Tuple, List
+from sleuth.schemas.analysis_report import (
+    AnalysisReport,
+    ColumnDetails,
+    DatasetProfile,
+    DatasetStats,
+    Finding,
+    Operator,
+)
 
 
 @register_module(
@@ -32,7 +39,7 @@ class DataProfiler(BaseModule):
         self.column_memory_usage: float = None
         self.total_memory_usage: float = None
         self.original_row_count: int | None = None
-        self.findings: List[Finding] = []
+        self.findings: list[Finding] = []
 
     def run(self, df: pd.DataFrame, report: AnalysisReport) -> AnalysisReport:
         """
@@ -50,7 +57,7 @@ class DataProfiler(BaseModule):
         report.profile = dataset_profile
 
         return report
-    
+
     def _profile_dataset_level(self, df: pd.DataFrame) -> DatasetStats:
         """
         Calculates statistics for the entire dataset (e.g., rows, columns, memory).
@@ -64,7 +71,7 @@ class DataProfiler(BaseModule):
             cols_pct = col_count / self.original_row_count
             duplicates_pct = duplicate_rows_count / row_count if row_count > 0 else 0.0
 
-            findings : List[Finding] = []
+            findings : list[Finding] = []
 
             if duplicates_pct > self.config.profiler.duplicate_threshold:
                 finding = Finding(
@@ -95,7 +102,7 @@ class DataProfiler(BaseModule):
                         )
                     )
                 findings.append(finding)
-                    
+
             dataset_stats = DatasetStats(
                 original_row_count=self.original_row_count,
                 analyzed_row_count=row_count,
@@ -112,7 +119,7 @@ class DataProfiler(BaseModule):
         except Exception as e:
             raise ProfilerError(f"Failed to perform dataset-level profiling. Reason: {e}") from e
 
-    def _profile_column_level(self, df: pd.DataFrame) -> List[ColumnDetails]:
+    def _profile_column_level(self, df: pd.DataFrame) -> list[ColumnDetails]:
         """
         Iterates through each column, calculating and compiling its specific stats.
         """
@@ -135,7 +142,7 @@ class DataProfiler(BaseModule):
                 if missing_values_pct > self.config.profiler.missing_value_threshold:
                     finding = Finding(
                         level='WARNING',
-                        message=(f"Column '{column_name}' has a high percentage of missing values ({missing_values_pct:.1%}). " 
+                        message=(f"Column '{column_name}' has a high percentage of missing values ({missing_values_pct:.1%}). "
                                  "This may require advanced imputation or cause the feature to be unusable.")
                     )
                     findings.append(finding)
@@ -201,7 +208,7 @@ class DataProfiler(BaseModule):
         Infers the logical type of a column (numeric, categorical, etc.)
         based on its dtype and statistics.
         """
-        row_count = column.shape[0] 
+        row_count = column.shape[0]
         unique_values_count = column.nunique()
         unique_values_pct = unique_values_count / row_count
         sample_count = 500 if row_count > 500 else row_count
@@ -213,7 +220,7 @@ class DataProfiler(BaseModule):
                 return True
             except Exception:
                 return False
-            
+
         def is_convertible_to_numerical(column):
             try:
                 column.astype(float)
@@ -221,9 +228,9 @@ class DataProfiler(BaseModule):
             except Exception:
                 return False
 
-        if is_bool_dtype(column): 
+        if is_bool_dtype(column):
             return 'boolean'
-        
+
         if (
             is_datetime64_any_dtype(column)
             or is_timedelta64_dtype(column)
@@ -232,7 +239,8 @@ class DataProfiler(BaseModule):
         ):
             return 'datetime'
 
-        if unique_values_pct > 0.99: return 'id'
+        if unique_values_pct > 0.99:
+            return 'id'
 
         if is_numeric_dtype(column):
             if unique_values_count == 2:
@@ -240,10 +248,10 @@ class DataProfiler(BaseModule):
             if unique_values_count <= self.config.profiler.max_categorical_cardinality:
                 return 'categorical'
             return 'numerical'
-        
+
         if is_convertible_to_datetime(column_sample):
             return 'datetime'
-        
+
         if is_convertible_to_numerical(column_sample):
             if column_sample.nunique() == 2:
                 return 'boolean'
@@ -267,7 +275,7 @@ class DataProfiler(BaseModule):
 
         elif inferred_type == 'categorical':
             value_counts = column.value_counts()
-            
+
             if value_counts.empty:
                 return {
                     "top": "N/A",
@@ -276,7 +284,7 @@ class DataProfiler(BaseModule):
                 }
 
             top_5_counts = value_counts.head(5).to_dict()
-            
+
             return {
                 "top": str(value_counts.index[0]),
                 "frequency": int(value_counts.iloc[0]),
@@ -286,7 +294,7 @@ class DataProfiler(BaseModule):
         elif inferred_type == 'datetime':
             if not is_datetime64_any_dtype(column):
                 column = pd.to_datetime(column, errors="coerce")
-            
+
             return {
                 "first": str(column.min()),
                 "last": str(column.max()),

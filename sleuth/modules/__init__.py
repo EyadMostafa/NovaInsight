@@ -3,10 +3,10 @@
 # from the declared dependencies at runtime.
 from sleuth.modules import (  # noqa: F401
     data_profiler,
-    target_detector,
-    statistical_analyzer,
     dimensionality_reducer,
-    visualizer,
     llm_summarizer,
     report_generator,
+    statistical_analyzer,
+    target_detector,
+    visualizer,
 )

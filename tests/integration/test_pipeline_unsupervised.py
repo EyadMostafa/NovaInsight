@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests.integration.conftest import build_pipeline, MODULES_NO_LLM_UNSUPERVISED
+from tests.integration.conftest import MODULES_NO_LLM_UNSUPERVISED, build_pipeline
 
 
 @pytest.mark.slow

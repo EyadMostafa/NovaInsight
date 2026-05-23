@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+
 import pandas as pd
-from sleuth.schemas.analysis_report import AnalysisReport
+
 from sleuth.config.config import SleuthConfig
+from sleuth.schemas.analysis_report import AnalysisReport
+
 
 class BaseModule(ABC):
     """

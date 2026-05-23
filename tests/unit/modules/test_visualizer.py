@@ -1,9 +1,6 @@
 """Unit tests for Visualizer."""
 from __future__ import annotations
 
-import pandas as pd
-import pytest
-
 from sleuth.modules.statistical_analyzer import StatisticalAnalyzer
 from sleuth.modules.target_detector import TargetDetector
 from sleuth.modules.visualizer import Visualizer
@@ -11,7 +8,6 @@ from sleuth.schemas.analysis_report import (
     CorrelationReport,
     DimensionalityAnalysis,
     StatisticalAnalysis,
-    OutlierReport,
 )
 
 

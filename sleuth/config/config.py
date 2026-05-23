@@ -10,15 +10,16 @@ Loading priority (highest wins):
 """
 from __future__ import annotations
 
-import os
-import yaml
 import logging
+import os
 import warnings
 from pathlib import Path
-from typing import Any, Literal, Union
+from typing import Any, Literal
 
+import yaml
+from dotenv import find_dotenv, load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError
-from dotenv import load_dotenv, find_dotenv
+
 from sleuth.exceptions import ConfigError
 from sleuth.utils.logger import ColorFormatter, get_logger
 
@@ -138,7 +139,7 @@ class DimensionalityReduction(BaseSettings):
     pca_n_ratios: int = Field(10)
     tsne_perplexity: float = Field(30.0)
     tsne_max_iter: int = Field(1000)
-    tsne_learning_rate: Union[Literal['auto'], float] = Field('auto')
+    tsne_learning_rate: Literal['auto'] | float = Field('auto')
     umap_n_neighbors: int = Field(15)
     umap_min_dist: float = Field(0.1)
     umap_metric: str = Field('euclidean')
@@ -229,7 +230,7 @@ def load_config(path: str | Path | None = None) -> SleuthConfig:
     final_config_dict: dict[str, Any] = {}
 
     try:
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             yaml_config = yaml.safe_load(f)
         if isinstance(yaml_config, dict):
             final_config_dict = deep_merge(yaml_config, final_config_dict)

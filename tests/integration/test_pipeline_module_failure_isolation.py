@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from sleuth.exceptions import StatisticalAnalyzerError
-from tests.integration.conftest import build_pipeline, MODULES_NO_LLM
+from tests.integration.conftest import build_pipeline
 
 
 @pytest.mark.slow

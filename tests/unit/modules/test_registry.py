@@ -7,13 +7,11 @@ import sleuth.modules  # noqa: F401 — triggers @register_module decorators
 from sleuth.exceptions import OrchestratorError
 from sleuth.modules.registry import (
     ModuleSpec,
-    _REGISTRY,
     get_registry,
     register_module,
     topological_order,
 )
 from sleuth.schemas.analysis_report import Operator
-
 
 # ---------------------------------------------------------------------------
 # Registry contents
@@ -33,7 +31,7 @@ class TestGetRegistry:
         assert expected.issubset(set(registry.keys()))
 
     def test_each_spec_has_cls_and_dependencies(self):
-        for op, spec in get_registry().items():
+        for _op, spec in get_registry().items():
             assert isinstance(spec, ModuleSpec)
             assert spec.cls is not None
             assert isinstance(spec.dependencies, list)
@@ -80,9 +78,8 @@ class TestTopologicalOrder:
 
 class TestCycleDetection:
     def test_cycle_raises_orchestrator_error(self, monkeypatch):
+
         from sleuth.modules.base_module import BaseModule
-        from sleuth.schemas.analysis_report import AnalysisReport
-        import pandas as pd
 
         # Build a fake registry with a cycle: A → B → A
         fake_registry: dict = {}
