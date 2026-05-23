@@ -138,13 +138,13 @@ jobs:
           key: smoke-${{ hashFiles('pyproject.toml') }}
 
       - name: Install package
-        run: pip install -e ".[gemini]"
+        run: pip install -e ".[test]"
 
       - name: Run CLI smoke test (profiler + stats only, no LLM)
         env:
           MPLBACKEND: Agg
         run: >
-          sleuth analyze local_testing/titanic.csv
+          sleuth analyze tests/fixtures/student_performance_small.csv
           --modules profiler,stats
           --mode fast
           --force-rerun
