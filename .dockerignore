@@ -1,0 +1,53 @@
+# Version control
+.git
+.gitignore
+
+# Editor history and caches
+.history
+.vscode
+.idea
+*.swp
+*.swo
+
+# Python artifacts
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.mypy_cache
+.ruff_cache
+*.egg-info
+dist/
+build/
+.venv
+venv
+env/
+
+# Test suite (not needed in the image)
+tests/
+
+# Local development data and notebooks
+local_testing/
+
+# Docs and markdown (keep README.md — needed for pyproject.toml metadata)
+CLAUDE.md
+IMPROVEMENTS.md
+novainsight_design_doc.md
+docs/
+
+# Environment files — NEVER bake secrets into the image
+.env
+.env.*
+*.env
+
+# Generated outputs
+Sleuth_reports/
+*.Sleuth_cache
+
+# CI and Docker meta (already in the image context)
+.github/
+
+# Misc
+*.md
+!README.md

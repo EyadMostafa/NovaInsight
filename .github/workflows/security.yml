@@ -1,0 +1,61 @@
+name: Security
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # Every Monday at 06:00 UTC
+  pull_request:
+    branches: [main]
+
+jobs:
+  audit:
+    name: Dependency & code audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install audit tools
+        run: pip install pip-audit bandit
+
+      - name: Install project deps
+        run: pip install -e ".[all-providers]"
+
+      - name: pip-audit (known CVEs)
+        run: pip-audit --strict
+
+      - name: bandit (static security scan)
+        run: bandit -q -r sleuth -ll
+
+  secret-scan:
+    name: Secret scanning (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  container-scan:
+    name: Container vulnerability scan
+    runs-on: ubuntu-latest
+    # Only run if a Dockerfile is present
+    if: hashFiles('Dockerfile') != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image for scanning
+        run: docker build --build-arg EXTRAS=gemini -t sleuth:scan .
+
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "sleuth:scan"
+          format: "table"
+          exit-code: "0"   # warn-only; set to 1 to gate on HIGH/CRITICAL
+          severity: "HIGH,CRITICAL"

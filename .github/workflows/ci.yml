@@ -1,0 +1,151 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: lint-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install linters
+        run: pip install ruff mypy
+
+      - name: ruff check
+        run: ruff check sleuth tests
+
+      - name: ruff format check
+        run: ruff format --check sleuth tests
+
+      - name: mypy (warn-only)
+        run: mypy sleuth --ignore-missing-imports || true
+
+  test:
+    name: Test (${{ matrix.os }} / py${{ matrix.python }})
+    needs: lint
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.10", "3.11", "3.12"]
+    runs-on: ${{ matrix.os }}
+    env:
+      MPLBACKEND: Agg
+      SLEUTH_ENV: test
+      # Suppress any accidental API key lookups in CI
+      SLEUTH_LLM_API_KEY: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/Library/Caches/pip
+            ~\AppData\Local\pip\Cache
+          key: test-${{ matrix.os }}-py${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            test-${{ matrix.os }}-py${{ matrix.python }}-
+
+      - name: Install package + test deps
+        run: pip install -e ".[test,all-providers]"
+
+      - name: Run tests (excluding slow integration)
+        run: >
+          pytest -m "not slow"
+          --junitxml=junit.xml
+          --cov=sleuth
+          --cov-report=xml
+          --cov-report=term-missing
+          -q
+
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.11'
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage.xml
+          fail_ci_if_error: false
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-${{ matrix.os }}-py${{ matrix.python }}
+          path: junit.xml
+
+  build:
+    name: Build distribution
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Build wheel + sdist
+        run: python -m build
+
+      - name: Check dist metadata
+        run: twine check dist/*
+
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  smoke:
+    name: CLI smoke test
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: smoke-${{ hashFiles('pyproject.toml') }}
+
+      - name: Install package
+        run: pip install -e ".[gemini]"
+
+      - name: Run CLI smoke test (profiler + stats only, no LLM)
+        env:
+          MPLBACKEND: Agg
+        run: >
+          sleuth analyze local_testing/titanic.csv
+          --modules profiler,stats
+          --mode fast
+          --force-rerun
+          --output-dir /tmp/smoke_output

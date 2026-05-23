@@ -1,0 +1,17 @@
+services:
+  Sleuth:
+    build:
+      context: .
+      args:
+        EXTRAS: all-providers
+    image: Sleuth:dev
+    environment:
+      SLEUTH_LLM_API_KEY: ${SLEUTH_LLM_API_KEY}
+      SLEUTH_LLM_PROVIDER: ${SLEUTH_LLM_PROVIDER:-google}
+    volumes:
+      - ./data:/work:rw
+      - Sleuth_cache:/work/.Sleuth_cache
+    command: ["analyze", "/work/your_file.csv", "--mode", "fast"]
+
+volumes:
+  Sleuth_cache:
