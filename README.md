@@ -1,229 +1,160 @@
-# **Sleuth: Autonomous Data Diagnositics Tool**
+# Sleuth — Autonomous Data Diagnostics
 
-**Sleuth** is a sophisticated, standalone CLI tool that performs end-to-end **Exploratory Data Analysis (EDA)**. It acts as a semi-autonomous data diagnostician, ingesting raw tabular data, performing rigorous statistical diagnostics, and generating rich, narrative-driven HTML reports powered by Large Language Models (LLM).
+Sleuth is a CLI tool that performs end-to-end Exploratory Data Analysis on tabular data. It runs a deterministic statistical pipeline, then uses an LLM to synthesise the findings into a narrative HTML report — all from a single command.
+
 [View Sample Outputs](https://eyadmostafa.github.io/Sleuth/)
 
 ---
 
-## **The "Dual Brain" Architecture**
+## How it works
 
-Sleuth is built on a unique architectural separation of concerns:
+Sleuth separates analysis from interpretation into two distinct layers:
 
-1. **The Quantitative Brain (Deterministic):**  
-   * Uses robust libraries (Pandas, Scikit-learn, SciPy, Statsmodels) to calculate objective facts.  
-   * Performs advanced tests: Modified Z-Score outlier detection, Multicollinearity (VIF), and polymorphic correlations (Spearman, Cramér's V, Correlation Ratio).  
-   * **Zero Hallucination:** All statistics are mathematically calculated, not guessed.
+**Quantitative Brain** — deterministic. Pandas, SciPy, Statsmodels, and scikit-learn calculate objective facts: type inference, missing value rates, outlier scores, VIF, correlation matrices, dimensionality reduction embeddings. Nothing is guessed.
 
-2. **The Language Brain (Probabilistic):**  
-   * Pluggable LLM providers — **Google Gemini**, **Anthropic Claude**, and **OpenAI** all supported out of the box.  
-   * Translates complex stats into executive summaries, prioritized recommendations, and warnings.  
-   * **Context Aware:** Understands if the task is supervised or unsupervised and tailors the narrative accordingly.
+**Language Brain** — probabilistic. A pluggable LLM provider (Gemini, Claude, or OpenAI) receives the computed statistics and writes the executive summary, key findings, and prioritised recommendations. The LLM never sees raw data — only pre-computed numbers.
 
 ---
 
-## **Key Features**
+## Features
 
-* **Comprehensive Profiling:** Automated type inference, missing value analysis, and memory usage profiling.  
-* **Autonomous Target Detection:** Automatically identifies the prediction target and task type (Classification vs. Regression) using heuristic scoring.  
-* **Deep Statistical Insights:**  
-  * **Data Leakage Detection:** Identifies features that are "too good to be true."  
-  * **Manifold Learning:** Visualizes high-dimensional data using **PCA**, **t-SNE**, and **UMAP**.  
-  * **Correlations:** Generates Num-Num, Cat-Cat, and Cat-Num heatmaps.  
-* **Fast Mode:** Intelligent pre-scanning and sampling for massive datasets to get structural insights in seconds.
-* **Parallel Execution:** Independent pipeline modules run concurrently — the LLM API call overlaps with plot generation, cutting wall-clock time significantly on full runs.
-* **Single-File Reports:** Generates a self-contained, professional HTML report with embedded interactive plots and base64 images—easy to share via email.  
-* **Smart Caching:** Resumes interrupted pipelines without re-calculating expensive steps.
-
----
-
-## **🚀 Getting Started**
-
-### **Prerequisites**
-
-* Python 3.10+  
-* An LLM API key — Google Gemini, Anthropic Claude, or OpenAI (LLM features are optional; all other modules run without one)
+| | |
+|---|---|
+| Data Profiling | Type inference, missing value analysis, cardinality, skewness, memory usage |
+| Target Detection | Heuristic scoring to automatically identify the supervised target and task type |
+| Outlier Detection | Modified Z-score (MAD-based) per numeric column |
+| Correlation Analysis | Three matrices — Spearman (Num↔Num), Cramér's V (Cat↔Cat), Correlation Ratio (Cat↔Num) |
+| Multicollinearity | VIF per feature with configurable threshold |
+| Data Leakage | Flags features whose correlation with the target exceeds a leakage threshold |
+| Dimensionality Reduction | PCA, t-SNE, and UMAP embeddings with scatter plots |
+| Visualisation | Univariate, bivariate, and heatmap galleries; plots coloured by target or cluster label |
+| LLM Narrative | Executive summary, dataset overview, findings, warnings, and ranked recommendations |
+| Fast Mode | Samples the first N rows for a structural spot-check on large files |
+| Parallel Execution | Wave-based `ThreadPoolExecutor` — independent modules run concurrently |
+| Smart Caching | Persists each run to `~/.sleuth_cache`; resumes interrupted pipelines automatically |
+| Single-File Reports | Self-contained HTML with base64-embedded images — share via email with no attachments |
 
 ---
 
-### **Installation**
+## Installation
 
-1. **Clone the repository:**
+**Prerequisites:** Python 3.10+
+
 ```bash
-git clone https://github.com/EyadMostafa/Sleuth.git
-cd Sleuth
+git clone https://github.com/EyadMostafa/sleuth.git
+cd sleuth
 ```
-
-2. **Set up the environment:**
 
 **macOS / Linux**
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 ```
 
 **Windows**
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
+python -m venv .venv && .venv\Scripts\activate
 ```
 
-3. **Install dependencies:**
 ```bash
 pip install -e .
 ```
 
-4. **Configure API Key:**  
-Create a `.env` file in the root directory:
+**LLM providers** are optional extras — install only what you need:
+
+```bash
+pip install -e ".[gemini]"       # Google Gemini (default)
+pip install -e ".[anthropic]"    # Anthropic Claude
+pip install -e ".[openai]"       # OpenAI
+pip install -e ".[all-providers]" # all three
+```
+
+All non-LLM modules (profiler, stats, dim reduction, viz) run without any API key.
+
+---
+
+## Configuration
+
+Create a `.env` file at the project root:
+
 ```env
 SLEUTH_LLM_API_KEY=your_api_key_here
-SLEUTH_LLM_PROVIDER=google        # google | anthropic | openai (default: google)
-SLEUTH_LLM_MODEL_NAME=models/gemini-2.0-flash  # optional override
+SLEUTH_LLM_PROVIDER=google          # google | anthropic | openai
+SLEUTH_LLM_MODEL_NAME=models/gemini-flash-latest   # optional override
+```
+
+Fine-grained tuning is done in `sleuth/config/config.yaml`:
+
+```yaml
+analysis:
+  fast_mode_sample_rows: 50000     # rows sampled in --mode fast
+
+statistics:
+  outlier_zscore_threshold: 3.0
+  multicollinearity_vif_threshold: 10.0
+  spearman_correlation_threshold: 0.85
+  spearman_leakage_threshold: 0.98
+
+dimensionality_reduction:
+  tsne_perplexity: 30.0
+  umap_n_neighbors: 15
+
+visualization:
+  dpi: 300
+  theme: whitegrid
+  color_palette: mako
 ```
 
 ---
-## 🖥️ Command-Line Reference
 
-The `analyze` command accepts a dataset file path and several options that control the pipeline's behavior.
+## Usage
 
----
-
-### **Usage**
-
-```bash
+```
 sleuth analyze FILE_PATH [OPTIONS]
 ```
 
----
+### Options
 
-### **Argument**
+| Flag | Default | Description |
+|---|---|---|
+| `--task` | `supervised` | `supervised` — detect target and structure analysis around prediction. `unsupervised` — skip target detection, focus on clustering. |
+| `--target COLUMN` | auto-detected | Manually pin the supervised target variable. |
+| `--mode` | `full` | `full` — analyse entire file. `fast` — sample first N rows (see `config.yaml`). |
+| `--modules LIST` | all | Comma-separated subset to run: `profiler,target,stats,dim_reduction,viz,llm` |
+| `--output-dir PATH` | `.` | Root directory for `Sleuth_reports/` output folder. |
+| `--title TEXT` | filename | Custom title for the report and output folder. |
+| `--force-rerun` | off | Ignore cached results and recompute everything. |
 
-* **FILE_PATH** — Path to a CSV or XLSX dataset.
-
----
-
-### **Options (Flags)**
-
-#### `--task <supervised|unsupervised>`
-
-Controls the overall task type.
-
-* **supervised (default):** Attempts to detect a target variable and structures analysis around prediction.  
-* **unsupervised:** Skips target detection; focuses on exploration, structure discovery, and clustering.
-
----
-
-#### `--modules <module1,module2,...>`
-
-Comma-separated list of specific modules to run (e.g., `profiler,stats`).  
-If omitted, Sleuth attempts to run the full pipeline.
-
-**Available Modules:**
-```
-profiler, target, stats, dim_reduction, viz, llm
-```
-
----
-
-#### `--target <column_name>`
-
-Manually specifies the supervised target variable. If omitted, Sleuth attempts automatic detection.
-
----
-
-#### `--mode <fast|full>`
-
-Controls dataset size processed.
-
-* **full (default):** Analyzes the entire dataset.  
-* **fast:** Analyzes only the first N rows (N configured in `config.yaml`).
-
----
-
-#### `--output-dir <path>`
-
-Outputs all results to a `Sleuth_reports` folder inside the specified directory.  
-Default: current working directory.
-
----
-
-#### `--title "<Your Report Title>"`
-
-Sets a custom title for generated reports.
-
----
-
-#### `--force-rerun`
-
-Ignores cached results and forces a full recomputation.
-
-
-
-## **🖥️ Usage**
-
-
-
-### **Basic Run (Supervised)**
-
-Attempts to detect a target and runs the full pipeline.
+### Examples
 
 ```bash
+# Supervised run — auto-detect target, full pipeline
 sleuth analyze titanic.csv
-```
 
----
+# Unsupervised — clustering and structure discovery
+sleuth analyze customer_data.csv --task unsupervised
 
-### **Unsupervised Analysis**
-
-Focuses on clustering and structure discovery instead of prediction.
-
-```bash
-sleuth analyze customer_segments.csv --task unsupervised
-```
-
----
-
-### **Fast Mode (Structural Spot-Check)**
-
-Analyzes a sample (default 5,000 rows) of a large file to check data quality quickly.
-
-```bash
+# Fast structural check on a large file
 sleuth analyze huge_dataset.csv --mode fast
+
+# Pin target, set report title, write to a specific directory
+sleuth analyze housing.csv --target SalePrice --title "Housing Q3" --output-dir ./reports
+
+# Run only profiling and statistics (skip plots and LLM)
+sleuth analyze data.csv --modules profiler,stats
 ```
 
 ---
 
-### **Specific Target & Title**
+## Output
 
-```bash
-sleuth analyze housing.csv --target SalePrice --title "Housing Market Q3 Analysis"
+Each run creates a folder at `sleuth_reports/<title>/`:
+
+```
+report_<title>.html    # self-contained HTML dashboard (base64 images embedded)
+report.json            # full AnalysisReport as machine-readable JSON
+plots/                 # high-res PNGs — univariate, bivariate, heatmaps, embeddings
+correlations/          # Spearman, Cramér's V, Correlation Ratio matrices (.csv)
+embeddings/            # PCA, t-SNE, UMAP coordinates (.csv)
 ```
 
----
-
-## **🛠️ Configuration**
-
-Sleuth is highly configurable via `config/config.yaml`. You can tune:
-
-* **Statistical Thresholds:** Correlation strength, Outlier sensitivity (Z-Score), VIF limits.  
-* **Dimensionality Reduction:** Perplexity for t-SNE, Neighbors for UMAP.  
-* **Visualization:** Color palettes (Seaborn), DPI, Theme.  
-* **System:** Cache directories, Logging levels.
-
-*See `config/config.yaml` for the full list of options.*
-
----
-
-## **📂 Output Artifacts**
-
-For every run, Sleuth creates a dedicated folder in `Sleuth_reports/`.
-
-* **report_title.html** — The main artifact. A polished, interactive dashboard.  
-* **report.json** — The raw machine-readable data of the entire analysis.  
-* **plots/** — High-resolution PNGs of all generated charts.  
-* **correlations/** — CSVs of the correlation matrices.  
-* **embeddings/** — CSVs of the PCA/t-SNE coordinates.
-
-[View Sample Outputs](https://eyadmostafa.github.io/Sleuth/)
-
----
-
+The cache lives separately at `~/.sleuth_cache/<sha256_of_file>/report.json` and is reused automatically on subsequent runs against the same file.
