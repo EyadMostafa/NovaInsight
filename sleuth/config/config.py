@@ -160,6 +160,7 @@ class LLMSettings(BaseSettings):
     max_tokens: int = Field(8192)
     api_key: SecretStr | None = None
     enable_prompt_caching: bool = Field(False)
+    base_url: str | None = None
 
 
 class SleuthConfig(BaseSettings):
@@ -215,6 +216,7 @@ def load_environment_variables() -> dict[str, Any]:
             "model_name": get("LLM_MODEL_NAME"),
             "api_key": get("LLM_API_KEY"),
             "enable_prompt_caching": get("LLM_ENABLE_PROMPT_CACHING"),
+            "base_url": get("LLM_BASE_URL"),
         },
     }
     return clean_nested_dict(mapping)

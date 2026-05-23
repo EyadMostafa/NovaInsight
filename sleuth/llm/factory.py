@@ -21,7 +21,10 @@ from sleuth.llm.providers.base import LLMProvider
 
 logger = get_logger("sleuth.llm.factory")
 
-_SUPPORTED_PROVIDERS = ("google", "anthropic", "openai")
+_SUPPORTED_PROVIDERS = ("google", "anthropic", "openai", "ollama")
+
+# Providers that run locally and do not require an API key.
+_LOCAL_PROVIDERS = frozenset({"ollama"})
 
 
 def create_provider(config: LLMSettings) -> LLMProvider:
@@ -32,25 +35,28 @@ def create_provider(config: LLMSettings) -> LLMProvider:
     Raises:
         LLMSummarizerError: If the provider name is unsupported or api_key is missing.
     """
-    if config.provider.lower() not in _SUPPORTED_PROVIDERS:
+    provider = config.provider.lower()
+
+    if provider not in _SUPPORTED_PROVIDERS:
         raise LLMSummarizerError(
             f"Unsupported LLM provider: '{config.provider}'. "
             f"Supported providers: {', '.join(_SUPPORTED_PROVIDERS)}"
         )
 
-    if not config.api_key:
+    if provider not in _LOCAL_PROVIDERS and not config.api_key:
         raise LLMSummarizerError(
             f"No API key found for provider '{config.provider}'. "
             "Set SLEUTH_LLM_API_KEY in your .env file."
         )
 
     return _create_provider_cached(
-        provider=config.provider.lower(),
+        provider=provider,
         model_name=config.model_name,
-        api_key=config.api_key.get_secret_value(),
+        api_key=config.api_key.get_secret_value() if config.api_key else "",
         temperature=config.temperature,
         max_tokens=config.max_tokens,
         enable_prompt_caching=config.enable_prompt_caching,
+        base_url=config.base_url or "",
     )
 
 
@@ -62,9 +68,11 @@ def _create_provider_cached(
     temperature: float,
     max_tokens: int,
     enable_prompt_caching: bool,
+    base_url: str = "",
 ) -> LLMProvider:
     """Cached inner factory — arguments must all be hashable primitives."""
-    kwargs = dict(
+    # Common kwargs shared by all cloud providers.
+    cloud_kwargs = dict(
         api_key=api_key,
         model_name=model_name,
         temperature=temperature,
@@ -75,13 +83,24 @@ def _create_provider_cached(
     if provider == "google":
         from sleuth.llm.providers.gemini import GeminiProvider
         logger.info(f"Initializing Gemini provider ({model_name})")
-        return GeminiProvider(**kwargs)
+        return GeminiProvider(**cloud_kwargs)
 
     if provider == "anthropic":
         from sleuth.llm.providers.anthropic import AnthropicProvider
         logger.info(f"Initializing Anthropic provider ({model_name})")
-        return AnthropicProvider(**kwargs)
+        return AnthropicProvider(**cloud_kwargs)
+
+    if provider == "ollama":
+        from sleuth.llm.providers.ollama import OllamaProvider
+        logger.info(f"Initializing Ollama provider ({model_name})")
+        return OllamaProvider(
+            model_name=model_name,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            enable_prompt_caching=enable_prompt_caching,
+            base_url=base_url or None,
+        )
 
     from sleuth.llm.providers.openai import OpenAIProvider
     logger.info(f"Initializing OpenAI provider ({model_name})")
-    return OpenAIProvider(**kwargs)
+    return OpenAIProvider(**cloud_kwargs)
