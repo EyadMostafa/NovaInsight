@@ -17,7 +17,7 @@ from typing import Tuple, List
 @register_module(
     operator=Operator.PROFILER,
     dependencies=[],
-    is_completed=lambda report: bool(report.profile.column_details),
+    is_completed=lambda report: bool(report.profile and report.profile.column_details)
 )
 class DataProfiler(BaseModule):
     """
@@ -38,7 +38,7 @@ class DataProfiler(BaseModule):
         """
         Executes the full profiling process.
         """
-        self.original_row_count = report.profile.dataset_stats.original_row_count
+        self.original_row_count = report.metadata.original_row_count
         dataset_stats = self._profile_dataset_level(df)
         column_details = self._profile_column_level(df)
         dataset_profile = DatasetProfile(
