@@ -27,7 +27,6 @@ class Operator(str, Enum):
     DIM_REDUCTION = auto()
     VIZ = auto()
     LLM = auto()
-    RECOMMENDATIONS = auto()
     REPORT = auto()
 
 class Finding(BaseModel):
@@ -44,6 +43,7 @@ class RunMetadata(BaseModel):
     analysis_mode: Literal['full', 'fast'] = Field(..., description="The mode of the analysis ('full' or 'fast').")
     task: Literal['supervised', 'unsupervised'] = Field(..., description="The task to be performed using the dataset (supervised or unsupervised)")
     user_target: Optional[str] = Field(None, description="The target provided by the user if any.")
+    original_row_count: int = Field(0, description="Total row count of the full input file, set before sampling in fast mode.")
 
 class DatasetStats(BaseModel):
     """Holds overall summary statistics for the entire dataset."""
@@ -58,7 +58,7 @@ class DatasetStats(BaseModel):
 class ColumnDetails(BaseModel):
     """A detailed, structured profile for a single column."""
     column_name: str = Field(..., description="The name of the column.")
-    inferred_type: str = Field(..., description="The high-level inferred type (e.g., 'numeric', 'categorical', 'datetime', 'text', 'id').")
+    inferred_type: str = Field(..., description="The high-level inferred type (e.g., 'numerical', 'categorical', 'datetime', 'text', 'id').")
     dtype: str = Field(..., description="The actual pandas dtype (e.g., 'int64', 'float64', 'object').")
     missing_values_count: int = Field(..., description="The absolute count of missing or null (NaN) values.")
     missing_values_pct: float = Field(..., description="The percentage of values in the column that are missing.")
@@ -126,18 +126,18 @@ class StatisticalAnalysis(BaseModel):
 
 class DimensionalityAnalysis(BaseModel):
     """The complete output from the Dimensionality Reduction module."""
-    pca_explained_variance_ratios: Optional[List[float]] = Field([])
-    pca_embeddings_path: Optional[str | Path] = Field("")
-    tsne_embeddings_path: Optional[str | Path] = Field("")
-    umap_embeddings_path: Optional[str | Path] = Field("")
+    pca_explained_variance_ratios: Optional[List[float]] = Field(default=None)
+    pca_embeddings_path: Optional[str | Path] = Field(default=None)
+    tsne_embeddings_path: Optional[str | Path] = Field(default=None)
+    umap_embeddings_path: Optional[str | Path] = Field(default=None)
     findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
 
 class VisualizationOutput(BaseModel):
     """A collection of file paths to all generated plot images."""
     univariate_plots: Dict[str, str | Path] = Field(..., description="Mapping of column names to their distribution plot paths.")
     bivariate_plots: Dict[str, str | Path] = Field(..., description="Mapping of plot types (e.g., 'target_vs_feature_x') to their paths.")
-    correlation_heatmap_plots: Optional[Dict[str, str | Path]] = Field("")
-    dim_reduction_scatter_plots: Optional[Dict[str, str | Path]] = Field("")
+    correlation_heatmap_plots: Optional[Dict[str, str | Path]] = Field(default=None)
+    dim_reduction_scatter_plots: Optional[Dict[str, str | Path]] = Field(default=None)
     findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
 
 # ===================================================================
@@ -190,6 +190,7 @@ class AnalysisReport(BaseModel):
     visualizations: Optional[VisualizationOutput] = None
     llm_summary: Optional[LLMSummary] = None
     raw_llm_output: Optional[str] = None  # Mainly used for debugging
+    html_report_path: Optional[str] = None
     findings: List[Finding] = Field(default_factory=list, description="A list to hold findings from any module-level failures, warnings, or info")
     timing: Optional[PipelineTiming] = None
 
@@ -197,4 +198,3 @@ class AnalysisReport(BaseModel):
         "arbitrary_types_allowed": True,
         "frozen": False
     }
-
