@@ -229,7 +229,7 @@ def load_config(path: str | Path | None = None) -> SleuthConfig:
     final_config_dict: dict[str, Any] = {}
 
     try:
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             yaml_config = yaml.safe_load(f)
         if isinstance(yaml_config, dict):
             final_config_dict = deep_merge(yaml_config, final_config_dict)
