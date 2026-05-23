@@ -55,10 +55,10 @@ class StatisticalAnalyzer(BaseModule):
         multicollinearity_report = self._detect_multicollinearity(df, report)
         correlation_results = self._analyze_correlations(df, report)
 
-        correlation_report = correlation_results['correlation_report']
-        cat_num_matrix = correlation_results['cat_num_matrix']
-        num_num_matrix = correlation_results['num_num_matrix']
-        cat_cat_matrix = correlation_results['cat_cat_matrix']
+        correlation_report = correlation_results["correlation_report"]
+        cat_num_matrix = correlation_results["cat_num_matrix"]
+        num_num_matrix = correlation_results["num_num_matrix"]
+        cat_cat_matrix = correlation_results["cat_cat_matrix"]
 
         try:
             output_dir = Path(report.metadata.output_dir) / "correlations"
@@ -69,107 +69,123 @@ class StatisticalAnalyzer(BaseModule):
             cat_cat_matrix.to_csv(correlation_report.categorical_categorical_path)
 
         except Exception as e:
-            self.findings.append(Finding(
-                level='WARNING',
-                message=f"Could not save correlation matrices to disk. Reason: {e}"
-            ))
+            self.findings.append(
+                Finding(
+                    level="WARNING",
+                    message=f"Could not save correlation matrices to disk. Reason: {e}",
+                )
+            )
 
             correlation_report.categorical_numerical_path = None
             correlation_report.numerical_numerical_path = None
             correlation_report.categorical_categorical_path = None
 
-        if report.metadata.task == 'supervised':
+        if report.metadata.task == "supervised":
             target_name = report.target_analysis.identified_target
-            target_details = next((c for c in report.profile.column_details if c.column_name == target_name), None)
+            target_details = next(
+                (c for c in report.profile.column_details if c.column_name == target_name), None
+            )
             if target_details:
-                if target_details.inferred_type in ['categorical', 'boolean']:
+                if target_details.inferred_type in ["categorical", "boolean"]:
                     target_column = df[report.target_analysis.identified_target]
                     class_imbalance_report = self._analyze_class_imbalance(target_column)
 
                 self._check_for_data_leakage(
                     report=report,
-                    cat_num_corr=correlation_results.get('cat_num_corr_dict', {}),
-                    cat_corr=correlation_results.get('cat_corr_dict', {}),
-                    num_corr=correlation_results.get('num_corr_dict', {})
+                    cat_num_corr=correlation_results.get("cat_num_corr_dict", {}),
+                    cat_corr=correlation_results.get("cat_corr_dict", {}),
+                    num_corr=correlation_results.get("num_corr_dict", {}),
                 )
             else:
-                self.findings.append(Finding(
-                    level='WARNING',
-                    message=f"Supervised task specified, but target '{target_name}' details not found in profile."
-                ))
+                self.findings.append(
+                    Finding(
+                        level="WARNING",
+                        message=f"Supervised task specified, but target '{target_name}' details not found in profile.",
+                    )
+                )
 
         statistical_analysis = StatisticalAnalysis(
             outlier_report=outlier_report,
             multicollinearity_report=multicollinearity_report,
             correlation_report=correlation_report,
             class_imbalance_report=class_imbalance_report,
-            findings=self.findings
+            findings=self.findings,
         )
 
         report.statistical_analysis = statistical_analysis
 
         return report
 
-    def _detect_outliers(self, df: pd.DataFrame, columns_details: list[ColumnDetails]) -> dict[str, OutlierReport]:
-            """
-            Identifies outliers in numeric columns using the configured method.
-            Appends findings to self.findings.
-            """
-            columns_outlier_analysis = {}
-            detection_method = self.config.statistics.outlier_detection_method
-            try:
-                for col_details in columns_details:
-                    if col_details.inferred_type != 'numerical':
-                        continue
+    def _detect_outliers(
+        self, df: pd.DataFrame, columns_details: list[ColumnDetails]
+    ) -> dict[str, OutlierReport]:
+        """
+        Identifies outliers in numeric columns using the configured method.
+        Appends findings to self.findings.
+        """
+        columns_outlier_analysis = {}
+        detection_method = self.config.statistics.outlier_detection_method
+        try:
+            for col_details in columns_details:
+                if col_details.inferred_type != "numerical":
+                    continue
 
-                    column_name = col_details.column_name
-                    column = df[column_name].dropna()
+                column_name = col_details.column_name
+                column = df[column_name].dropna()
 
-                    if column.empty:
-                        continue
+                if column.empty:
+                    continue
 
-                    scores = None
-                    method_name = "N/A"
+                scores = None
+                method_name = "N/A"
 
-                    if detection_method == 'mz-score':
-                        method_name = "Modified Z-score"
-                        scores = self._compute_modified_z_scores(column)
-                    elif detection_method == 'z-score':
-                        method_name = "Z-score"
-                        scores = self._compute_z_scores(column)
+                if detection_method == "mz-score":
+                    method_name = "Modified Z-score"
+                    scores = self._compute_modified_z_scores(column)
+                elif detection_method == "z-score":
+                    method_name = "Z-score"
+                    scores = self._compute_z_scores(column)
 
-                    if scores is None:
-                        outlier_report = OutlierReport(
-                            outlier_count=0,
-                            outlier_percentage=0.0,
-                            method=method_name
-                        )
-                        columns_outlier_analysis[column_name] = outlier_report
-                        continue
-
-                    outlier_count = (np.abs(scores) > self.config.statistics.outlier_zscore_threshold).sum()
-
-                    outlier_percentage = outlier_count / len(column) if len(column) > 0 else 0.0
-
-                    if outlier_percentage > self.config.statistics.outlier_warning_threshold:
-                        self.findings.append(Finding(
-                            level='WARNING',
-                            message=(f"Column '{column_name}' has a high percentage of potential outliers ({outlier_percentage:.1%}). "
-                                     "This may skew statistical analysis and impact model performance.")
-                        ))
-
+                if scores is None:
                     outlier_report = OutlierReport(
-                        outlier_count=int(outlier_count),
-                        outlier_percentage=outlier_percentage,
-                        method=method_name
+                        outlier_count=0, outlier_percentage=0.0, method=method_name
                     )
                     columns_outlier_analysis[column_name] = outlier_report
+                    continue
 
-                return columns_outlier_analysis
-            except Exception as e:
-                raise StatisticalAnalyzerError(f"Failed to perform outlier detection. Reason: {e}") from e
+                outlier_count = (
+                    np.abs(scores) > self.config.statistics.outlier_zscore_threshold
+                ).sum()
 
-    def _detect_multicollinearity(self, df: pd.DataFrame, report: AnalysisReport) -> dict[str, float]:
+                outlier_percentage = outlier_count / len(column) if len(column) > 0 else 0.0
+
+                if outlier_percentage > self.config.statistics.outlier_warning_threshold:
+                    self.findings.append(
+                        Finding(
+                            level="WARNING",
+                            message=(
+                                f"Column '{column_name}' has a high percentage of potential outliers ({outlier_percentage:.1%}). "
+                                "This may skew statistical analysis and impact model performance."
+                            ),
+                        )
+                    )
+
+                outlier_report = OutlierReport(
+                    outlier_count=int(outlier_count),
+                    outlier_percentage=outlier_percentage,
+                    method=method_name,
+                )
+                columns_outlier_analysis[column_name] = outlier_report
+
+            return columns_outlier_analysis
+        except Exception as e:
+            raise StatisticalAnalyzerError(
+                f"Failed to perform outlier detection. Reason: {e}"
+            ) from e
+
+    def _detect_multicollinearity(
+        self, df: pd.DataFrame, report: AnalysisReport
+    ) -> dict[str, float]:
         """
         ... (docstring) ...
         """
@@ -178,8 +194,9 @@ class StatisticalAnalyzer(BaseModule):
         target_column = report.target_analysis.identified_target if report.target_analysis else None
 
         numerical_columns = [
-            col.column_name for col in report.profile.column_details
-            if col.inferred_type == 'numerical' and col.column_name != target_column
+            col.column_name
+            for col in report.profile.column_details
+            if col.inferred_type == "numerical" and col.column_name != target_column
         ]
 
         if len(numerical_columns) < 2:
@@ -198,19 +215,27 @@ class StatisticalAnalyzer(BaseModule):
 
                 if vif_score > self.config.statistics.multicollinearity_vif_threshold:
                     multicollinearity_report[feature_name] = vif_score
-                    self.findings.append(Finding(
-                        level='WARNING',
-                        message=(
-                            f"High Multicollinearity: The column '{feature_name}' has a high VIF score of {vif_score:.2f}. "
-                            "This suggests it is highly correlated with other features and may be redundant."
+                    self.findings.append(
+                        Finding(
+                            level="WARNING",
+                            message=(
+                                f"High Multicollinearity: The column '{feature_name}' has a high VIF score of {vif_score:.2f}. "
+                                "This suggests it is highly correlated with other features and may be redundant."
+                            ),
                         )
-                    ))
+                    )
 
             return multicollinearity_report
 
         except Exception as e:
-            self.findings.append(Finding(level='WARNING', message=f"Could not perform multicollinearity analysis: {e}"))
-            raise StatisticalAnalyzerError(f"Could not perform multicollinearity analysis. Reason: {e}") from e
+            self.findings.append(
+                Finding(
+                    level="WARNING", message=f"Could not perform multicollinearity analysis: {e}"
+                )
+            )
+            raise StatisticalAnalyzerError(
+                f"Could not perform multicollinearity analysis. Reason: {e}"
+            ) from e
 
     def _analyze_correlations(self, df: pd.DataFrame, report: AnalysisReport) -> dict[str, Any]:
         """
@@ -218,7 +243,6 @@ class StatisticalAnalyzer(BaseModule):
         Generates findings based on both strength and statistical significance.
         """
         try:
-
             cat_num_corr: dict[tuple[str, str], float] = {}
             num_corr: dict[tuple[str, str], float] = {}
             cat_corr: dict[tuple[str, str], float] = {}
@@ -230,8 +254,16 @@ class StatisticalAnalyzer(BaseModule):
             p_value_threshold = self.config.statistics.p_value_threshold
 
             column_details = report.profile.column_details
-            categorical_columns = [column.column_name for column in column_details if column.inferred_type in ['categorical', 'boolean']]
-            numerical_columns = [column.column_name for column in column_details if column.inferred_type == 'numerical']
+            categorical_columns = [
+                column.column_name
+                for column in column_details
+                if column.inferred_type in ["categorical", "boolean"]
+            ]
+            numerical_columns = [
+                column.column_name
+                for column in column_details
+                if column.inferred_type == "numerical"
+            ]
 
             cat_num_pairs = list(product(categorical_columns, numerical_columns))
             cat_pairs = list(combinations(categorical_columns, 2))
@@ -243,11 +275,15 @@ class StatisticalAnalyzer(BaseModule):
                 cat_num_corr[(cat_col, num_col)] = corr
                 cat_num_corr_pvals[(cat_col, num_col)] = pvalue
                 if corr > corr_ratio_threshold and pvalue < p_value_threshold:
-                    self.findings.append(Finding(
-                        level='WARNING',
-                        message= (f"Strong Association: Numeric feature '{num_col}' and categorical feature "
-                                  f"'{cat_col}' are highly associated (Correlation Ratio η = {corr:.2f}, p={pvalue:.3g}).")
-                    ))
+                    self.findings.append(
+                        Finding(
+                            level="WARNING",
+                            message=(
+                                f"Strong Association: Numeric feature '{num_col}' and categorical feature "
+                                f"'{cat_col}' are highly associated (Correlation Ratio η = {corr:.2f}, p={pvalue:.3g})."
+                            ),
+                        )
+                    )
 
             cramers_v_threshold = float(self.config.statistics.cramers_v_correlation_threshold)
             for col1, col2 in cat_pairs:
@@ -255,15 +291,18 @@ class StatisticalAnalyzer(BaseModule):
                 cat_corr[(col1, col2)] = corr
                 cat_corr_pvals[(col1, col2)] = pvalue
                 if corr > cramers_v_threshold and pvalue < p_value_threshold:
-                    self.findings.append(Finding(
-                        level='WARNING',
-                        message= (f"Strong Association: Categorical features '{col1}' and '{col2}' "
-                                  f"are highly associated (Cramér's V = {corr:.2f}, p={pvalue:.3g}).")
-                    ))
+                    self.findings.append(
+                        Finding(
+                            level="WARNING",
+                            message=(
+                                f"Strong Association: Categorical features '{col1}' and '{col2}' "
+                                f"are highly associated (Cramér's V = {corr:.2f}, p={pvalue:.3g})."
+                            ),
+                        )
+                    )
 
             spearman_threshold = float(self.config.statistics.spearman_correlation_threshold)
             for col1, col2 in num_pairs:
-
                 pair_df = df[[col1, col2]].dropna()
 
                 if pair_df.shape[0] < 2:
@@ -277,31 +316,43 @@ class StatisticalAnalyzer(BaseModule):
                 num_corr[(col1, col2)] = corr
                 num_corr_pvals[(col1, col2)] = pvalue
                 if abs(corr) > spearman_threshold and pvalue < p_value_threshold:
-                    self.findings.append(Finding(
-                        level='WARNING',
-                        message= (f"High Monotonic Correlation: Features '{col1}' and '{col2}' "
-                                  f"have a strong monotonic relationship (Spearman's ρ = {corr:.2f}, p={pvalue:.3g}).")
-                    ))
+                    self.findings.append(
+                        Finding(
+                            level="WARNING",
+                            message=(
+                                f"High Monotonic Correlation: Features '{col1}' and '{col2}' "
+                                f"have a strong monotonic relationship (Spearman's ρ = {corr:.2f}, p={pvalue:.3g})."
+                            ),
+                        )
+                    )
             output_dir = Path(report.metadata.output_dir) / "correlations"
             correlation_report = CorrelationReport(
                 numerical_numerical_path=output_dir / "numerical_corr.csv",
                 categorical_categorical_path=output_dir / "categorical_corr.csv",
-                categorical_numerical_path=output_dir / "categorical_numerical_corr.csv"
+                categorical_numerical_path=output_dir / "categorical_numerical_corr.csv",
             )
 
             results = {
-                'correlation_report': correlation_report,
-                'cat_num_matrix': self._dict_to_corr_matrix(cat_num_corr),
-                'num_num_matrix': self._dict_to_corr_matrix(num_corr),
-                'cat_cat_matrix': self._dict_to_corr_matrix(cat_corr),
-                'cat_num_corr_dict': {k: (v, cat_num_corr_pvals.get(k, np.nan)) for k, v in cat_num_corr.items()},
-                'num_corr_dict': {k: (v, num_corr_pvals.get(k, np.nan)) for k, v in num_corr.items()},
-                'cat_corr_dict': {k: (v, cat_corr_pvals.get(k, np.nan)) for k, v in cat_corr.items()},
+                "correlation_report": correlation_report,
+                "cat_num_matrix": self._dict_to_corr_matrix(cat_num_corr),
+                "num_num_matrix": self._dict_to_corr_matrix(num_corr),
+                "cat_cat_matrix": self._dict_to_corr_matrix(cat_corr),
+                "cat_num_corr_dict": {
+                    k: (v, cat_num_corr_pvals.get(k, np.nan)) for k, v in cat_num_corr.items()
+                },
+                "num_corr_dict": {
+                    k: (v, num_corr_pvals.get(k, np.nan)) for k, v in num_corr.items()
+                },
+                "cat_corr_dict": {
+                    k: (v, cat_corr_pvals.get(k, np.nan)) for k, v in cat_corr.items()
+                },
             }
 
             return results
         except Exception as e:
-            raise StatisticalAnalyzerError(f"Failed to perform correlation analysis. Reason: {e}") from e
+            raise StatisticalAnalyzerError(
+                f"Failed to perform correlation analysis. Reason: {e}"
+            ) from e
 
     def _analyze_class_imbalance(self, target_column: pd.Series) -> ClassImbalanceReport | None:
         """Analyzes and reports on the class distribution of the target variable."""
@@ -315,7 +366,10 @@ class StatisticalAnalyzer(BaseModule):
             percentages = {str(k): float(v / total) for k, v in value_counts.items()}
 
             if len(percentages) < 2:
-                return ClassImbalanceReport(class_counts={str(k): int(v) for k, v in value_counts.items()}, class_percentages=percentages)
+                return ClassImbalanceReport(
+                    class_counts={str(k): int(v) for k, v in value_counts.items()},
+                    class_percentages=percentages,
+                )
 
             min_pct = min(percentages.values())
             max_pct = max(percentages.values())
@@ -324,79 +378,117 @@ class StatisticalAnalyzer(BaseModule):
 
             max_min_ratio = max_pct / min_pct
             if max_min_ratio > self.config.statistics.class_imbalance_threshold:
-                self.findings.append(Finding(
-                    level='WARNING',
-                    message=(f"Class Imbalance Detected: The target variable '{target_column.name}' is imbalanced. "
-                             f"The majority class '{max_class}' is {max_min_ratio:.1f} times more frequent than the minority class "
-                             f"'{min_class}'. This can bias model training.")
-                ))
+                self.findings.append(
+                    Finding(
+                        level="WARNING",
+                        message=(
+                            f"Class Imbalance Detected: The target variable '{target_column.name}' is imbalanced. "
+                            f"The majority class '{max_class}' is {max_min_ratio:.1f} times more frequent than the minority class "
+                            f"'{min_class}'. This can bias model training."
+                        ),
+                    )
+                )
 
             value_counts_str_keys = {str(k): int(v) for k, v in value_counts.items()}
 
             class_imbalance_report = ClassImbalanceReport(
-                class_counts=value_counts_str_keys,
-                class_percentages=percentages
+                class_counts=value_counts_str_keys, class_percentages=percentages
             )
 
             return class_imbalance_report
         except Exception as e:
-            finding = Finding(level='WARNING', message=f"Could not perform class imbalance analysis: {e}")
+            finding = Finding(
+                level="WARNING", message=f"Could not perform class imbalance analysis: {e}"
+            )
             self.findings.append(finding)
             return None
 
     def _check_for_data_leakage(
-            self,
-            report: AnalysisReport,
-            cat_num_corr: dict[tuple[str, str], tuple[float, float]],
-            cat_corr: dict[tuple[str, str], tuple[float, float]],
-            num_corr: dict[tuple[str, str], tuple[float, float]]
-        ) -> None:
-            """
-            Checks for features that are almost perfectly correlated with the target.
-            Appends findings to self.findings. (Only called for supervised tasks).
-            """
-            p_value_threshold = self.config.statistics.p_value_threshold
+        self,
+        report: AnalysisReport,
+        cat_num_corr: dict[tuple[str, str], tuple[float, float]],
+        cat_corr: dict[tuple[str, str], tuple[float, float]],
+        num_corr: dict[tuple[str, str], tuple[float, float]],
+    ) -> None:
+        """
+        Checks for features that are almost perfectly correlated with the target.
+        Appends findings to self.findings. (Only called for supervised tasks).
+        """
+        p_value_threshold = self.config.statistics.p_value_threshold
 
-            target_name = report.target_analysis.identified_target
-            if not target_name:
-                return
+        target_name = report.target_analysis.identified_target
+        if not target_name:
+            return
 
-            try:
-                target_type = next((column.inferred_type for column in report.profile.column_details if column.column_name == target_name), "")
+        try:
+            target_type = next(
+                (
+                    column.inferred_type
+                    for column in report.profile.column_details
+                    if column.column_name == target_name
+                ),
+                "",
+            )
 
-                for pair, (corr, pvalue) in cat_num_corr.items():
-                    if corr > self.config.statistics.correlation_ratio_leakage_threshold and target_name in pair and pvalue < p_value_threshold:
+            for pair, (corr, pvalue) in cat_num_corr.items():
+                if (
+                    corr > self.config.statistics.correlation_ratio_leakage_threshold
+                    and target_name in pair
+                    and pvalue < p_value_threshold
+                ):
+                    column_name = pair[0] if pair[1] == target_name else pair[1]
+                    self.findings.append(
+                        Finding(
+                            level="WARNING",
+                            message=(
+                                f"Potential Data Leakage: The feature '{column_name}' has a near-perfect association"
+                                f"with the target '{target_name}' (Correlation Ratio η = {corr:.2f}, p={pvalue:.3g}), "
+                                f"indicating it can almost perfectly predict the target."
+                            ),
+                        )
+                    )
+
+            if target_type == "numerical":
+                for pair, (corr, pvalue) in num_corr.items():
+                    if (
+                        abs(corr) > self.config.statistics.spearman_leakage_threshold
+                        and target_name in pair
+                        and pvalue < p_value_threshold
+                    ):
                         column_name = pair[0] if pair[1] == target_name else pair[1]
-                        self.findings.append(Finding(
-                            level='WARNING',
-                            message=(f"Potential Data Leakage: The feature '{column_name}' has a near-perfect association"
-                                     f"with the target '{target_name}' (Correlation Ratio η = {corr:.2f}, p={pvalue:.3g}), "
-                                     f"indicating it can almost perfectly predict the target.")
-                        ))
+                        self.findings.append(
+                            Finding(
+                                level="WARNING",
+                                message=(
+                                    f"Potential Data Leakage: The feature '{column_name}' "
+                                    f"is almost perfectly correlated with the target '{target_name}' "
+                                    f"(Spearman's ρ = {corr:.2f}, p={pvalue:.3g}), indicating it is likely a proxy."
+                                ),
+                            )
+                        )
+            else:
+                for pair, (corr, pvalue) in cat_corr.items():
+                    if (
+                        corr > self.config.statistics.cramers_v_leakage_threshold
+                        and target_name in pair
+                        and pvalue < p_value_threshold
+                    ):
+                        column_name = pair[0] if pair[1] == target_name else pair[1]
+                        self.findings.append(
+                            Finding(
+                                level="WARNING",
+                                message=(
+                                    f"Potential Data Leakage: The categorical feature '{column_name}' "
+                                    f"has a near-perfect association with the target '{target_name}' "
+                                    f"(Cramér's V = {corr:.2f}, p={pvalue:.3g}), suggesting it contains redundant information."
+                                ),
+                            )
+                        )
 
-                if target_type == 'numerical':
-                    for pair, (corr, pvalue) in num_corr.items():
-                        if abs(corr) > self.config.statistics.spearman_leakage_threshold and target_name in pair and pvalue < p_value_threshold:
-                            column_name = pair[0] if pair[1] == target_name else pair[1]
-                            self.findings.append(Finding(
-                                level='WARNING',
-                                message=(f"Potential Data Leakage: The feature '{column_name}' "
-                                         f"is almost perfectly correlated with the target '{target_name}' "
-                                         f"(Spearman's ρ = {corr:.2f}, p={pvalue:.3g}), indicating it is likely a proxy.")
-                            ))
-                else:
-                    for pair, (corr, pvalue) in cat_corr.items():
-                        if corr > self.config.statistics.cramers_v_leakage_threshold and target_name in pair and pvalue < p_value_threshold:
-                            column_name = pair[0] if pair[1] == target_name else pair[1]
-                            self.findings.append(Finding(
-                                level='WARNING',
-                                message=(f"Potential Data Leakage: The categorical feature '{column_name}' "
-                                         f"has a near-perfect association with the target '{target_name}' "
-                                         f"(Cramér's V = {corr:.2f}, p={pvalue:.3g}), suggesting it contains redundant information.")
-                            ))
-
-            except Exception as e:
-                self.findings.append(Finding(level='WARNING', message=f"Failed to perform data leakage detection: {e}"))
+        except Exception as e:
+            self.findings.append(
+                Finding(level="WARNING", message=f"Failed to perform data leakage detection: {e}")
+            )
 
     @staticmethod
     def _compute_modified_z_scores(column: pd.Series) -> pd.Series | None:
@@ -421,34 +513,36 @@ class StatisticalAnalyzer(BaseModule):
         std = np.std(column)
 
         if std == 0:
-                return None
+            return None
 
         return deviations_from_mean / std
 
     @staticmethod
     def _compute_correlation_ratio(categories: pd.Series, values: pd.Series) -> tuple[float, float]:
         """Computes Correlation Ratio (η) and its p-value (from F-test)."""
-        data = pd.DataFrame({'categories': categories, 'values': values}).dropna()
+        data = pd.DataFrame({"categories": categories, "values": values}).dropna()
 
-        if data.empty or data['categories'].nunique() < 2:
+        if data.empty or data["categories"].nunique() < 2:
             return np.nan, np.nan
 
-        population_mean = np.mean(data['values'])
-        ss_total = np.sum((data['values'] - population_mean) ** 2)
+        population_mean = np.mean(data["values"])
+        ss_total = np.sum((data["values"] - population_mean) ** 2)
 
         if ss_total == 0:
             return np.nan, np.nan
 
-        groups = [data['values'][data['categories'] == cat] for cat in np.unique(data['categories'])]
+        groups = [
+            data["values"][data["categories"] == cat] for cat in np.unique(data["categories"])
+        ]
 
         groups_for_f_test = [g for g in groups if len(g) >= 2]
         try:
             if len(groups_for_f_test) < 2:
-                 f_value, p_value = np.nan, np.nan
+                f_value, p_value = np.nan, np.nan
             else:
-                 f_value, p_value = f_oneway(*groups_for_f_test)
+                f_value, p_value = f_oneway(*groups_for_f_test)
         except ValueError:
-             _f_value, p_value = np.nan, np.nan
+            _f_value, p_value = np.nan, np.nan
 
         n_per_group = [len(group) for group in groups]
         mean_per_group = [np.mean(group) for group in groups if not group.empty]
@@ -469,7 +563,7 @@ class StatisticalAnalyzer(BaseModule):
         k = min(confusion_matrix.shape)
 
         if k == 1 or n == 0 or (n * (k - 1)) == 0:
-             return np.nan, np.nan
+            return np.nan, np.nan
 
         v = np.sqrt(chi2 / (n * (k - 1)))
         return v, pvalue
@@ -501,4 +595,3 @@ class StatisticalAnalyzer(BaseModule):
             matrix.loc[c, c] = 1.0
 
         return matrix
-

@@ -12,6 +12,7 @@ Adding a new module only requires:
   2. Operator enum value in schemas/analysis_report.py
   3. AnalysisReport field in schemas/analysis_report.py
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -55,6 +56,7 @@ def register_module(
         class DataProfiler(BaseModule):
             ...
     """
+
     def decorator(cls: type[BaseModule]) -> type[BaseModule]:
         _REGISTRY[operator] = ModuleSpec(
             operator=operator,
@@ -63,6 +65,7 @@ def register_module(
             is_completed=is_completed,
         )
         return cls
+
     return decorator
 
 

@@ -1,4 +1,5 @@
 """Unit tests for the LLM provider factory."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -33,27 +34,39 @@ class TestCreateProvider:
     def test_ollama_no_api_key_does_not_raise(self):
         """Ollama is a local provider — no API key should be required."""
         import sys
+
         fake_ollama_mod = MagicMock()
         fake_ollama_mod.OllamaProvider = MagicMock(return_value=MagicMock(spec=LLMProvider))
         _create_provider_cached.cache_clear()
-        with patch.dict(sys.modules, {"ollama": MagicMock(), "sleuth.llm.providers.ollama": fake_ollama_mod}):
+        with patch.dict(
+            sys.modules, {"ollama": MagicMock(), "sleuth.llm.providers.ollama": fake_ollama_mod}
+        ):
             cfg = _settings(provider="ollama", model_name="llama3.2", api_key=None)
             create_provider(cfg)  # must not raise
 
     def test_ollama_base_url_passed_through(self):
         import sys
+
         fake_ollama_mod = MagicMock()
         fake_provider = MagicMock(spec=LLMProvider)
         fake_ollama_mod.OllamaProvider = MagicMock(return_value=fake_provider)
         _create_provider_cached.cache_clear()
-        with patch.dict(sys.modules, {"ollama": MagicMock(), "sleuth.llm.providers.ollama": fake_ollama_mod}):
-            cfg = _settings(provider="ollama", model_name="llama3.2", api_key=None, base_url="http://remote:11434")
+        with patch.dict(
+            sys.modules, {"ollama": MagicMock(), "sleuth.llm.providers.ollama": fake_ollama_mod}
+        ):
+            cfg = _settings(
+                provider="ollama",
+                model_name="llama3.2",
+                api_key=None,
+                base_url="http://remote:11434",
+            )
             create_provider(cfg)
         call_kwargs = fake_ollama_mod.OllamaProvider.call_args[1]
         assert call_kwargs.get("base_url") == "http://remote:11434"
 
     def test_unsupported_provider_raises(self):
         from pydantic import SecretStr
+
         cfg = _settings(provider="unknown_llm", api_key=SecretStr("k"))
         with pytest.raises(LLMSummarizerError, match="Unsupported"):
             create_provider(cfg)
@@ -100,14 +113,18 @@ class TestCreateProvider:
 
     def test_anthropic_provider_instantiated(self):
         import sys
+
         fake = MagicMock(spec=LLMProvider)
         mock_anthro_mod = MagicMock()
         mock_anthro_mod.AnthropicProvider = MagicMock(return_value=fake)
         _create_provider_cached.cache_clear()
-        with patch.dict(sys.modules, {
-            "anthropic": MagicMock(),
-            "sleuth.llm.providers.anthropic": mock_anthro_mod,
-        }):
+        with patch.dict(
+            sys.modules,
+            {
+                "anthropic": MagicMock(),
+                "sleuth.llm.providers.anthropic": mock_anthro_mod,
+            },
+        ):
             _create_provider_cached(
                 provider="anthropic",
                 model_name="claude-test",
@@ -120,6 +137,7 @@ class TestCreateProvider:
 
     def test_openai_provider_instantiated(self):
         import importlib
+
         openai_mod = importlib.import_module("sleuth.llm.providers.openai")
         fake = MagicMock(spec=LLMProvider)
         _create_provider_cached.cache_clear()

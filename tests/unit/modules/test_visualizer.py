@@ -1,4 +1,5 @@
 """Unit tests for Visualizer."""
+
 from __future__ import annotations
 
 from sleuth.modules.statistical_analyzer import StatisticalAnalyzer
@@ -34,7 +35,9 @@ def _add_dim_analysis(report):
 
 
 class TestVisualizerRun:
-    def test_run_populates_visualizations(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_run_populates_visualizations(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         report = _run_target(test_config, titanic_small_df, report, user_target="Survived")
         report = _run_stats(test_config, titanic_small_df, report)
@@ -42,7 +45,9 @@ class TestVisualizerRun:
         result = Visualizer(test_config).run(titanic_small_df, report)
         assert result.visualizations is not None
 
-    def test_univariate_plots_produced(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_univariate_plots_produced(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         report = _run_target(test_config, titanic_small_df, report, user_target="Survived")
         report = _run_stats(test_config, titanic_small_df, report)
@@ -68,7 +73,9 @@ class TestVisualizerRun:
         for path in result.visualizations.univariate_plots.values():
             assert str(path).endswith(".png"), f"Expected .png, got {path}"
 
-    def test_unsupervised_task_still_produces_univariate(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_unsupervised_task_still_produces_univariate(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         report.metadata = report.metadata.model_copy(update={"task": "unsupervised"})
         report.target_analysis = None

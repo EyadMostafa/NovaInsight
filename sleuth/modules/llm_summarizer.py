@@ -67,7 +67,9 @@ class LLMSummarizer(BaseModule):
 
         report.raw_llm_output = llm_output
         if llm_output is None:
-            raise ModuleError(local_findings[0].message if local_findings else "LLM query returned no output")
+            raise ModuleError(
+                local_findings[0].message if local_findings else "LLM query returned no output"
+            )
 
         parsed = self._parse_with_fallback(llm_output, report, local_findings)
         if parsed is None:
@@ -81,7 +83,9 @@ class LLMSummarizer(BaseModule):
             logger.info("LLM summary successfully generated.")
         except Exception as e:
             logger.error(f"LLM schema validation failed: {e}")
-            local_findings.append(Finding(level="ERROR", message=f"LLM schema validation failed: {e}"))
+            local_findings.append(
+                Finding(level="ERROR", message=f"LLM schema validation failed: {e}")
+            )
             msgs = "; ".join(f.message for f in local_findings)
             raise ModuleError(msgs) from e
 
@@ -150,13 +154,15 @@ class LLMSummarizer(BaseModule):
         except Exception as e:
             logger.error(f"LLM correction retry failed: {e}")
 
-        local_findings.append(Finding(
-            level="ERROR",
-            message=(
-                "LLM output could not be parsed as valid JSON after repair and retry. "
-                "Raw output is stored in report.raw_llm_output for inspection."
-            ),
-        ))
+        local_findings.append(
+            Finding(
+                level="ERROR",
+                message=(
+                    "LLM output could not be parsed as valid JSON after repair and retry. "
+                    "Raw output is stored in report.raw_llm_output for inspection."
+                ),
+            )
+        )
         return None
 
     @staticmethod
@@ -165,7 +171,7 @@ class LLMSummarizer(BaseModule):
         text = text.strip()
         for fence in ("```json", "```"):
             if text.startswith(fence):
-                text = text[len(fence):]
+                text = text[len(fence) :]
         if text.endswith("```"):
             text = text[:-3]
         text = text.strip()

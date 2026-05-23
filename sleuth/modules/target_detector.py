@@ -48,26 +48,29 @@ class TargetDetector(BaseModule):
 
         if user_specified_target:
             candidate_target = self._validate_user_target(
-                user_target=user_specified_target,
-                column_details=report.profile.column_details
+                user_target=user_specified_target, column_details=report.profile.column_details
             )
 
             target_analysis = TargetVariableAnalysis(
-                detection_method='user_specified',
+                detection_method="user_specified",
                 candidate_targets=[candidate_target],
                 identified_target=candidate_target.column_name,
-                findings=[]
+                findings=[],
             )
 
             report.target_analysis = target_analysis
 
         else:
-            target_analysis = self._infer_target_from_profile(df=df, columns=report.profile.column_details)
+            target_analysis = self._infer_target_from_profile(
+                df=df, columns=report.profile.column_details
+            )
             report.target_analysis = target_analysis
 
         return report
 
-    def _validate_user_target(self, user_target: str, column_details: list[ColumnDetails]) -> CandidateTarget:
+    def _validate_user_target(
+        self, user_target: str, column_details: list[ColumnDetails]
+    ) -> CandidateTarget:
         """
         Validates that the user-specified target column exists in the dataset.
         """
@@ -80,9 +83,11 @@ class TargetDetector(BaseModule):
                     break
 
             if not target_column_details:
-                raise TargetDetectorError(f"User specified target column '{user_target}' does not exist in the dataset.")
+                raise TargetDetectorError(
+                    f"User specified target column '{user_target}' does not exist in the dataset."
+                )
 
-            invalid_types = ['text', 'datetime', 'id']
+            invalid_types = ["text", "datetime", "id"]
             if target_column_details.inferred_type in invalid_types:
                 raise TargetDetectorError(
                     f"Specified target '{user_target}' has an unsuitable type "
@@ -92,13 +97,15 @@ class TargetDetector(BaseModule):
             ml_task = self._task_detection(target_column_details)
 
             if not ml_task:
-                raise TargetDetectorError(f"Failed to infer ml task for user specified target column '{user_target}'.")
+                raise TargetDetectorError(
+                    f"Failed to infer ml task for user specified target column '{user_target}'."
+                )
 
             candidate_target = CandidateTarget(
                 column_name=user_target,
                 ml_task=ml_task,
-                justification='user_specified',
-                confidence_score=1.0
+                justification="user_specified",
+                confidence_score=1.0,
             )
 
             return candidate_target
@@ -107,7 +114,9 @@ class TargetDetector(BaseModule):
         except Exception as e:
             raise TargetDetectorError(f"Failed to validate user target. Reason: {e}") from e
 
-    def _infer_target_from_profile(self, df: pd.DataFrame, columns: list[ColumnDetails]) -> TargetVariableAnalysis:
+    def _infer_target_from_profile(
+        self, df: pd.DataFrame, columns: list[ColumnDetails]
+    ) -> TargetVariableAnalysis:
         """
         Uses heuristics on column metadata to infer the most likely target.
         """
@@ -117,34 +126,39 @@ class TargetDetector(BaseModule):
 
         try:
             for col in columns:
-                if col.inferred_type in ['id', 'text', 'datetime']:
+                if col.inferred_type in ["id", "text", "datetime"]:
                     continue
 
                 column_name = col.column_name
                 ml_task = self._task_detection(col)
-                confidence_score=1.0
+                confidence_score = 1.0
 
-                penalty_words = ['id', 'key', 'name', 'code']
+                penalty_words = ["id", "key", "name", "code"]
 
                 confidence_score -= col.missing_values_pct
                 if any(word in column_name.lower() for word in penalty_words):
                     confidence_score -= 0.4
 
-                if col.inferred_type == 'boolean':
+                if col.inferred_type == "boolean":
                     confidence_score += 0.2
-                elif col.inferred_type == 'categorical':
-                    if col.unique_values_count > (0.8 * self.config.target_detection.max_categorical_cardinality):
+                elif col.inferred_type == "categorical":
+                    if col.unique_values_count > (
+                        0.8 * self.config.target_detection.max_categorical_cardinality
+                    ):
                         confidence_score -= 0.15
                     elif col.unique_values_count == 2:
                         confidence_score += 0.2
-                elif col.inferred_type == 'numerical':
+                elif col.inferred_type == "numerical":
                     skewness = abs(df[column_name].skew())
                     if skewness > self.config.profiler.skewness_threshold:
                         confidence_score -= 0.15
                     elif skewness < 0.5:
                         confidence_score += 0.1
 
-                    if col.unique_values_count < self.config.target_detection.max_categorical_cardinality:
+                    if (
+                        col.unique_values_count
+                        < self.config.target_detection.max_categorical_cardinality
+                    ):
                         confidence_score -= 0.2
                     elif col.unique_values_pct >= 0.8:
                         confidence_score += 0.1
@@ -155,7 +169,7 @@ class TargetDetector(BaseModule):
                     column_name=column_name,
                     ml_task=ml_task,
                     justification=f"Inferred as a {ml_task} target with a confidence score of {confidence_score}.",
-                    confidence_score=confidence_score
+                    confidence_score=confidence_score,
                 )
                 candidates.append(candidate)
 
@@ -167,8 +181,8 @@ class TargetDetector(BaseModule):
             for cand in candidates:
                 if not cand.ml_task:
                     finding = Finding(
-                        level='WARNING',
-                        message=f"Failed to infer ml task for candidate column '{cand.column_name}'. Skipping to next best candidate."
+                        level="WARNING",
+                        message=f"Failed to infer ml task for candidate column '{cand.column_name}'. Skipping to next best candidate.",
                     )
                     findings.append(finding)
                 else:
@@ -179,10 +193,10 @@ class TargetDetector(BaseModule):
                 raise TargetDetectorError("Failed to identify a best candidate target column.")
 
             target_analysis = TargetVariableAnalysis(
-                detection_method='auto',
+                detection_method="auto",
                 candidate_targets=candidates,
                 identified_target=best_candidate,
-                findings=findings
+                findings=findings,
             )
 
             return target_analysis
@@ -191,15 +205,19 @@ class TargetDetector(BaseModule):
         except Exception as e:
             raise TargetDetectorError(f"Failed to infer target from profile. Reason: {e}") from e
 
-
-    def _task_detection(self, column: ColumnDetails) -> Literal['classification', 'regression'] | None:
+    def _task_detection(
+        self, column: ColumnDetails
+    ) -> Literal["classification", "regression"] | None:
         try:
-            if (column.inferred_type in ['categorical', 'boolean']
-            or (column.inferred_type == 'numerical' and column.unique_values_count <= self.config.target_detection.max_categorical_cardinality)):
-                return 'classification'
+            if column.inferred_type in ["categorical", "boolean"] or (
+                column.inferred_type == "numerical"
+                and column.unique_values_count
+                <= self.config.target_detection.max_categorical_cardinality
+            ):
+                return "classification"
 
-            if column.inferred_type == 'numerical':
-                return 'regression'
+            if column.inferred_type == "numerical":
+                return "regression"
 
             return None
         except Exception as e:

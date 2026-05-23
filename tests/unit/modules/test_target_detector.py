@@ -1,4 +1,5 @@
 """Unit tests for TargetDetector."""
+
 from __future__ import annotations
 
 import pandas as pd
@@ -12,6 +13,7 @@ from sleuth.schemas.analysis_report import ColumnDetails
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _detector(test_config):
     return TargetDetector(test_config)
 
@@ -20,8 +22,11 @@ def _detector(test_config):
 # User-specified target: validation
 # ---------------------------------------------------------------------------
 
+
 class TestUserSpecifiedTarget:
-    def test_valid_target_sets_identified_target(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_valid_target_sets_identified_target(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         report.metadata = report.metadata.model_copy(update={"user_target": "Survived"})
         result = _detector(test_config).run(titanic_small_df, report)
@@ -29,20 +34,26 @@ class TestUserSpecifiedTarget:
         assert result.target_analysis.identified_target == "Survived"
         assert result.target_analysis.detection_method == "user_specified"
 
-    def test_missing_column_raises_target_detector_error(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_missing_column_raises_target_detector_error(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         report.metadata = report.metadata.model_copy(update={"user_target": "NonExistentColumn"})
         with pytest.raises(TargetDetectorError, match="does not exist"):
             _detector(test_config).run(titanic_small_df, report)
 
-    def test_text_type_target_raises(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_text_type_target_raises(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         # 'Name' should be inferred as text/id
         report.metadata = report.metadata.model_copy(update={"user_target": "Name"})
         with pytest.raises(TargetDetectorError):
             _detector(test_config).run(titanic_small_df, report)
 
-    def test_confidence_score_is_1_for_user_specified(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_confidence_score_is_1_for_user_specified(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         report.metadata = report.metadata.model_copy(update={"user_target": "Survived"})
         result = _detector(test_config).run(titanic_small_df, report)
@@ -53,28 +64,39 @@ class TestUserSpecifiedTarget:
 # Auto-detection
 # ---------------------------------------------------------------------------
 
+
 class TestAutoTargetDetection:
-    def test_finds_candidate_targets(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_finds_candidate_targets(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         result = _detector(test_config).run(titanic_small_df, report)
         assert result.target_analysis is not None
         assert len(result.target_analysis.candidate_targets) > 0
 
-    def test_identified_target_is_not_id_column(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_identified_target_is_not_id_column(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         result = _detector(test_config).run(titanic_small_df, report)
         assert result.target_analysis.identified_target != "PassengerId"
 
-    def test_detection_method_is_auto(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_detection_method_is_auto(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         result = _detector(test_config).run(titanic_small_df, report)
         assert result.target_analysis.detection_method == "auto"
 
-    def test_classification_task_inferred_for_binary_column(self, test_config, bare_report, run_profiler):
-        df = pd.DataFrame({
-            "feature": list(range(60)) * 2,
-            "target": [0, 1] * 60,
-        })
+    def test_classification_task_inferred_for_binary_column(
+        self, test_config, bare_report, run_profiler
+    ):
+        df = pd.DataFrame(
+            {
+                "feature": list(range(60)) * 2,
+                "target": [0, 1] * 60,
+            }
+        )
         report = run_profiler(test_config, df, bare_report)
         result = _detector(test_config).run(df, report)
         assert result.target_analysis.identified_target == "target"
@@ -83,11 +105,13 @@ class TestAutoTargetDetection:
     def test_regression_task_for_continuous_column(self, test_config, bare_report, run_profiler):
         # Use bounded integer ranges so unique_pct < 0.99 (avoids 'id' inference)
         # and unique_count > target_detection.max_categorical_cardinality=50 (→ regression)
-        df = pd.DataFrame({
-            "feature_a": list(range(60)) * 2,           # 60 unique / 120 rows
-            "feature_b": list(range(60)) * 2,           # same
-            "price": list(range(100, 160)) * 2,         # 60 unique / 120 rows
-        })
+        df = pd.DataFrame(
+            {
+                "feature_a": list(range(60)) * 2,  # 60 unique / 120 rows
+                "feature_b": list(range(60)) * 2,  # same
+                "price": list(range(100, 160)) * 2,  # 60 unique / 120 rows
+            }
+        )
         report = run_profiler(test_config, df, bare_report)
         result = _detector(test_config).run(df, report)
         found_regression = any(
@@ -108,6 +132,7 @@ class TestAutoTargetDetection:
 # ---------------------------------------------------------------------------
 # Task detection helper
 # ---------------------------------------------------------------------------
+
 
 class TestTaskDetection:
     def test_categorical_col_gives_classification(self, test_config):

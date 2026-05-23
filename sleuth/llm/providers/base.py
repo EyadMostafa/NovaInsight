@@ -4,6 +4,7 @@ base.py
 Defines the PromptMessage dataclass and the LLMProvider abstract base class.
 All provider implementations must satisfy this contract.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -14,6 +15,7 @@ from typing import Any, Literal
 @dataclass
 class PromptMessage:
     """A single turn in a multi-message prompt."""
+
     role: Literal["system", "user", "assistant"]
     content: str
     # When True, the provider should mark this block for prompt caching where supported.

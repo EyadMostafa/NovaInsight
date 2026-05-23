@@ -1,4 +1,5 @@
 """Unit tests for LLMSummarizer (mocked provider — no real API calls)."""
+
 from __future__ import annotations
 
 import json
@@ -18,6 +19,7 @@ FIXTURES = Path(__file__).parent.parent.parent / "fixtures"
 # Initialization
 # ---------------------------------------------------------------------------
 
+
 class TestInitialization:
     def test_missing_api_key_raises_module_error(self, test_config):
         # test_config has api_key=None
@@ -33,6 +35,7 @@ class TestInitialization:
 # ---------------------------------------------------------------------------
 # JSON parsing
 # ---------------------------------------------------------------------------
+
 
 class TestTryParse:
     def test_valid_json_returns_dict(self, test_config_with_llm_key, mock_llm_provider):
@@ -71,6 +74,7 @@ class TestTryParse:
 # Normalize helper
 # ---------------------------------------------------------------------------
 
+
 class TestNormalize:
     def test_fills_missing_top_level_keys(self):
         data = {}
@@ -94,6 +98,7 @@ class TestNormalize:
 # ---------------------------------------------------------------------------
 # Full run: happy path
 # ---------------------------------------------------------------------------
+
 
 class TestRun:
     def test_happy_path_populates_llm_summary(

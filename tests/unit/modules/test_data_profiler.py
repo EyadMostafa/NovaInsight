@@ -1,4 +1,5 @@
 """Unit tests for DataProfiler."""
+
 from __future__ import annotations
 
 from unittest.mock import patch
@@ -13,6 +14,7 @@ from sleuth.modules.data_profiler import DataProfiler
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _profiler(test_config):
     return DataProfiler(test_config)
 
@@ -26,6 +28,7 @@ def _run(profiler, df, bare_report):
 # ---------------------------------------------------------------------------
 # Type inference
 # ---------------------------------------------------------------------------
+
 
 class TestInferLogicalType:
     def test_bool_dtype(self, test_config):
@@ -98,6 +101,7 @@ class TestInferLogicalType:
 # Column stats shape
 # ---------------------------------------------------------------------------
 
+
 class TestGetColumnStats:
     def test_numerical_returns_describe_keys(self, test_config):
         p = _profiler(test_config)
@@ -141,6 +145,7 @@ class TestGetColumnStats:
 # Threshold-driven Findings
 # ---------------------------------------------------------------------------
 
+
 class TestProfilerFindings:
     def test_duplicate_rows_finding(self, test_config, bare_report):
         # 100% duplicates → triggers duplicate_threshold (0.10)
@@ -163,8 +168,18 @@ class TestProfilerFindings:
 
     def test_skewness_finding(self, test_config, bare_report):
         # Extremely skewed distribution
-        values = [1.0] * 90 + [1000.0, 5000.0, 10000.0, 50000.0, 100000.0,
-                                200000.0, 300000.0, 400000.0, 500000.0, 1000000.0]
+        values = [1.0] * 90 + [
+            1000.0,
+            5000.0,
+            10000.0,
+            50000.0,
+            100000.0,
+            200000.0,
+            300000.0,
+            400000.0,
+            500000.0,
+            1000000.0,
+        ]
         df = pd.DataFrame({"skewed": values})
         bare_report.metadata = bare_report.metadata.model_copy(update={"original_row_count": 100})
         p = _profiler(test_config)
@@ -196,15 +211,20 @@ class TestProfilerFindings:
 # Full run on DataFrame
 # ---------------------------------------------------------------------------
 
+
 class TestProfilerRun:
     def test_run_populates_column_details(self, test_config, bare_report, titanic_small_df):
-        bare_report.metadata = bare_report.metadata.model_copy(update={"original_row_count": len(titanic_small_df)})
+        bare_report.metadata = bare_report.metadata.model_copy(
+            update={"original_row_count": len(titanic_small_df)}
+        )
         p = _profiler(test_config)
         result = p.run(titanic_small_df, bare_report)
         assert len(result.profile.column_details) == len(titanic_small_df.columns)
 
     def test_run_populates_dataset_stats(self, test_config, bare_report, titanic_small_df):
-        bare_report.metadata = bare_report.metadata.model_copy(update={"original_row_count": len(titanic_small_df)})
+        bare_report.metadata = bare_report.metadata.model_copy(
+            update={"original_row_count": len(titanic_small_df)}
+        )
         p = _profiler(test_config)
         result = p.run(titanic_small_df, bare_report)
         stats = result.profile.dataset_stats

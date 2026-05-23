@@ -11,6 +11,7 @@ Two-tier design:
 
 Both inherit from SleuthError so callers can do isinstance(e, SleuthError).
 """
+
 from __future__ import annotations
 
 
@@ -21,6 +22,7 @@ class SleuthError(Exception):
 # ---------------------------------------------------------------------------
 # Module-level exceptions  (recoverable — pipeline continues after catch)
 # ---------------------------------------------------------------------------
+
 
 class ModuleError(SleuthError):
     """
@@ -77,6 +79,7 @@ class ReportGeneratorError(ModuleError):
 # ---------------------------------------------------------------------------
 # Pipeline-level exceptions  (unrecoverable — orchestrator re-raises, CLI exits)
 # ---------------------------------------------------------------------------
+
 
 class PipelineError(SleuthError):
     """Base for infrastructure / orchestration failures that halt the pipeline."""

@@ -1,4 +1,5 @@
 """Integration: module failure skips dependents, pipeline still completes."""
+
 from __future__ import annotations
 
 from unittest.mock import patch

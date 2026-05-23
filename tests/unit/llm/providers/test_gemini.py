@@ -1,4 +1,5 @@
 """Unit tests for the Gemini provider (SDK mocked)."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -15,6 +16,7 @@ def gemini_provider():
             mock_client = MagicMock()
             mock_genai.Client.return_value = mock_client
             from sleuth.llm.providers.gemini import GeminiProvider
+
             provider = GeminiProvider(
                 api_key="test-key",
                 model_name="models/gemini-test",

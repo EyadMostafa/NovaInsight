@@ -1,4 +1,5 @@
 """Integration: pipeline handles Excel (.xlsx) input files."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -13,17 +14,19 @@ from tests.integration.conftest import MODULES_NO_LLM
 # Session-scoped fixture: generate xlsx fixture from the CSV once per run
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(scope="session")
 def student_perf_xlsx(tmp_path_factory) -> Path:
     out_dir = tmp_path_factory.mktemp("xlsx_fixture")
     path = out_dir / "student_performance_small.xlsx"
-    pd.read_csv(STUDENT_PERF_SMALL_CSV).to_excel(path, index=False, engine='openpyxl')
+    pd.read_csv(STUDENT_PERF_SMALL_CSV).to_excel(path, index=False, engine="openpyxl")
     return path
 
 
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.slow
 @pytest.mark.integration

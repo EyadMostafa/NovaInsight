@@ -12,6 +12,7 @@ class BaseModule(ABC):
     """
     An abstract base class for all analysis modules in the pipeline.
     """
+
     def __init__(self, config: SleuthConfig):
         """
         All modules are initialized with the application configuration.

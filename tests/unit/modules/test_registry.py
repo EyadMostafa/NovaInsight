@@ -1,4 +1,5 @@
 """Unit tests for the module registry and topological sort."""
+
 from __future__ import annotations
 
 import pytest
@@ -16,6 +17,7 @@ from sleuth.schemas.analysis_report import Operator
 # ---------------------------------------------------------------------------
 # Registry contents
 # ---------------------------------------------------------------------------
+
 
 class TestGetRegistry:
     def test_all_expected_operators_registered(self):
@@ -42,6 +44,7 @@ class TestGetRegistry:
 # Topological order
 # ---------------------------------------------------------------------------
 
+
 class TestTopologicalOrder:
     def test_returns_all_registered_operators(self):
         order = topological_order()
@@ -54,9 +57,7 @@ class TestTopologicalOrder:
             op_idx = order.index(op)
             for dep in registry[op].dependencies:
                 dep_idx = order.index(dep)
-                assert dep_idx < op_idx, (
-                    f"Dependency {dep} appears after {op} in topological order"
-                )
+                assert dep_idx < op_idx, f"Dependency {dep} appears after {op} in topological order"
 
     def test_profiler_is_first(self):
         order = topological_order()
@@ -76,6 +77,7 @@ class TestTopologicalOrder:
 # Cycle detection
 # ---------------------------------------------------------------------------
 
+
 class TestCycleDetection:
     def test_cycle_raises_orchestrator_error(self, monkeypatch):
 
@@ -85,10 +87,12 @@ class TestCycleDetection:
         fake_registry: dict = {}
 
         class FakeModuleA(BaseModule):
-            def run(self, df, report): return report
+            def run(self, df, report):
+                return report
 
         class FakeModuleB(BaseModule):
-            def run(self, df, report): return report
+            def run(self, df, report):
+                return report
 
         fake_registry[Operator.PROFILER] = ModuleSpec(
             operator=Operator.PROFILER,
@@ -104,6 +108,7 @@ class TestCycleDetection:
         )
 
         import sleuth.modules.registry as reg_module
+
         monkeypatch.setattr(reg_module, "_REGISTRY", fake_registry)
 
         with pytest.raises(OrchestratorError, match="[Cc]ycle"):
@@ -115,7 +120,8 @@ class TestCycleDetection:
         fake_registry: dict = {}
 
         class FakeModule(BaseModule):
-            def run(self, df, report): return report
+            def run(self, df, report):
+                return report
 
         # PROFILER declares a dependency on TARGET which is absent from this fake registry,
         # so topological_order() must raise OrchestratorError for the unknown dep.
@@ -127,6 +133,7 @@ class TestCycleDetection:
         )
 
         import sleuth.modules.registry as reg_module
+
         monkeypatch.setattr(reg_module, "_REGISTRY", fake_registry)
 
         with pytest.raises(OrchestratorError):
@@ -136,6 +143,7 @@ class TestCycleDetection:
 # ---------------------------------------------------------------------------
 # register_module decorator
 # ---------------------------------------------------------------------------
+
 
 class TestRegisterModuleDecorator:
     def test_decorator_returns_class_unchanged(self):
@@ -147,13 +155,15 @@ class TestRegisterModuleDecorator:
         # test is affected by the transient overwrite.
         saved = reg_module._REGISTRY.get(Operator.PROFILER)
         try:
+
             @register_module(
                 operator=Operator.PROFILER,
                 dependencies=[],
                 is_completed=lambda r: False,
             )
             class DummyModule(BaseModule):
-                def run(self, df, report): return report
+                def run(self, df, report):
+                    return report
 
             assert DummyModule.__name__ == "DummyModule"
             assert reg_module._REGISTRY[Operator.PROFILER].cls is DummyModule

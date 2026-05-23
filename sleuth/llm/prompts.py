@@ -12,6 +12,7 @@ Architecture:
   - The CORRECTION prompt is a separate, minimal exchange used only when the primary
     output is malformed JSON.
 """
+
 from __future__ import annotations
 
 from sleuth.llm.providers.base import PromptMessage
@@ -102,6 +103,7 @@ SYSTEM_PROMPT: str = "\n\n".join([_PERSONA, _OUTPUT_RULES, _JSON_SCHEMA, _FIELD_
 # ---------------------------------------------------------------------------
 # Public builders
 # ---------------------------------------------------------------------------
+
 
 def build_messages(
     toon_context: str,

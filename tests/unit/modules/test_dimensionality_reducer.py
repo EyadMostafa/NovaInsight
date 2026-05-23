@@ -1,4 +1,5 @@
 """Unit tests for DimensionalityReducer."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -22,6 +23,7 @@ def _numeric_df(n_rows=60, n_cols=5, seed=42) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 # PCA
 # ---------------------------------------------------------------------------
+
 
 class TestRunPCA:
     def test_variance_ratios_sum_leq_one(self, test_config):
@@ -48,6 +50,7 @@ class TestRunPCA:
 # t-SNE
 # ---------------------------------------------------------------------------
 
+
 class TestRunTSNE:
     def test_embeddings_shape(self, test_config):
         r = _reducer(test_config)
@@ -65,6 +68,7 @@ class TestRunTSNE:
 # ---------------------------------------------------------------------------
 # UMAP
 # ---------------------------------------------------------------------------
+
 
 class TestRunUMAP:
     def test_embeddings_shape(self, test_config):
@@ -84,6 +88,7 @@ class TestRunUMAP:
 # Data preparation
 # ---------------------------------------------------------------------------
 
+
 class TestPrepareData:
     def test_returns_none_when_no_numeric_features(self, test_config, bare_report, run_profiler):
         df = pd.DataFrame({"cat": ["a", "b", "c"] * 10})
@@ -93,23 +98,29 @@ class TestPrepareData:
         assert processed is None
         assert finding is not None
 
-    def test_returns_none_when_fewer_than_3_valid_numerics(self, test_config, bare_report, run_profiler):
-        df = pd.DataFrame({
-            "a": [1.0, 2.0, 3.0] * 10,
-            "b": [4.0, 5.0, 6.0] * 10,
-        })
+    def test_returns_none_when_fewer_than_3_valid_numerics(
+        self, test_config, bare_report, run_profiler
+    ):
+        df = pd.DataFrame(
+            {
+                "a": [1.0, 2.0, 3.0] * 10,
+                "b": [4.0, 5.0, 6.0] * 10,
+            }
+        )
         report = run_profiler(test_config, df, bare_report)
         r = _reducer(test_config)
         processed, finding = r._prepare_data(df, report)
         assert processed is None
 
     def test_drops_zero_variance_columns(self, test_config, bare_report, run_profiler):
-        df = pd.DataFrame({
-            "a": [1.0] * 30,  # zero variance → should be dropped
-            "b": list(range(30)),
-            "c": list(range(30, 60)),
-            "d": list(range(60, 90)),
-        })
+        df = pd.DataFrame(
+            {
+                "a": [1.0] * 30,  # zero variance → should be dropped
+                "b": list(range(30)),
+                "c": list(range(30, 60)),
+                "d": list(range(60, 90)),
+            }
+        )
         report = run_profiler(test_config, df, bare_report)
         r = _reducer(test_config)
         processed, _ = r._prepare_data(df, report)
@@ -121,12 +132,14 @@ class TestPrepareData:
 # Save results
 # ---------------------------------------------------------------------------
 
+
 class TestSaveResults:
     def test_csv_written_to_embeddings_subdir(self, test_config, tmp_path):
         r = _reducer(test_config)
         df = pd.DataFrame({"PC1": [1.0, 2.0], "PC2": [3.0, 4.0]})
         path = r._save_results(df, tmp_path, "pca")
         from pathlib import Path
+
         assert Path(path).exists()
         assert "pca_embeddings.csv" in str(path)
 
@@ -135,14 +148,18 @@ class TestSaveResults:
 # Full run
 # ---------------------------------------------------------------------------
 
+
 class TestDimensionalityReducerRun:
-    def test_run_populates_dim_analysis(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_run_populates_dim_analysis(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         result = _reducer(test_config).run(titanic_small_df, report)
         assert result.dimensionality_analysis is not None
 
     def test_embeddings_files_exist(self, test_config, bare_report, titanic_small_df, run_profiler):
         from pathlib import Path
+
         report = run_profiler(test_config, titanic_small_df, bare_report)
         result = _reducer(test_config).run(titanic_small_df, report)
         dim = result.dimensionality_analysis

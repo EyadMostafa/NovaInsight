@@ -37,7 +37,7 @@ _RANDOM_SEED = 42
 class AnalysisPipeline:
     """The main orchestrator for the Sleuth analysis pipeline."""
 
-    SUPPORTED_FILE_EXTENSIONS = ['.csv', '.parquet', '.feather', '.xlsx']
+    SUPPORTED_FILE_EXTENSIONS = [".csv", ".parquet", ".feather", ".xlsx"]
 
     def __init__(
         self,
@@ -49,8 +49,8 @@ class AnalysisPipeline:
         user_target: str | None = None,
         analysis_mode: str | None = None,
         report_title: str | None = None,
-        task: str | None = 'supervised',
-        advanced: bool = False
+        task: str | None = "supervised",
+        advanced: bool = False,
     ):
         """Initializes the pipeline with all necessary context from the CLI."""
         self.file_path = file_path
@@ -66,7 +66,7 @@ class AnalysisPipeline:
         self.cache_manager = CacheManager(config.cache)
         self.report: AnalysisReport | None = None
         self.df: pd.DataFrame | None = None
-        self._csv_delimiter: str = ','  # overwritten by _detect_csv_delimiter for CSV inputs
+        self._csv_delimiter: str = ","  # overwritten by _detect_csv_delimiter for CSV inputs
 
         self.execution_plan = self._resolve_execution_plan(requested_modules)
 
@@ -100,7 +100,11 @@ class AnalysisPipeline:
         full_order = topological_order()
 
         if not requested:
-            plan = [op for op in full_order if not (self.task == 'unsupervised' and op == Operator.TARGET)]
+            plan = [
+                op
+                for op in full_order
+                if not (self.task == "unsupervised" and op == Operator.TARGET)
+            ]
             logger.info(f"Execution plan resolved: {plan}")
             return plan
 
@@ -121,7 +125,7 @@ class AnalysisPipeline:
         def collect(op: Operator) -> None:
             if op in final:
                 return
-            if self.task == 'unsupervised' and op == Operator.TARGET:
+            if self.task == "unsupervised" and op == Operator.TARGET:
                 return
             final.add(op)
             for dep in registry[op].dependencies:
@@ -152,7 +156,7 @@ class AnalysisPipeline:
         if not is_valid:
             raise OrchestratorError(f"Invalid output directory. Reason: {message}")
 
-        if file_extension == '.csv':
+        if file_extension == ".csv":
             self._csv_delimiter = self._detect_csv_delimiter()
 
         file_hash = self.cache_manager.hash_file(self.file_path)
@@ -207,7 +211,8 @@ class AnalysisPipeline:
         remaining = list(plan)
         while remaining:
             wave = [
-                op for op in remaining
+                op
+                for op in remaining
                 if all(dep in completed for dep in registry[op].dependencies if dep in plan_set)
             ]
             waves.append(wave)
@@ -245,18 +250,17 @@ class AnalysisPipeline:
                 for op in skipped:
                     self._module_times[op.value] = 0.0
                     self._skipped_op_values.add(op.value)
-                    self.report.findings.append(Finding(
-                        level='WARNING',
-                        message=f"{op.capitalize()} module skipped due to the failure or skipping of a dependency module.",
-                    ))
+                    self.report.findings.append(
+                        Finding(
+                            level="WARNING",
+                            message=f"{op.capitalize()} module skipped due to the failure or skipping of a dependency module.",
+                        )
+                    )
 
                 if not active:
                     continue
 
-                futures = {
-                    executor.submit(self._run_module, op, registry[op]): op
-                    for op in active
-                }
+                futures = {executor.submit(self._run_module, op, registry[op]): op for op in active}
 
                 for future in as_completed(futures):
                     op = futures[future]
@@ -267,13 +271,15 @@ class AnalysisPipeline:
                         msg = f"{op.capitalize()} module failed. Reason: {e}"
                         if e.column:
                             msg += f" (column: '{e.column}')"
-                        self.report.findings.append(Finding(level='ERROR', message=msg))
+                        self.report.findings.append(Finding(level="ERROR", message=msg))
                         skip_modules |= self._find_downstream_dependents(op)
-                        logger.error(f"{op.capitalize()} module failed — skipping downstream dependents.")
+                        logger.error(
+                            f"{op.capitalize()} module failed — skipping downstream dependents."
+                        )
                     except Exception as e:
                         self._module_times.setdefault(op.value, 0.0)
                         msg = f"{op.capitalize()} module raised an unexpected error: {e}"
-                        self.report.findings.append(Finding(level='ERROR', message=msg))
+                        self.report.findings.append(Finding(level="ERROR", message=msg))
                         skip_modules |= self._find_downstream_dependents(op)
                         logger.error(msg, exc_info=True)
 
@@ -308,6 +314,7 @@ class AnalysisPipeline:
             and self.report.profile is not None
         ):
             from sleuth.modules.report_generator import ReportGenerator  # noqa: PLC0415
+
             ReportGenerator(self.config).run(df=self.df, report=self.report)
 
         self.cache_manager.save_report(self.report)
@@ -327,22 +334,22 @@ class AnalysisPipeline:
         logger.debug(f"Performing pre-scan to get full row count for: {self.file_path}")
 
         try:
-            if file_extension == '.csv':
-                with open(self.file_path, encoding='utf-8', errors='replace', newline='') as f:
+            if file_extension == ".csv":
+                with open(self.file_path, encoding="utf-8", errors="replace", newline="") as f:
                     reader = csv.reader(f, delimiter=self._csv_delimiter)
                     return sum(1 for _ in reader) - 1  # subtract header row
 
-            if file_extension == '.parquet':
+            if file_extension == ".parquet":
                 metadata = pq.read_metadata(self.file_path)
                 return metadata.num_rows
 
-            if file_extension == '.feather':
+            if file_extension == ".feather":
                 # Feather (Arrow IPC) is memory-mapped; reading the full table is fast.
                 return len(pd.read_feather(self.file_path))
 
-            if file_extension == '.xlsx':
+            if file_extension == ".xlsx":
                 # Read only the first column to count rows cheaply.
-                return len(pd.read_excel(self.file_path, usecols=[0], engine='openpyxl'))
+                return len(pd.read_excel(self.file_path, usecols=[0], engine="openpyxl"))
 
             raise ValueError(f"Unsupported file type for row count pre-scan: {file_extension}")
 
@@ -368,7 +375,7 @@ class AnalysisPipeline:
         logger.info(f"Loading data from {self.file_path} in '{self.analysis_mode}' mode.")
 
         try:
-            if self.analysis_mode == 'fast':
+            if self.analysis_mode == "fast":
                 sample_size = self.config.analysis.fast_mode_sample_rows
 
                 if full_row_count <= sample_size:
@@ -389,20 +396,18 @@ class AnalysisPipeline:
         except DataLoadError:
             raise
         except Exception as e:
-            raise DataLoadError(
-                f"Failed to read data file at {self.file_path}. Reason: {e}"
-            ) from e
+            raise DataLoadError(f"Failed to read data file at {self.file_path}. Reason: {e}") from e
 
     def _load_full(self, file_extension: str) -> pd.DataFrame:
         """Loads the entire dataset without any sampling."""
-        if file_extension == '.csv':
+        if file_extension == ".csv":
             return pd.read_csv(self.file_path, sep=self._csv_delimiter)
-        if file_extension == '.parquet':
+        if file_extension == ".parquet":
             return pd.read_parquet(self.file_path)
-        if file_extension == '.feather':
+        if file_extension == ".feather":
             return pd.read_feather(self.file_path)
-        if file_extension == '.xlsx':
-            return pd.read_excel(self.file_path, engine='openpyxl', sheet_name=0)
+        if file_extension == ".xlsx":
+            return pd.read_excel(self.file_path, engine="openpyxl", sheet_name=0)
         raise DataLoadError(f"No reader available for extension: {file_extension}")
 
     def _load_sample(
@@ -413,13 +418,13 @@ class AnalysisPipeline:
         """
         rng = np.random.default_rng(_RANDOM_SEED)
 
-        if file_extension == '.csv':
+        if file_extension == ".csv":
             all_data_indices = np.arange(1, full_row_count + 1)
             skip_count = full_row_count - sample_size
             skip_indices = rng.choice(all_data_indices, skip_count, replace=False)
             return pd.read_csv(self.file_path, sep=self._csv_delimiter, skiprows=skip_indices)
 
-        if file_extension in ('.parquet', '.feather', '.xlsx'):
+        if file_extension in (".parquet", ".feather", ".xlsx"):
             df = self._load_full(file_extension)
             return df.sample(n=sample_size, random_state=_RANDOM_SEED).reset_index(drop=True)
 
@@ -435,14 +440,14 @@ class AnalysisPipeline:
         detection edge-case.
         """
         try:
-            with open(self.file_path, encoding='utf-8', errors='replace', newline='') as f:
+            with open(self.file_path, encoding="utf-8", errors="replace", newline="") as f:
                 sample = f.read(16_384)
-            dialect = csv.Sniffer().sniff(sample, delimiters=',;\t|')
+            dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")
             logger.debug(f"Detected CSV delimiter: {repr(dialect.delimiter)}")
             return dialect.delimiter
         except csv.Error:
             logger.debug("CSV delimiter detection inconclusive; defaulting to ','.")
-            return ','
+            return ","
 
     def _generate_report_title(self) -> str:
         clean_stem = str(self.file_path.stem).replace("_", " ").replace("-", " ")

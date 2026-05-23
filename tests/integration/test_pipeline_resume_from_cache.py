@@ -1,4 +1,5 @@
 """Integration: second run restores from cache and skips modules."""
+
 from __future__ import annotations
 
 import pytest
@@ -43,8 +44,7 @@ def test_second_run_uses_cache(tmp_path):
     # All analytical modules should be cached (time == 0.0)
     for module in MODULES_NO_LLM:
         assert timing.modules.get(module, -1) == 0.0, (
-            f"Expected module '{module}' to be cached (time=0.0), "
-            f"got {timing.modules.get(module)}"
+            f"Expected module '{module}' to be cached (time=0.0), got {timing.modules.get(module)}"
         )
 
 

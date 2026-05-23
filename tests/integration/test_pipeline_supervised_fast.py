@@ -1,4 +1,5 @@
 """Integration: full supervised pipeline (no LLM) on student_performance_small.csv."""
+
 from __future__ import annotations
 
 import pytest

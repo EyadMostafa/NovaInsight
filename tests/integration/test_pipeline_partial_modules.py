@@ -1,4 +1,5 @@
 """Integration: running a subset of modules stops at the right boundary."""
+
 from __future__ import annotations
 
 import pytest

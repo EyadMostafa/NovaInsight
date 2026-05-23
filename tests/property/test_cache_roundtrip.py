@@ -1,4 +1,5 @@
 """Property-based tests for CacheManager serialization round-trip."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -53,8 +54,13 @@ def _build_report(
 # Round-trip: save → load must preserve key fields
 # ---------------------------------------------------------------------------
 
+
 @given(
-    title=st.text(min_size=1, max_size=40, alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd", "Zs"))),
+    title=st.text(
+        min_size=1,
+        max_size=40,
+        alphabet=st.characters(whitelist_categories=("Lu", "Ll", "Nd", "Zs")),
+    ),
     original_rows=st.integers(min_value=1, max_value=10000),
 )
 @settings(
@@ -81,6 +87,7 @@ def test_roundtrip_preserves_title_and_hash(title, original_rows, tmp_path):
 # ---------------------------------------------------------------------------
 # Disabled cache: load always returns None regardless of content
 # ---------------------------------------------------------------------------
+
 
 @given(original_rows=st.integers(min_value=1, max_value=100))
 @settings(

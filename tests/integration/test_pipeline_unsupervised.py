@@ -1,4 +1,5 @@
 """Integration: unsupervised pipeline skips target detection."""
+
 from __future__ import annotations
 
 import pytest

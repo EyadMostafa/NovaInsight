@@ -7,6 +7,7 @@ Prompt caching: OpenAI automatically caches the first 1024+ tokens of a prompt
 for gpt-4o and later models. No opt-in is required — placing the static system
 prompt first and keeping it unchanged across calls achieves cache hits transparently.
 """
+
 from __future__ import annotations
 
 from typing import Any

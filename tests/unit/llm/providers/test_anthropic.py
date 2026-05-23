@@ -1,4 +1,5 @@
 """Unit tests for the Anthropic provider (SDK mocked — works without anthropic installed)."""
+
 from __future__ import annotations
 
 import sys
@@ -20,8 +21,10 @@ def anthropic_provider():
         # Force fresh import so _anthropic picks up the mock
         sys.modules.pop("sleuth.llm.providers.anthropic", None)
         import sleuth.llm.providers.anthropic as anthro_module
+
         with patch.object(anthro_module, "_anthropic", mock_anthropic_pkg):
             from sleuth.llm.providers.anthropic import AnthropicProvider
+
             provider = AnthropicProvider(
                 api_key="test-key",
                 model_name="claude-test",

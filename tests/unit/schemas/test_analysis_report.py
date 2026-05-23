@@ -1,4 +1,5 @@
 """Unit tests for AnalysisReport Pydantic schemas."""
+
 from __future__ import annotations
 
 import json
@@ -22,6 +23,7 @@ from sleuth.schemas.analysis_report import (
 # Operator enum
 # ---------------------------------------------------------------------------
 
+
 def test_operator_values_are_lowercase():
     for op in Operator:
         assert op.value == op.name.lower()
@@ -35,6 +37,7 @@ def test_operator_string_subclass():
 # ---------------------------------------------------------------------------
 # Finding
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize("level", ["INFO", "WARNING", "ERROR"])
 def test_finding_valid_levels(level):
@@ -50,6 +53,7 @@ def test_finding_invalid_level_raises():
 # ---------------------------------------------------------------------------
 # DatasetStats
 # ---------------------------------------------------------------------------
+
 
 def test_dataset_stats_construction():
     s = DatasetStats(
@@ -68,6 +72,7 @@ def test_dataset_stats_construction():
 # ---------------------------------------------------------------------------
 # RunMetadata
 # ---------------------------------------------------------------------------
+
 
 def test_run_metadata_timestamp_default():
     m = RunMetadata(
@@ -98,6 +103,7 @@ def test_run_metadata_invalid_mode():
 # AnalysisReport JSON round-trip
 # ---------------------------------------------------------------------------
 
+
 def test_analysis_report_json_roundtrip(bare_report):
     json_str = bare_report.model_dump_json()
     data = json.loads(json_str)
@@ -119,6 +125,7 @@ def test_analysis_report_optional_fields_default_none(bare_report):
 # PipelineTiming
 # ---------------------------------------------------------------------------
 
+
 def test_pipeline_timing():
     pt = PipelineTiming(total_seconds=12.3, modules={"profiler": 1.2, "stats": 3.4})
     assert pt.total_seconds == pytest.approx(12.3)
@@ -128,6 +135,7 @@ def test_pipeline_timing():
 # ---------------------------------------------------------------------------
 # LLMSummary schema
 # ---------------------------------------------------------------------------
+
 
 def test_llm_summary_from_canned(tmp_path):
     import json
@@ -144,6 +152,7 @@ def test_llm_summary_from_canned(tmp_path):
 # ---------------------------------------------------------------------------
 # CandidateTarget
 # ---------------------------------------------------------------------------
+
 
 def test_candidate_target_confidence_range():
     ct = CandidateTarget(

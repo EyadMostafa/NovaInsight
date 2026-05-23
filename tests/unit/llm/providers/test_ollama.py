@@ -1,4 +1,5 @@
 """Unit tests for the Ollama provider (client mocked)."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -12,6 +13,7 @@ from sleuth.llm.providers.base import PromptMessage
 # Fixture: OllamaProvider with the ollama client fully mocked
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def ollama_provider():
     """Returns (OllamaProvider instance, mock_client) with ollama SDK mocked."""
@@ -23,8 +25,10 @@ def ollama_provider():
     with patch.dict("sys.modules", {"ollama": MagicMock(Client=mock_client_cls)}):
         # Re-import so the patched module is used.
         import importlib
+
         importlib.reload(ollama_module)
         from sleuth.llm.providers.ollama import OllamaProvider
+
         provider = OllamaProvider(
             model_name="llama3.2",
             temperature=0.3,
@@ -37,6 +41,7 @@ def ollama_provider():
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestOllamaProvider:
     def test_generate_returns_string(self, ollama_provider):
@@ -90,8 +95,10 @@ class TestOllamaProvider:
         mock_client_cls = MagicMock()
         with patch.dict("sys.modules", {"ollama": MagicMock(Client=mock_client_cls)}):
             import importlib
+
             importlib.reload(ollama_module)
             from sleuth.llm.providers.ollama import _DEFAULT_HOST, OllamaProvider
+
             OllamaProvider(model_name="llama3.2", temperature=0.3, max_tokens=512)
 
         mock_client_cls.assert_called_once_with(host=_DEFAULT_HOST)
@@ -103,9 +110,13 @@ class TestOllamaProvider:
         custom_url = "http://10.0.0.5:11434"
         with patch.dict("sys.modules", {"ollama": MagicMock(Client=mock_client_cls)}):
             import importlib
+
             importlib.reload(ollama_module)
             from sleuth.llm.providers.ollama import OllamaProvider
-            OllamaProvider(model_name="llama3.2", temperature=0.3, max_tokens=512, base_url=custom_url)
+
+            OllamaProvider(
+                model_name="llama3.2", temperature=0.3, max_tokens=512, base_url=custom_url
+            )
 
         mock_client_cls.assert_called_once_with(host=custom_url)
 
@@ -115,8 +126,10 @@ class TestOllamaProvider:
         mock_client_cls = MagicMock()
         with patch.dict("sys.modules", {"ollama": MagicMock(Client=mock_client_cls)}):
             import importlib
+
             importlib.reload(ollama_module)
             from sleuth.llm.providers.ollama import OllamaProvider
+
             # Should not raise even though caching is not applicable for Ollama.
             OllamaProvider(
                 model_name="llama3.2",
@@ -131,7 +144,9 @@ class TestOllamaProvider:
         # Temporarily hide the ollama package.
         with patch.dict("sys.modules", {"ollama": None}):
             import sleuth.llm.providers.ollama as ollama_module
+
             importlib.reload(ollama_module)
             from sleuth.llm.providers.ollama import OllamaProvider
+
             with pytest.raises(LLMSummarizerError, match="ollama.*package"):
                 OllamaProvider(model_name="llama3.2", temperature=0.3, max_tokens=512)

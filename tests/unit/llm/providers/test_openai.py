@@ -1,4 +1,5 @@
 """Unit tests for the OpenAI provider (SDK mocked)."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -11,10 +12,12 @@ from sleuth.llm.providers.base import PromptMessage
 @pytest.fixture
 def openai_provider():
     import sleuth.llm.providers.openai as openai_module
+
     mock_client = MagicMock()
     mock_cls = MagicMock(return_value=mock_client)
     with patch.object(openai_module, "_OpenAI", mock_cls):
         from sleuth.llm.providers.openai import OpenAIProvider
+
         provider = OpenAIProvider(
             api_key="test-key",
             model_name="gpt-test",

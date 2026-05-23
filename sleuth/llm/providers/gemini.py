@@ -21,6 +21,7 @@ Graceful fallback:
   network error, etc.) the provider logs a warning and continues with
   standard generation — no exception is surfaced to the caller.
 """
+
 from __future__ import annotations
 
 from typing import Any

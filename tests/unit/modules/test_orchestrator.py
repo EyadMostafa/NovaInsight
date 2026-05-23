@@ -1,4 +1,5 @@
 """Unit tests for AnalysisPipeline (orchestrator)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,6 +9,7 @@ from tests.conftest import make_test_config
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_pipeline(tmp_path: Path, csv_path: Path):
     """Return a bare pipeline pointing at csv_path, no modules requested."""
@@ -38,6 +40,7 @@ def _write_csv(path: Path, delimiter: str) -> None:
 # ---------------------------------------------------------------------------
 # Delimiter detection
 # ---------------------------------------------------------------------------
+
 
 class TestDetectCsvDelimiter:
     def test_comma_detected(self, tmp_path):
@@ -88,6 +91,7 @@ class TestDetectCsvDelimiter:
 # ---------------------------------------------------------------------------
 # End-to-end: non-standard delimiter flows through the pipeline
 # ---------------------------------------------------------------------------
+
 
 class TestNonStandardDelimiterPipeline:
     def test_semicolon_csv_profiled_correctly(self, tmp_path):

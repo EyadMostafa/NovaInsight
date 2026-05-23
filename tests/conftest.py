@@ -4,6 +4,7 @@ Shared pytest fixtures for the Sleuth test suite.
 All fixtures create isolated tmp_path-scoped directories so tests never
 touch ~/.sleuth_cache or the project output directory.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -44,6 +45,7 @@ STUDENT_PERF_SMALL_CSV = FIXTURES_DIR / "student_performance_small.csv"
 # Autouse: assert Agg backend is active
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(scope="session", autouse=True)
 def headless_matplotlib():
     assert matplotlib.get_backend().lower() == "agg", (
@@ -55,6 +57,7 @@ def headless_matplotlib():
 # ---------------------------------------------------------------------------
 # Config factory
 # ---------------------------------------------------------------------------
+
 
 def make_test_config(tmp_path: Path, tsne_max_iter: int = 300) -> SleuthConfig:
     """Build a fully self-contained SleuthConfig writing to tmp_path."""
@@ -99,6 +102,7 @@ def test_config(tmp_path: Path) -> SleuthConfig:
 # DataFrames
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(scope="session")
 def titanic_df() -> pd.DataFrame:
     return pd.read_csv(TITANIC_SMALL_CSV)
@@ -117,6 +121,7 @@ def student_perf_df() -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 # AnalysisReport builders
 # ---------------------------------------------------------------------------
+
 
 def _make_output_dir(tmp_path: Path) -> Path:
     d = tmp_path / "out" / "Sleuth_reports" / "Test Analysis"
@@ -150,6 +155,7 @@ def bare_report(tmp_path: Path) -> AnalysisReport:
 # LLM mock
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def mock_llm_provider() -> MagicMock:
     """MagicMock LLMProvider returning the canned LLMSummary JSON."""
@@ -162,6 +168,7 @@ def mock_llm_provider() -> MagicMock:
 # ---------------------------------------------------------------------------
 # Pipeline helper: run DataProfiler on a report, updating original_row_count
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def run_profiler():
@@ -185,9 +192,11 @@ def run_profiler():
 # Convenience: config with a dummy LLM API key (needed for LLMSummarizer init)
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def test_config_with_llm_key(tmp_path: Path) -> SleuthConfig:
     from pydantic import SecretStr
+
     cfg = make_test_config(tmp_path)
     # Pydantic frozen model — rebuild with key set
     return SleuthConfig(

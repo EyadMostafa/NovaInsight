@@ -46,7 +46,7 @@ class ReportGenerator(BaseModule):
         3. Saves the HTML file.
         """
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        template_dir = os.path.join(current_dir, '../templates')
+        template_dir = os.path.join(current_dir, "../templates")
 
         file_loader = FileSystemLoader(template_dir)
         env = Environment(loader=file_loader)
@@ -57,17 +57,15 @@ class ReportGenerator(BaseModule):
             images = self._prepare_images(report)
 
             sample_html = df.head(5).to_html(
-                classes="table table-custom table-hover table-striped",
-                border=0,
-                index=False
+                classes="table table-custom table-hover table-striped", border=0, index=False
             )
 
-            template = env.get_template('report_template.html')
+            template = env.get_template("report_template.html")
             html_content = template.render(
                 report=report,
                 images=images,
                 sample_data_html=sample_html,
-                includes_column_name=self.includes_column_name
+                includes_column_name=self.includes_column_name,
             )
 
             output_dir = Path(report.metadata.output_dir)
@@ -83,10 +81,9 @@ class ReportGenerator(BaseModule):
             logger.info(f"HTML Report successfully generated at: {output_path}")
 
             report.html_report_path = str(output_path)
-            report.findings.append(Finding(
-                level="INFO",
-                message=f"HTML Report generated: {output_path}"
-            ))
+            report.findings.append(
+                Finding(level="INFO", message=f"HTML Report generated: {output_path}")
+            )
 
         except Exception as e:
             raise ReportGeneratorError(f"Failed to generate HTML report: {e}") from e
@@ -106,12 +103,7 @@ class ReportGenerator(BaseModule):
             'dimensionality': {'name': 'b64...'}
         }
         """
-        images = {
-            'univariate': {},
-            'bivariate': {},
-            'correlation': {},
-            'dimensionality': {}
-        }
+        images = {"univariate": {}, "bivariate": {}, "correlation": {}, "dimensionality": {}}
 
         if not report.visualizations:
             return images
@@ -121,24 +113,24 @@ class ReportGenerator(BaseModule):
         for col, path in viz.univariate_plots.items():
             b64 = self._image_to_base64(path)
             if b64:
-                images['univariate'][col] = b64
+                images["univariate"][col] = b64
 
         for name, path in viz.bivariate_plots.items():
             b64 = self._image_to_base64(path)
             if b64:
-                images['bivariate'][name] = b64
+                images["bivariate"][name] = b64
 
         if viz.correlation_heatmap_plots:
             for name, path in viz.correlation_heatmap_plots.items():
                 b64 = self._image_to_base64(path)
                 if b64:
-                    images['correlation'][name] = b64
+                    images["correlation"][name] = b64
 
         if viz.dim_reduction_scatter_plots:
             for name, path in viz.dim_reduction_scatter_plots.items():
                 b64 = self._image_to_base64(path)
                 if b64:
-                    images['dimensionality'][name] = b64
+                    images["dimensionality"][name] = b64
 
         return images
 
@@ -154,7 +146,7 @@ class ReportGenerator(BaseModule):
                 return None
 
             with open(p, "rb") as img_file:
-                return base64.b64encode(img_file.read()).decode('utf-8')
+                return base64.b64encode(img_file.read()).decode("utf-8")
         except Exception as e:
             logger.warning(f"Failed to encode image {path}: {e}")
             return None

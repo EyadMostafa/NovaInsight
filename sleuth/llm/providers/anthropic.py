@@ -8,6 +8,7 @@ cache_control = {"type": "ephemeral"} block, activating Anthropic's
 server-side prompt cache (5-minute TTL). This cuts cost and latency
 significantly when the static system prompt is re-sent across repeated runs.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -55,7 +56,8 @@ class AnthropicProvider(LLMProvider):
     def generate(
         self,
         messages: list[PromptMessage],
-        response_schema: Any | None = None,  # Anthropic doesn't accept a schema arg; the parse layer handles validation.
+        response_schema: Any
+        | None = None,  # Anthropic doesn't accept a schema arg; the parse layer handles validation.
     ) -> str:
         system_blocks: list[dict] = []
         for m in messages:

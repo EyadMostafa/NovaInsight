@@ -4,6 +4,7 @@ cache_manager.py
 This module contains the CacheManager class, which is responsible for all
 persistent storage and caching operations for the Sleuth agent.
 """
+
 import hashlib
 import json
 import shutil
@@ -19,11 +20,13 @@ from sleuth.utils.validators import validate_directory
 
 logger = get_logger("sleuth.utils.cache_manager")
 
+
 class CacheManager:
     """
     Manages the creation, retrieval, and deletion of cached analysis reports.
     Implements self-healing for corrupt or outdated cache entries.
     """
+
     def __init__(self, config: CacheSettings):
         """Initializes the CacheManager with the cache configuration."""
         self.enabled = config.enabled
@@ -35,7 +38,9 @@ class CacheManager:
                 self.base_cache_dir = resolved_path
                 logger.info(f"Cache enabled. Workspace location: {self.base_cache_dir}")
             else:
-                logger.error(f"Failed to initialize cache directory: {message}. Caching will be disabled.")
+                logger.error(
+                    f"Failed to initialize cache directory: {message}. Caching will be disabled."
+                )
                 self.enabled = False
         else:
             logger.info("Caching is disabled in the configuration.")
@@ -45,7 +50,7 @@ class CacheManager:
         hasher = hashlib.sha256()
         chunk_size = 65536  # 64KB
         try:
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 while chunk := f.read(chunk_size):
                     hasher.update(chunk)
             return hasher.hexdigest()
@@ -73,8 +78,12 @@ class CacheManager:
             return AnalysisReport.model_validate_json(json_data)
 
         except (ValidationError, TypeError, json.JSONDecodeError, Exception) as e:
-            logger.warning(f"Failed to load or validate cached report from {report_path}. Reason: {e}")
-            logger.warning("Cache may be corrupt or from an older version. Clearing workspace and rerunning.")
+            logger.warning(
+                f"Failed to load or validate cached report from {report_path}. Reason: {e}"
+            )
+            logger.warning(
+                "Cache may be corrupt or from an older version. Clearing workspace and rerunning."
+            )
             self.clear_workspace(file_hash)
             return None
 
@@ -92,7 +101,9 @@ class CacheManager:
             report_path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
             logger.info(f"Successfully saved analysis state to cache: {workspace_path}")
         except (OSError, PermissionError) as e:
-            logger.error(f"Failed to save report to cache at {workspace_path}. Caching may not work correctly. Reason: {e}")
+            logger.error(
+                f"Failed to save report to cache at {workspace_path}. Caching may not work correctly. Reason: {e}"
+            )
 
     def clear_workspace(self, file_hash: str):
         """Deletes the entire workspace directory for a given file hash."""
@@ -110,4 +121,3 @@ class CacheManager:
     def _get_workspace_path(self, file_hash: str) -> Path:
         """Constructs the full path to a specific analysis workspace directory."""
         return self.base_cache_dir / file_hash
-

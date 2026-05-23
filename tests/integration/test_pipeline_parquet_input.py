@@ -1,4 +1,5 @@
 """Integration: pipeline handles Parquet (.parquet) and Feather (.feather) input files."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -12,6 +13,7 @@ from tests.integration.conftest import MODULES_NO_LLM
 # ---------------------------------------------------------------------------
 # Session-scoped fixtures: generate columnar fixtures from the CSV once per run
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="session")
 def student_perf_parquet(tmp_path_factory) -> Path:
@@ -32,6 +34,7 @@ def student_perf_feather(tmp_path_factory) -> Path:
 # ---------------------------------------------------------------------------
 # Parquet tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.slow
 @pytest.mark.integration
@@ -119,6 +122,7 @@ def test_parquet_fast_mode_samples_randomly(tmp_path, student_perf_parquet):
 # ---------------------------------------------------------------------------
 # Feather tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.slow
 @pytest.mark.integration

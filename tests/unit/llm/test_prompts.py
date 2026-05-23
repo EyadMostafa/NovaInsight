@@ -1,4 +1,5 @@
 """Unit tests for LLM prompt builders."""
+
 from __future__ import annotations
 
 from sleuth.llm.prompts import (

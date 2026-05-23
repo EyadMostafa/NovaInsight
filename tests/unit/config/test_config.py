@@ -1,4 +1,5 @@
 """Unit tests for the config loading system."""
+
 from __future__ import annotations
 
 import pytest
@@ -16,6 +17,7 @@ from sleuth.exceptions import ConfigError
 # ---------------------------------------------------------------------------
 # Pure helper functions
 # ---------------------------------------------------------------------------
+
 
 class TestCleanEnvValue:
     def test_none_returns_none(self):
@@ -76,6 +78,7 @@ class TestCleanNestedDict:
 # ---------------------------------------------------------------------------
 # load_config: layer priority
 # ---------------------------------------------------------------------------
+
 
 class TestLoadConfig:
     def test_loads_default_config(self):

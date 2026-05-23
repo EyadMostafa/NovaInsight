@@ -1,4 +1,5 @@
 """Unit tests for StatisticalAnalyzer."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -11,6 +12,7 @@ from sleuth.modules.target_detector import TargetDetector
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _run_target(config, df, report, user_target=None):
     if user_target:
@@ -26,6 +28,7 @@ def _analyzer(test_config):
 # ---------------------------------------------------------------------------
 # Outlier detection
 # ---------------------------------------------------------------------------
+
 
 class TestDetectOutliers:
     def test_z_score_finds_extreme_values(self, test_config):
@@ -58,7 +61,9 @@ class TestDetectOutliers:
         result = a._compute_z_scores(col)
         assert result is None
 
-    def test_outlier_report_has_correct_keys(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_outlier_report_has_correct_keys(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         report = _run_target(test_config, titanic_small_df, report)
         report.metadata = report.metadata.model_copy(update={"task": "unsupervised"})
@@ -72,6 +77,7 @@ class TestDetectOutliers:
 # ---------------------------------------------------------------------------
 # Correlation helpers
 # ---------------------------------------------------------------------------
+
 
 class TestCorrelationHelpers:
     def test_dict_to_corr_matrix_symmetric(self, test_config):
@@ -121,6 +127,7 @@ class TestCorrelationHelpers:
 # Class imbalance
 # ---------------------------------------------------------------------------
 
+
 class TestClassImbalance:
     def test_imbalanced_target_triggers_finding(self, test_config, bare_report):
         a = _analyzer(test_config)
@@ -144,8 +151,11 @@ class TestClassImbalance:
 # Full run
 # ---------------------------------------------------------------------------
 
+
 class TestStatisticalAnalyzerRun:
-    def test_run_populates_statistical_analysis(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_run_populates_statistical_analysis(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         report = _run_target(test_config, titanic_small_df, report, user_target="Survived")
         result = _analyzer(test_config).run(titanic_small_df, report)
@@ -153,7 +163,9 @@ class TestStatisticalAnalyzerRun:
         assert result.statistical_analysis.outlier_report is not None
         assert result.statistical_analysis.correlation_report is not None
 
-    def test_correlation_csvs_written(self, test_config, bare_report, titanic_small_df, tmp_path, run_profiler):
+    def test_correlation_csvs_written(
+        self, test_config, bare_report, titanic_small_df, tmp_path, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         report = _run_target(test_config, titanic_small_df, report, user_target="Survived")
         _analyzer(test_config).run(titanic_small_df, report)
@@ -162,12 +174,16 @@ class TestStatisticalAnalyzerRun:
         csv_files = list(corr_dir.glob("*.csv"))
         assert len(csv_files) >= 1
 
-    def test_unsupervised_skips_leakage_check(self, test_config, bare_report, titanic_small_df, run_profiler):
+    def test_unsupervised_skips_leakage_check(
+        self, test_config, bare_report, titanic_small_df, run_profiler
+    ):
         report = run_profiler(test_config, titanic_small_df, bare_report)
         report.metadata = report.metadata.model_copy(update={"task": "unsupervised"})
         report.target_analysis = None
         result = _analyzer(test_config).run(titanic_small_df, report)
         assert result.statistical_analysis is not None
         # No leakage findings for unsupervised
-        leakage = [f for f in result.statistical_analysis.findings if "leakage" in f.message.lower()]
+        leakage = [
+            f for f in result.statistical_analysis.findings if "leakage" in f.message.lower()
+        ]
         assert len(leakage) == 0

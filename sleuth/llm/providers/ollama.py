@@ -13,6 +13,7 @@ response schema is provided.  Full JSON-schema enforcement requires Ollama
 ≥0.5 with a model that supports it; older versions return free-form JSON.
 The existing json_repair fallback in LLMSummarizer handles both cases.
 """
+
 from __future__ import annotations
 
 from typing import Any

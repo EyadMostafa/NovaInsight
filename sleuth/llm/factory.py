@@ -10,6 +10,7 @@ sessions) return the same provider object without re-initialising the SDK client
 Provider SDKs are imported lazily so uninstalled optional dependencies don't
 break imports for users who don't need them.
 """
+
 from __future__ import annotations
 
 from functools import lru_cache
@@ -82,16 +83,19 @@ def _create_provider_cached(
 
     if provider == "google":
         from sleuth.llm.providers.gemini import GeminiProvider
+
         logger.info(f"Initializing Gemini provider ({model_name})")
         return GeminiProvider(**cloud_kwargs)
 
     if provider == "anthropic":
         from sleuth.llm.providers.anthropic import AnthropicProvider
+
         logger.info(f"Initializing Anthropic provider ({model_name})")
         return AnthropicProvider(**cloud_kwargs)
 
     if provider == "ollama":
         from sleuth.llm.providers.ollama import OllamaProvider
+
         logger.info(f"Initializing Ollama provider ({model_name})")
         return OllamaProvider(
             model_name=model_name,
@@ -102,5 +106,6 @@ def _create_provider_cached(
         )
 
     from sleuth.llm.providers.openai import OpenAIProvider
+
     logger.info(f"Initializing OpenAI provider ({model_name})")
     return OpenAIProvider(**cloud_kwargs)

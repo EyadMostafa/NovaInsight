@@ -8,6 +8,7 @@ Loading priority (highest wins):
 2. config.yaml (or config.dev.yaml in dev env)
 3. Pydantic model defaults
 """
+
 from __future__ import annotations
 
 import logging
@@ -40,6 +41,7 @@ load_dotenv(find_dotenv(_ENV_FILENAME, usecwd=True), override=False)
 logger = get_logger("sleuth.config.config")
 
 # --- HELPERS ---
+
 
 def get_project_root() -> Path:
     return Path(__file__).parent.parent
@@ -78,6 +80,7 @@ def clean_nested_dict(d: Any) -> Any:
 # --- PYDANTIC MODELS ---
 class BaseSettings(BaseModel):
     model_config = ConfigDict(frozen=True)
+
 
 class GeneralSettings(BaseSettings):
     debug: bool = Field(False)
@@ -122,7 +125,7 @@ class StatisticsSettings(BaseSettings):
     outlier_zscore_threshold: float = Field(3.0)
     multicollinearity_vif_threshold: float = Field(10.0)
     outlier_warning_threshold: float = Field(0.05)
-    outlier_detection_method: Literal['mz-score', 'z-score'] = Field('mz-score')
+    outlier_detection_method: Literal["mz-score", "z-score"] = Field("mz-score")
     spearman_correlation_threshold: float = Field(0.85)
     cramers_v_correlation_threshold: float = Field(0.5)
     correlation_ratio_threshold: float = Field(0.6)
@@ -135,14 +138,14 @@ class StatisticsSettings(BaseSettings):
 
 
 class DimensionalityReduction(BaseSettings):
-    imputation_method: Literal['median', 'mean'] = Field('median')
+    imputation_method: Literal["median", "mean"] = Field("median")
     pca_n_ratios: int = Field(10)
     tsne_perplexity: float = Field(30.0)
     tsne_max_iter: int = Field(1000)
-    tsne_learning_rate: Literal['auto'] | float = Field('auto')
+    tsne_learning_rate: Literal["auto"] | float = Field("auto")
     umap_n_neighbors: int = Field(15)
     umap_min_dist: float = Field(0.1)
-    umap_metric: str = Field('euclidean')
+    umap_metric: str = Field("euclidean")
 
 
 class VisualizationSettings(BaseSettings):
@@ -171,12 +174,15 @@ class SleuthConfig(BaseSettings):
     profiler: ProfilerSettings = Field(default_factory=ProfilerSettings)
     target_detection: TargetDetectionSettings = Field(default_factory=TargetDetectionSettings)
     statistics: StatisticsSettings = Field(default_factory=StatisticsSettings)
-    dimensionality_reduction: DimensionalityReduction = Field(default_factory=DimensionalityReduction)
+    dimensionality_reduction: DimensionalityReduction = Field(
+        default_factory=DimensionalityReduction
+    )
     visualization: VisualizationSettings = Field(default_factory=VisualizationSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)
 
 
 # --- LOGGING SETUP ---
+
 
 def setup_logging(cfg: SleuthConfig) -> None:
     root_logger = logging.getLogger()
@@ -184,14 +190,17 @@ def setup_logging(cfg: SleuthConfig) -> None:
     root_logger.setLevel(log_level)
     if not root_logger.handlers:
         handler = logging.StreamHandler()
-        handler.setFormatter(ColorFormatter(
-            "[%(asctime)s] [%(levelname)s] [%(name)s] --- %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
-        ))
+        handler.setFormatter(
+            ColorFormatter(
+                "[%(asctime)s] [%(levelname)s] [%(name)s] --- %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
         root_logger.addHandler(handler)
 
 
 # --- ENVIRONMENT VARIABLE MAPPING ---
+
 
 def load_environment_variables() -> dict[str, Any]:
     def get(key: str) -> str | None:
@@ -224,6 +233,7 @@ def load_environment_variables() -> dict[str, Any]:
 
 
 # --- LOADER ---
+
 
 def load_config(path: str | Path | None = None) -> SleuthConfig:
     config_path = Path(path) if path else get_project_root() / f"config/{_YAML_FILENAME}"
