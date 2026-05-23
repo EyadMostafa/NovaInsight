@@ -8,4 +8,5 @@ from sleuth.modules import (  # noqa: F401
     dimensionality_reducer,
     visualizer,
     llm_summarizer,
+    report_generator,
 )
