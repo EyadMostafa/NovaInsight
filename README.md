@@ -1,74 +1,150 @@
-# Sleuth — Autonomous Data Diagnostics
+<div align="center">
 
-Sleuth is a CLI tool that performs end-to-end Exploratory Data Analysis on tabular data. It runs a deterministic statistical pipeline, then uses an LLM to synthesise the findings into a narrative HTML report — all from a single command.
+# 🔍 Sleuth
 
-[View Sample Outputs](https://eyadmostafa.github.io/Sleuth/)
+**Autonomous Exploratory Data Analysis — from raw file to narrative report in one command.**
+
+[![Python](https://img.shields.io/badge/python-3.10%2B-4B8BBE?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-22c55e)](./LICENSE)
+[![CI](https://github.com/EyadMostafa/sleuth/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/EyadMostafa/sleuth/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-81%25-22c55e)](./coverage.xml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Docker](https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white)](./Dockerfile)
+
+[**View Sample Output →**](https://eyadmostafa.github.io/Sleuth/)
+
+</div>
+
+---
+
+Sleuth runs a deterministic statistical pipeline over any tabular dataset, then feeds the computed numbers to an LLM to write a plain-English narrative — executive summary, key findings, and prioritised recommendations. The LLM never sees raw data; it only interprets pre-computed statistics.
+
+> **Analyst, not cleaner.** Sleuth diagnoses your data. It never mutates it.
 
 ---
 
 ## How it works
 
-Sleuth separates analysis from interpretation into two distinct layers:
-
-**Quantitative Brain** — deterministic. Pandas, SciPy, Statsmodels, and scikit-learn calculate objective facts: type inference, missing value rates, outlier scores, VIF, correlation matrices, dimensionality reduction embeddings. Nothing is guessed.
-
-**Language Brain** — probabilistic. A pluggable LLM provider (Gemini, Claude, or OpenAI) receives the computed statistics and writes the executive summary, key findings, and prioritised recommendations. The LLM never sees raw data — only pre-computed numbers.
+```
+CSV / XLSX / Parquet / Feather
+          │
+          ▼
+┌─────────────────────────────────────────────┐
+│           Quantitative Brain                │  deterministic
+│                                             │
+│  Profiler → Target → Stats → DimReduce → Viz│
+│  (pandas · scipy · sklearn · umap · seaborn)│
+└────────────────────┬────────────────────────┘
+                     │  structured JSON findings
+                     ▼
+┌─────────────────────────────────────────────┐
+│             Language Brain                  │  probabilistic
+│                                             │
+│   Gemini · Claude · OpenAI · Ollama (local) │
+└────────────────────┬────────────────────────┘
+                     │
+                     ▼
+            Self-contained HTML report
+```
 
 ---
 
 ## Features
 
-| | |
+| Module | What it does |
 |---|---|
-| Data Profiling | Type inference, missing value analysis, cardinality, skewness, memory usage |
-| Target Detection | Heuristic scoring to automatically identify the supervised target and task type |
-| Outlier Detection | Modified Z-score (MAD-based) per numeric column |
-| Correlation Analysis | Three matrices — Spearman (Num↔Num), Cramér's V (Cat↔Cat), Correlation Ratio (Cat↔Num) |
-| Multicollinearity | VIF per feature with configurable threshold |
-| Data Leakage | Flags features whose correlation with the target exceeds a leakage threshold |
-| Dimensionality Reduction | PCA, t-SNE, and UMAP embeddings with scatter plots |
-| Visualisation | Univariate, bivariate, and heatmap galleries; plots coloured by target or cluster label |
-| LLM Narrative | Executive summary, dataset overview, findings, warnings, and ranked recommendations |
-| Fast Mode | Samples the first N rows for a structural spot-check on large files |
-| Parallel Execution | Wave-based `ThreadPoolExecutor` — independent modules run concurrently |
-| Smart Caching | Persists each run to `~/.sleuth_cache`; resumes interrupted pipelines automatically |
-| Single-File Reports | Self-contained HTML with base64-embedded images — share via email with no attachments |
+| **Data Profiler** | Type inference, missing values, cardinality, skewness, memory usage per column |
+| **Target Detector** | Heuristic scoring to identify the supervised ML target and task type automatically |
+| **Statistical Analyzer** | Outlier detection (MAD-based), VIF multicollinearity, Spearman / Cramér's V / Correlation Ratio matrices, data leakage flags, class imbalance |
+| **Dimensionality Reducer** | PCA variance decomposition, t-SNE and UMAP 2-D embeddings |
+| **Visualizer** | Univariate, bivariate, heatmap, and embedding scatter plot galleries |
+| **LLM Summarizer** | Executive summary, per-finding narrative, ranked actionable recommendations |
+| **Report Generator** | Self-contained HTML with base64-embedded images — share by email, no attachments |
+
+**Pipeline features**
+
+- ⚡ **Parallel execution** — wave-based `ThreadPoolExecutor`; independent modules run concurrently
+- 💾 **Smart caching** — SHA-256-keyed cache resumes interrupted runs automatically
+- 🔌 **Pluggable LLMs** — Gemini, Claude, OpenAI, or any local model via Ollama
+- 📄 **Multiple formats** — CSV, XLSX, Parquet, Feather
+- 🚀 **Fast mode** — samples N rows for a quick structural spot-check on large files
+
+---
+
+## Tech Stack
+
+<div align="center">
+
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-150458?logo=pandas&logoColor=white)
+![NumPy](https://img.shields.io/badge/NumPy-013243?logo=numpy&logoColor=white)
+![SciPy](https://img.shields.io/badge/SciPy-8CAAE6?logo=scipy&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikitlearn&logoColor=white)
+![Pydantic](https://img.shields.io/badge/Pydantic-E92063?logo=pydantic&logoColor=white)
+![Click](https://img.shields.io/badge/Click-000000?logo=python&logoColor=white)
+![Jinja2](https://img.shields.io/badge/Jinja2-B41717?logo=jinja&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white)
+
+</div>
+
+---
+
+## Quick Start
+
+### Docker (no install required)
+
+```bash
+docker pull ghcr.io/eyadmostafa/sleuth:latest
+
+docker run --rm \
+  -v /path/to/your/data:/work \
+  -e SLEUTH_LLM_PROVIDER=gemini \
+  -e SLEUTH_LLM_API_KEY=your_key \
+  ghcr.io/eyadmostafa/sleuth:latest analyze /work/yourfile.csv
+```
+
+Output lands in `/path/to/your/data/sleuth_reports/`.
+
+### pip
+
+```bash
+git clone https://github.com/EyadMostafa/sleuth.git
+cd sleuth
+pip install -e ".[gemini]"         # or [anthropic] / [openai] / [all-providers]
+
+sleuth analyze yourfile.csv
+```
 
 ---
 
 ## Installation
 
-**Prerequisites:** Python 3.10+
+**Requirements:** Python 3.10+
 
 ```bash
 git clone https://github.com/EyadMostafa/sleuth.git
 cd sleuth
+python -m venv .venv
+
+# macOS / Linux
+source .venv/bin/activate
+
+# Windows
+.venv\Scripts\activate
 ```
 
-**macOS / Linux**
-```bash
-python3 -m venv .venv && source .venv/bin/activate
-```
-
-**Windows**
-```bash
-python -m venv .venv && .venv\Scripts\activate
-```
-
-```bash
-pip install -e .
-```
-
-**LLM providers** are optional extras — install only what you need:
+Install the core package plus your preferred LLM provider:
 
 ```bash
-pip install -e ".[gemini]"       # Google Gemini (default)
-pip install -e ".[anthropic]"    # Anthropic Claude
-pip install -e ".[openai]"       # OpenAI
-pip install -e ".[all-providers]" # all three
+pip install -e ".[gemini]"          # Google Gemini  (default)
+pip install -e ".[anthropic]"       # Anthropic Claude
+pip install -e ".[openai]"          # OpenAI
+pip install -e ".[ollama]"          # Local model via Ollama (no API key needed)
+pip install -e ".[all-providers]"   # All of the above
 ```
 
-All non-LLM modules (profiler, stats, dim reduction, viz) run without any API key.
+The quantitative pipeline (profiler, stats, plots, dim reduction) runs with no LLM and no API key.
 
 ---
 
@@ -77,21 +153,28 @@ All non-LLM modules (profiler, stats, dim reduction, viz) run without any API ke
 Create a `.env` file at the project root:
 
 ```env
-SLEUTH_LLM_API_KEY=your_api_key_here
-SLEUTH_LLM_PROVIDER=google          # google | anthropic | openai
+SLEUTH_LLM_PROVIDER=google              # google | anthropic | openai | ollama
+SLEUTH_LLM_API_KEY=your_api_key_here    # not required for ollama
 SLEUTH_LLM_MODEL_NAME=models/gemini-flash-latest   # optional override
 ```
 
-Fine-grained tuning is done in `sleuth/config/config.yaml`:
+For a local Ollama model (no API key, no data leaving your machine):
+
+```env
+SLEUTH_LLM_PROVIDER=ollama
+SLEUTH_LLM_MODEL_NAME=llama3.2
+SLEUTH_LLM_BASE_URL=http://localhost:11434   # optional — this is the default
+```
+
+Fine-grained tuning lives in `sleuth/config/config.yaml`:
 
 ```yaml
 analysis:
-  fast_mode_sample_rows: 50000     # rows sampled in --mode fast
+  fast_mode_sample_rows: 50000
 
 statistics:
   outlier_zscore_threshold: 3.0
   multicollinearity_vif_threshold: 10.0
-  spearman_correlation_threshold: 0.85
   spearman_leakage_threshold: 0.98
 
 dimensionality_reduction:
@@ -112,49 +195,101 @@ visualization:
 sleuth analyze FILE_PATH [OPTIONS]
 ```
 
-### Options
-
 | Flag | Default | Description |
 |---|---|---|
-| `--task` | `supervised` | `supervised` — detect target and structure analysis around prediction. `unsupervised` — skip target detection, focus on clustering. |
-| `--target COLUMN` | auto-detected | Manually pin the supervised target variable. |
-| `--mode` | `full` | `full` — analyse entire file. `fast` — sample first N rows (see `config.yaml`). |
-| `--modules LIST` | all | Comma-separated subset to run: `profiler,target,stats,dim_reduction,viz,llm` |
-| `--output-dir PATH` | `.` | Root directory for `Sleuth_reports/` output folder. |
+| `--task` | `supervised` | `supervised` — detect target, structure analysis around prediction. `unsupervised` — skip target detection, focus on clustering. |
+| `--target COLUMN` | auto-detected | Pin the supervised target variable. |
+| `--mode` | `full` | `full` — analyse entire file. `fast` — sample first N rows (configured in `config.yaml`). |
+| `--modules LIST` | all | Comma-separated subset: `profiler,target,stats,dim_reduction,viz,llm,report` |
+| `--output-dir PATH` | `.` | Root directory for the `sleuth_reports/` output folder. |
 | `--title TEXT` | filename | Custom title for the report and output folder. |
-| `--force-rerun` | off | Ignore cached results and recompute everything. |
+| `--force-rerun` | off | Ignore cached results and recompute from scratch. |
 
 ### Examples
 
 ```bash
-# Supervised run — auto-detect target, full pipeline
+# Full pipeline — auto-detect target, LLM narrative, HTML report
 sleuth analyze titanic.csv
 
-# Unsupervised — clustering and structure discovery
-sleuth analyze customer_data.csv --task unsupervised
+# Unsupervised — structure discovery, no target
+sleuth analyze customer_segments.csv --task unsupervised
 
-# Fast structural check on a large file
+# Quick structural check on a large file
 sleuth analyze huge_dataset.csv --mode fast
 
-# Pin target, set report title, write to a specific directory
+# Pin target, custom output
 sleuth analyze housing.csv --target SalePrice --title "Housing Q3" --output-dir ./reports
 
-# Run only profiling and statistics (skip plots and LLM)
-sleuth analyze data.csv --modules profiler,stats
+# Quantitative only — skip LLM and report generation
+sleuth analyze data.csv --modules profiler,stats,dim_reduction,viz
+
+# Specific target, specific modules
+sleuth analyze data.csv --target churn --modules profiler,target,stats
 ```
 
 ---
 
 ## Output
 
-Each run creates a folder at `sleuth_reports/<title>/`:
+Each run writes to `<output-dir>/sleuth_reports/<title>/`:
 
 ```
-report_<title>.html    # self-contained HTML dashboard (base64 images embedded)
-report.json            # full AnalysisReport as machine-readable JSON
-plots/                 # high-res PNGs — univariate, bivariate, heatmaps, embeddings
-correlations/          # Spearman, Cramér's V, Correlation Ratio matrices (.csv)
-embeddings/            # PCA, t-SNE, UMAP coordinates (.csv)
+report_<title>.html       ← self-contained HTML dashboard (images base64-embedded)
+report.json               ← full AnalysisReport as machine-readable JSON
+plots/
+  ├── univariate/         ← distribution plots per column
+  ├── bivariate/          ← feature-vs-target scatter / box plots
+  └── heatmaps/           ← Spearman, Cramér's V, Correlation Ratio
+correlations/
+  ├── numerical_corr.csv
+  ├── categorical_corr.csv
+  └── categorical_numerical_corr.csv
+embeddings/
+  ├── pca_embeddings.csv
+  ├── tsne_embeddings.csv
+  └── umap_embeddings.csv
 ```
 
-The cache lives separately at `~/.sleuth_cache/<sha256_of_file>/report.json` and is reused automatically on subsequent runs against the same file.
+A cache entry is also written to `~/.sleuth_cache/<sha256_of_file>/report.json` and reused automatically on subsequent runs against the same file.
+
+---
+
+## Docker
+
+Build locally:
+
+```bash
+docker build -t sleuth:dev .
+
+# With all LLM providers
+docker build --build-arg EXTRAS=all-providers -t sleuth:all .
+```
+
+Run with a bind-mounted data directory:
+
+```bash
+docker run --rm \
+  -v /path/to/data:/work \
+  -e SLEUTH_LLM_PROVIDER=gemini \
+  -e SLEUTH_LLM_API_KEY=your_key \
+  sleuth:dev analyze /work/yourfile.csv --mode fast
+```
+
+A `docker-compose.yml` is also provided for persistent volume and environment variable management:
+
+```bash
+# set SLEUTH_LLM_API_KEY in your environment or a .env file, then:
+docker compose up
+```
+
+---
+
+## Contributing
+
+Contributions are welcome. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for the branch strategy, commit conventions, and how to run the test suite before opening a PR.
+
+---
+
+## License
+
+[MIT](./LICENSE) © Eyad Mostafa
