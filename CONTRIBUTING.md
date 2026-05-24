@@ -19,8 +19,6 @@ Always branch from `dev`, not `main`.
 
 ## Commit Convention
 
-One line only — no body, no bullet points:
-
 ```
 feat: <short imperative description>
 fix: <short imperative description>
@@ -100,8 +98,6 @@ CI enforces both `ruff check` and `ruff format --check`. Fix any violations befo
 5. Add unit and integration tests under `tests/`.
 
 The orchestrator derives execution order automatically via topological sort — no changes to `orchestrator.py` needed.
-
-See [CLAUDE.md](./CLAUDE.md) for full architecture conventions.
 
 ---
 
