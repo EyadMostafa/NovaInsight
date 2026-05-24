@@ -12,7 +12,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from sleuth.config.config import CacheSettings
+from sleuth.config.config import CacheSettings, SleuthConfig
 from sleuth.exceptions import CacheError
 from sleuth.schemas.analysis_report import AnalysisReport
 from sleuth.utils.logger import get_logger
@@ -46,7 +46,7 @@ class CacheManager:
             logger.info("Caching is disabled in the configuration.")
 
     def hash_file(self, file_path: Path) -> str:
-        """Computes the SHA256 hash of a file's content."""
+        """Computes the SHA-256 hash of a file's raw bytes."""
         hasher = hashlib.sha256()
         chunk_size = 65536  # 64KB
         try:
@@ -56,6 +56,41 @@ class CacheManager:
             return hasher.hexdigest()
         except (OSError, PermissionError) as e:
             raise CacheError(f"Could not read file for hashing: {file_path}. Reason: {e}") from e
+
+    @staticmethod
+    def _config_fingerprint(config: SleuthConfig, analysis_mode: str) -> str:
+        """
+        Returns a SHA-256 of the config fields that materially affect analysis
+        output. Fields that only affect logging, caching, or output paths are
+        intentionally excluded so they do not bust the cache.
+        """
+        fingerprint = {
+            "analysis_mode": analysis_mode,
+            "fast_mode_sample_rows": config.analysis.fast_mode_sample_rows,
+            "profiler": config.profiler.model_dump(),
+            "target_detection": config.target_detection.model_dump(),
+            "statistics": config.statistics.model_dump(),
+            "dimensionality_reduction": config.dimensionality_reduction.model_dump(),
+            "visualization": config.visualization.model_dump(),
+            "llm": {
+                "provider": config.llm.provider,
+                "model_name": config.llm.model_name,
+                "temperature": config.llm.temperature,
+                "max_tokens": config.llm.max_tokens,
+            },
+        }
+        canonical = json.dumps(fingerprint, sort_keys=True)
+        return hashlib.sha256(canonical.encode()).hexdigest()
+
+    def compute_cache_key(self, file_path: Path, config: SleuthConfig, analysis_mode: str) -> str:
+        """
+        Returns the cache workspace key — a SHA-256 of both the file content
+        and the analysis-affecting config. Any threshold or model change
+        produces a new key and triggers a fresh run automatically.
+        """
+        file_hash = self.hash_file(file_path)
+        cfg_hash = self._config_fingerprint(config, analysis_mode)
+        return hashlib.sha256(f"{file_hash}:{cfg_hash}".encode()).hexdigest()
 
     def load_report(self, file_hash: str) -> AnalysisReport | None:
         """

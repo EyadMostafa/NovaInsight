@@ -159,7 +159,9 @@ class AnalysisPipeline:
         if file_extension == ".csv":
             self._csv_delimiter = self._detect_csv_delimiter()
 
-        file_hash = self.cache_manager.hash_file(self.file_path)
+        file_hash = self.cache_manager.compute_cache_key(
+            self.file_path, self.config, self.analysis_mode
+        )
 
         if self.force_rerun:
             logger.info("Force rerun requested. Clearing any existing cache for this dataset.")
