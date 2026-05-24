@@ -44,8 +44,6 @@ jobs:
   container-scan:
     name: Container vulnerability scan
     runs-on: ubuntu-latest
-    # Only run if a Dockerfile is present
-    if: hashFiles('Dockerfile') != ''
     steps:
       - uses: actions/checkout@v4
 
