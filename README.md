@@ -95,13 +95,13 @@ CSV / XLSX / Parquet / Feather
 ### Docker (no install required)
 
 ```bash
-docker pull ghcr.io/eyadmostafa/sleuth:latest
+docker pull eyadmostafa/sleuth:latest
 
 docker run --rm \
   -v /path/to/your/data:/work \
   -e SLEUTH_LLM_PROVIDER=gemini \
   -e SLEUTH_LLM_API_KEY=your_key \
-  ghcr.io/eyadmostafa/sleuth:latest analyze /work/yourfile.csv
+  eyadmostafa/sleuth:latest analyze /work/yourfile.csv
 ```
 
 Output lands in `/path/to/your/data/sleuth_reports/`.
@@ -259,6 +259,10 @@ A cache entry is also written to `~/.sleuth_cache/<sha256_of_file>/report.json` 
 Build locally:
 
 ```bash
+# Pull from Docker Hub
+docker pull eyadmostafa/sleuth:latest
+
+# Or build locally
 docker build -t sleuth:dev .
 
 # With all LLM providers
@@ -272,7 +276,7 @@ docker run --rm \
   -v /path/to/data:/work \
   -e SLEUTH_LLM_PROVIDER=gemini \
   -e SLEUTH_LLM_API_KEY=your_key \
-  sleuth:dev analyze /work/yourfile.csv --mode fast
+  eyadmostafa/sleuth:latest analyze /work/yourfile.csv --mode fast
 ```
 
 A `docker-compose.yml` is also provided for persistent volume and environment variable management:
