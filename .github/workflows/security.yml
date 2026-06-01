@@ -24,7 +24,7 @@ jobs:
         run: pip install -e ".[all-providers]"
 
       - name: pip-audit (known CVEs)
-        run: pip-audit --strict
+        run: pip-audit --strict --skip-editable
 
       - name: bandit (static security scan)
         run: bandit -q -r sleuth -ll
