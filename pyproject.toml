@@ -27,7 +27,7 @@ dependencies = [
     'seaborn>=0.12',
     'python-toon>=0.1.3',
     'Jinja2>=3.0',
-    'json-repair>=0.30',
+    'json-repair>=0.59.10',
 
     # --- Anticipated Dependencies ---
 
