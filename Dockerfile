@@ -2,7 +2,7 @@
 
 # Stage 1: builder
 
-FROM python:3.11-slim-bookworm AS builder
+FROM python:3.14-slim-bookworm AS builder
 
 ARG EXTRAS=gemini
 
@@ -31,7 +31,7 @@ RUN pip install --upgrade pip wheel \
 
 # Stage 2: runtime
 
-FROM python:3.11-slim-bookworm AS runtime
+FROM python:3.14-slim-bookworm AS runtime
 
 # matplotlib needs libgomp1 for OpenMP-linked numpy/scipy wheels on some arches
 RUN apt-get update && apt-get install -y --no-install-recommends \
