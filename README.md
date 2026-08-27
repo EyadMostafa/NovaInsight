@@ -11,7 +11,7 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Docker](https://img.shields.io/badge/docker-ready-2496ED?logo=docker&logoColor=white)](./Dockerfile)
 
-[**View Sample Output →**](https://eyadmostafa.github.io/NovaInsight/)
+[**View Sample Output →**](https://eyadmostafa.github.io/sleuth/)
 
 </div>
 
